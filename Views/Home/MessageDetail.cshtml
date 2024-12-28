@@ -1,0 +1,80 @@
+﻿@{
+	if (ViewBag.MessageList.Count != 0)
+    {
+		@foreach (var item in ViewBag.MessageList)
+        {
+			@if (item.nType == 0) //to me
+			{
+				<li class="external_message participation_message participation_message relation">
+					<div class="avatar">
+						<span class="icon" data-icon="5"></span>
+					</div>
+					<div class="bubble @(ViewBag.Type == 3 ? "" : "expandable")">
+						<div class="header">
+							<span>
+								<span class="from"></span>
+							</span>
+							<div class="container">
+								<span class="participants_icon" data-icon=""></span>
+								<img src="~/assets/content/img/s-logo.png" class="via icon" data-channel="4">
+								<span class="date">@(item.em_date.ToString("MMM dd, hh:mm"))</span>
+							</div>
+						</div>
+						<div class="bubble_inner_content ">
+							<div class="message_text">
+								<span class="html_content message">
+									@if (ViewBag.Type == 1 || ViewBag.Type == 2)
+									{
+										<iframe srcdoc="@item.em_body" style="border: none; width: 100%; height: 220px"></iframe>
+									}
+									else
+									{
+										@item.em_body
+									}
+								</span>
+								<span class="conversation_as_html html_content"></span>
+							</div>
+						</div>
+					</div>
+				</li>
+			}
+			else
+			{
+				<li class="external_message participation_message participation_message user owner">
+					<div class="avatar">
+						<img src="~/assets/content/img/s-logo.png">
+						<span class="owner_icon" data-icon="~"></span>
+					</div>
+					<div class="bubble @(ViewBag.Type == 3 ? "" : "expandable")">
+						<div class="header">
+							<span>
+								<span class="from">Attentify</span>
+							</span>
+							<div class="container">
+								<span class="participants_icon" data-icon=""></span>
+								<img src="~/assets/content/img/transparent_light.svg" class="via icon" data-channel="4">
+								<span class="date" data-datetime="1733277139090">@(item.em_date.ToString("MMM dd, hh:mm"))</span>
+							</div>
+						</div>
+						<div class="bubble_inner_content ">
+							<div class="message_text">
+								<span class="html_content message">
+									@if(ViewBag.Type == 1 || ViewBag.Type == 2)
+									{
+										<iframe srcdoc="@item.em_body" style="border: none; width: 100%; height: 220px"></iframe>
+									}
+									else
+									{
+										@item.em_body
+									}
+								</span>
+								<span class="conversation_as_html html_content"></span>
+							</div>
+						</div>
+					</div>
+				</li>
+			}
+			<li class="insertpoint"></li>
+        }
+    }
+}

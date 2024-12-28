@@ -1,0 +1,64 @@
+﻿@{
+	Layout = "_Layout";
+	ViewBag.title = "SMS";
+}
+
+<div class="row page-titles mx-0">
+	<div class="col p-md-0">
+		<ol class="breadcrumb">			
+			<li class="breadcrumb-item active"><a href="javascript:void(0)">SMS</a></li>
+		</ol>
+	</div>
+</div>
+
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-lg-12">
+			<div class="card">
+				<div class="card-body">
+					<div class="email-left-box">
+						<div class="mail-list mt-4 phone-users">
+                            @foreach (var phone in ViewBag.lstPhone)
+                            {
+								<div class="inbox-item @(phone == ViewBag.phone ? "active" : "")" data-phone="@phone">
+                                    <div class="inbox-item-img"><img src="~/images/user/form-user.png" class="rounded-circle" alt=""></div>
+                                    <p class="inbox-item-author">@phone</p>                                                            
+                                </div>
+                            }
+						</div>
+					</div>
+					<div class="email-right-box">						
+						<div class="row">
+                            <div class="col-xl-12">
+                                <div class="card-box">
+                                    <h4 class="header-title mb-3">SMS</h4>
+                                    <div class="chat-conversation">                                        
+                                        <ul class="conversation-list slimscroll" data-from="" style="max-height: 450px; min-height: 400px;">                                            
+                                        </ul>
+                                        <div class="input-group mb-3">
+                                            <input type="text" class="form-control text-sms">
+                                            <div class="input-group-append">
+                                                <button class="btn btn-success btn-sm btn-response" type="button">Response</button>
+                                                <button class="btn btn-warning btn-sm btn-process" type="button">Process</button>
+                                            </div>
+                                        </div>                                        
+                                    </div> <!-- .chat-conversation -->
+                                </div> <!-- end card-box-->
+                            </div>
+						</div>						
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-lg-12">
+			<div class="mobile-card-body d-none">
+				<div class="card-box">
+					<div class="order-info" id="order_info">
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

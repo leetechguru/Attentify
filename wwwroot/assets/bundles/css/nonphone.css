@@ -1,0 +1,871 @@
+/* 
+    Application CSS 
+*/
+body {
+    background: #000;
+}
+
+.tabcontent {
+    position: absolute;
+    top: 55px;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+.jspPane {
+    overflow-x: hidden;
+}
+
+.dashboard_content .widgets {
+    display: block;
+}
+
+.dashboard .feature_requests,
+.dashboard .logout,
+.dashboard .headerlogo,
+.dashboard .support,
+.dashboard .show_wizard {
+    display: inline-block;
+}
+
+.inboxitem span.initialmessage {
+    max-width: 322px;
+}
+
+@media only screen and (max-device-width: 640px) {
+    body {
+        background: none;
+    }
+
+    .tabcontent {
+        position: absolute;
+        top: 0px;
+        right: 0;
+        bottom: 0;
+        left: 0;
+    }
+}
+
+/* 
+    END Application CSS 
+*/
+
+/* 
+    Dashboard CSS
+*/
+
+@media only screen and (max-device-width: 640px) {
+    .dashboard .inbox_column {
+        width: 100%;
+        margin-right: 12px;
+        border-right: 1px solid #9FA4A9;
+    }
+
+    li.inbox_list .inbox {
+        background: #fff none;
+        background-color: #fff;
+    }
+
+    .jspHorizontalBar {
+        display: none;
+    }
+
+    .dashboard_content {
+        top: 0px;
+    }
+
+        .dashboard_content .widgets {
+            display: none;
+        }
+}
+
+@media only screen and (min-device-width: 640px) and (max-device-width: 940px) {
+    .dashboard.wizard .widget.welcome {
+        display: none;
+    }
+
+    .dashboard .show_wizard {
+        display: none;
+    }
+
+    .dashboard .inbox_column {
+        width: 300px;
+        margin-right: 12px;
+        border-right: 1px solid #9FA4A9;
+    }
+
+    li.inbox_list .inbox {
+        background: #fff none;
+        background-color: #fff;
+    }
+
+    .jspHorizontalBar {
+        display: none;
+    }
+
+    .dashboard_content .widgets {
+        left: 300px;
+    }
+
+    .dashboard_content .two_column {
+        width: 600px; /* needed for ipad */
+    }
+
+    .dashboard_content .welcome {
+        display: none;
+    }
+
+    .dashboard_content .widget .content_inner {
+        height: 236px;
+        width: 260px;
+    }
+
+        .dashboard_content .widget .content_inner .loading {
+            width: 564px;
+            text-align: center
+        }
+
+    .dashboard_content .widget .content .jcarousel-clip-horizontal {
+        width: 260px;
+        height: 236px;
+    }
+
+    .dashboard_content .widget .content .jcarousel-container-horizontal {
+        width: 260px;
+        padding: 0px 0px;
+    }
+}
+
+/* ipad landscape */
+@media only screen and (min-device-width : 768px) and (max-device-width : 1024px) and (orientation : landscape), only screen and (min-device-width: 940px) and (max-device-width: 1024px) {
+
+    .dashboard.wizard .widget.welcome {
+        display: block;
+    }
+
+    .dashboard .show_wizard {
+        display: inline-block;
+    }
+
+    .dashboard .inbox_column {
+        width: 320px;
+    }
+
+    .dashboard_content .widgets {
+        left: 320px;
+    }
+
+    .dashboard_content .two_column {
+        width: 600px;
+    }
+
+    .dashboard_content .welcome {
+        display: block;
+    }
+
+    .dashboard_content .widget .content_inner {
+        height: 236px;
+        width: 564px;
+    }
+
+        .dashboard_content .widget .content_inner .loading {
+            width: 564px;
+            text-align: center
+        }
+
+    .dashboard_content .widget .content .jcarousel-clip-horizontal {
+        width: 564px;
+        height: 236px;
+    }
+
+    .dashboard_content .widget .content .jcarousel-container-horizontal {
+        width: 564px;
+        padding: 0px 0px;
+    }
+}
+
+html .search_conversations input[type="search"] {
+    width: 320px;
+}
+
+/* ipad landscape */
+@media only screen and (min-device-width : 768px) and (max-device-width : 1024px) and (orientation : landscape) {
+    .panels_inner {
+        width: 0;
+        display: none;
+    }
+
+    .right_shadow {
+        right: 0px;
+    }
+}
+
+@media only screen and (min-device-width: 1024px) {
+    .dashboard_content .inbox_column {
+        width: 420px;
+    }
+
+    .dashboard_content .widgets {
+        left: 421px;
+    }
+}
+
+/* 
+    END Dashboard CSS
+*/
+
+/*
+    Inbox-header CSS
+*/
+@media only screen and (max-device-width: 640px) {
+    html .search_conversations input[type="search"] {
+        right: 63px;
+        left: 2px;
+        width: auto;
+        position: absolute;
+    }
+
+    .search_conversations .close {
+        right: 70px;
+        left: auto;
+    }
+
+    .inbox .header .selector {
+        width: 100%;
+    }
+}
+
+.inboxitem .initiator {
+    max-width: 180px;
+}
+
+/*
+    END Inbox-header CSS
+*/
+
+
+/*
+    Conversation CSS
+*/
+.external_recipients input {
+    width: 225px;
+}
+
+.conversation_header .button.commands_button {
+    display: none;
+}
+
+.conversation_header .button span.text {
+    font-size: 1.5em;
+}
+
+.conversation_header .button div {
+    padding: 0px 24px 0px 22px;
+}
+
+.conversation_header .button span.image {
+    margin-left: 0;
+}
+
+.history_area .bubble_list > li.auto_message,
+.history_area .bubble_list > li.participation_message,
+.history_area .bubble_list > li.template_participation_message,
+.history_area .bubble_list > li.participation_message.external_message, .bubble_list > li.suggestions,
+.history_area .bubble_list > li.template_participation_message.external_message, .bubble_list > li.suggestions {
+    width: 100%;
+}
+
+.history_area .bubble_list > li.system_message {
+    width: 100%;
+}
+
+.history_area {
+    bottom: 230px; /* height of create_message */
+    outline: none;
+    width: 50%;
+}
+
+    .history_area .bubble_list .internal_message .avatar {
+        margin-right: 1rem;
+        display: block;
+    }
+
+    .history_area .bubble_list .internal_message.owner .avatar {
+        float: left;
+        margin-left: -11px;
+        border-radius: 50%;
+        overflow: hidden;
+    }
+
+        .history_area .bubble_list .internal_message.owner .avatar .badge {
+            left: 50.6%;
+        }
+
+    .history_area .bubble_list .internal_message .bubble,
+    .history_area .bubble_list .internal_message .ai_suggestion_information_container {
+        visibility: visible;
+        margin-left: 2.5rem;
+        margin-right: 5rem;
+    }
+
+.bubble_list .auto_message .bubble, .bubble_list .participation_message .bubble {
+    margin-left: 4.7rem;
+    margin-right: 2rem;
+}
+
+.history_area .conversation.history .messagebar {
+    display: block;
+}
+
+.conversation:before {
+    content: "";
+    width: 2px;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: block;
+    background: RGBA(52,64, 85, 0.1);
+    margin: auto;
+}
+
+.conversation_header .conversation_header_left {
+    width: calc(100% - 512px);
+}
+
+.bubble_list .external_message.owner .avatar .badge {
+    right: -20px;
+}
+
+#internal-container .message_area a.add_button.participantpopup_button {
+    display: inline-flex;
+    margin-left: auto;
+    position: relative;
+    top: 3px;
+}
+
+.conversation_header .fullscreen_buttons {
+    display: inherit;
+    margin-left: auto;
+}
+
+.bubble_list .external_message.bot .avatar,
+.bubble_list .external_message.owner .avatar {
+    float: right;
+    margin-right: 10px;
+}
+
+.customer_avatar.avatar .icon {
+    width: 49px;
+    height: 49px;
+    font-size: 41px;
+}
+
+.conversation_header .customer_avatar {
+    margin-top: 0px;
+}
+
+#internal-container .message_area .participants {
+    display: block;
+}
+
+.mobile#SendInernalMessageButton,
+.mobile#SendExternalMessageButton {
+    display: none !important;
+}
+
+@media only screen and (max-device-width: 640px) {
+    .conversation_header .fullscreen_buttons {
+        display: none;
+    }
+
+    .conversation_header .button.commands_button {
+        display: block;
+    }
+
+
+    .conversation_header {
+        height: 53px;
+    }
+
+        .conversation_header .button {
+            margin-right: 6px;
+        }
+
+            .conversation_header .button span.text {
+                display: none;
+            }
+
+            .conversation_header .button div {
+                padding: 0px 0px 0px 16px;
+            }
+
+            .conversation_header .button span.image {
+                margin-left: 5px;
+            }
+
+        .conversation_header .conversation_header_left {
+            width: 55%;
+        }
+
+    .conversation_container {
+        top: 54px;
+    }
+
+    .history_area .bubble_list > li.participation_message, .bubble_list > li.suggestions,
+    .history_area .bubble_list > li.template_participation_message, .bubble_list > li.suggestions {
+        width: 94%;
+    }
+
+    .history_area .bubble_list > li.system_message {
+        width: 94%;
+        list-style: none;
+    }
+
+    .history_area {
+        background: #E0E4E9 url('/Content/img/bg_history.png') repeat-y 94% center;
+        bottom: 120px;
+    }
+
+        .history_area .bubble_list > .internal_message {
+            float: right;
+        }
+
+        .history_area .bubble_list .internal_message .bubble {
+            visibility: hidden;
+        }
+
+        .history_area .conversation.history .messagebar {
+            display: none;
+        }
+
+        .history_area .bubble_list .internal_message .avatar {
+            display: none;
+        }
+
+        .history_area .bubble_list .internal_message.owner .avatar {
+            display: inline-block;
+            float: right;
+            margin-right: 1px;
+        }
+
+            .history_area .bubble_list .internal_message.owner .avatar .badge {
+                left: auto;
+                right: -4px;
+            }
+
+
+    #internal-container .message_area a.add_button.participantpopup_button {
+        display: none;
+    }
+
+
+    /*
+       Internal Conversation
+    */
+
+    .history_area.internal-visible {
+        background: #E0E4E9 url('/Content/img/bg_history.png') repeat-y 5% center;
+        bottom: 120px;
+    }
+
+        .history_area.internal-visible .bubble_list .external_message .bubble {
+            visibility: hidden;
+        }
+
+        .history_area.internal-visible .bubble_list .external_message .avatar {
+            display: none;
+        }
+
+        .history_area.internal-visible .bubble_list .external_message.owner .avatar {
+            display: inline-block;
+            float: left;
+            margin-left: 4px;
+        }
+
+        .history_area.internal-visible .bubble_list .owner .avatar .badge {
+            left: 0px;
+            right: auto;
+        }
+
+        .history_area.internal-visible .bubble_list .internal_message .avatar {
+            margin-right: 0;
+            display: inline-block;
+        }
+
+        .history_area.internal-visible .bubble_list .internal_message .bubble {
+            visibility: visible;
+            width: 73%;
+            margin-left: 1.4em;
+        }
+
+
+        .history_area.internal-visible .bubble_list .internal_message.owner .avatar {
+            display: inline-block;
+            float: left;
+            margin-left: -1.2em;
+        }
+
+
+    #internal-container.internal-visible .message_area a.add_button.participantpopup_button {
+        display: inline-block;
+    }
+}
+
+/* ipad */
+@media only screen and (min-device-width : 768px) and (max-device-width : 1024px) {
+    .history_area .bubble_list .internal_message.owner .avatar {
+        margin-left: -12px;
+    }
+
+    .bubble_list .external_message.owner .avatar {
+        margin-right: -11px;
+    }
+
+    .history_area .bubble_list .internal_message.owner .avatar .badge {
+        left: 4px;
+    }
+
+    .bubble_list .external_message.owner .avatar .badge {
+        right: -17px;
+    }
+}
+
+
+
+/*
+    END Conversation CSS
+*/
+
+/*
+    Message area CSS
+*/
+
+/*
+.message_area .edit_area {
+    top: 41px;
+    bottom: 49px;
+    display: flex;
+    flex-direction: column;
+}
+*/
+
+.message_area .edit_area.disabled {
+    margin-bottom: 0 !important;
+    padding: 15px;
+    height: calc(100% - 99px);
+}
+
+
+.message_area {
+    height: 216px;
+}
+
+/*
+.message_area .header {
+    height: 40px;
+}
+*/
+
+.create_message > table {
+    height: 100%;
+    margin-bottom: 15px;
+}
+
+.message_area .footer {
+    height: 60px;
+    position: relative;
+    background: #FFF;
+    border-radius: 0 0 0 16px;
+    border: 2px solid RGBA(52,64, 85, 0.1);
+    border-right: none;
+    display: flex;
+    align-items: center;
+}
+
+.create_message table #external-container {
+    width: 50%;
+    padding-left: 1.5rem;
+}
+
+.create_message table #internal-container {
+    width: 50%;
+    display: table-cell;
+}
+
+.create_message #message-area-container .desktop#SendInternalMessageButton,
+.create_message #message-area-container .desktop#SendExternalMessageButton {
+    display: block !important;
+    border: 0;
+}
+
+@media only screen and (max-device-width: 640px) {
+    /*
+    .message_area .edit_area {
+       top: 43px;
+       bottom: 40px;
+    }
+    
+*/
+    .message_area .edit_area.disabled {
+        padding-top: 3px;
+    }
+
+    .message_area {
+        height: 118px;
+    }
+
+        .message_area .header {
+            height: 42px;
+        }
+
+    .create_message > table {
+        height: 119px;
+    }
+
+    .message_area .footer {
+        height: 41px;
+    }
+
+    .create_message table #external-container {
+        width: 100%;
+    }
+
+    .create_message table #internal-container {
+        width: 0%;
+    }
+
+    .create_message #message-area-container #external-container .message_area.external ul.participants {
+        display: inline-block;
+    }
+
+    .create_message #message-area-container #SendInternalMessageButton {
+        display: none;
+    }
+
+    .create_message #message-area-container.internal-visible #SendInternalMessageButton {
+        display: inline-block;
+    }
+
+    .create_message #message-area-container.internal-visible #external-container {
+        width: 0%;
+    }
+
+    .create_message #message-area-container.internal-visible #internal-container {
+        width: 100%;
+    }
+
+    .create_message #message-area-container.internal-visible #external-container .message_area.external ul.participants {
+        display: none;
+    }
+}
+/*
+    END Message area CSS
+*/
+
+/*
+    Panels CSS
+*/
+
+.panels .panel_icons {
+    display: block;
+}
+
+
+@media only screen and (max-device-width: 975px) {
+    .panels_inner {
+        display: none;
+    }
+
+    .right_shadow {
+        display: none;
+    }
+}
+
+@media only screen and (max-device-width: 640px) {
+    .panels .panel_icons {
+        display: none;
+    }
+}
+/*
+    END Panels CSS
+*/
+
+/* 
+    Tabs CSS 
+*/
+
+.ui-tabs .ui-tabs-panel {
+    top: 44px;
+}
+
+.ui-tabs .ui-tabs-nav {
+    display: flex;
+    align-items: center;
+    border: 0;
+}
+
+@media only screen and (max-device-width: 640px) {
+    .ui-tabs .ui-tabs-panel {
+        top: 0;
+    }
+
+    .ui-tabs .ui-tabs-nav {
+        display: none;
+    }
+}
+/* 
+    END Tabs CSS 
+*/
+
+.dashboard .performance_data .state .header,
+.dashboard .performance_data .rating .header {
+    display: none;
+}
+
+.dashboard .performance_data .mobile_header_bar {
+    display: none;
+}
+
+.mailfield_area .collapse_icon,
+.mailfield_area .expand_icon {
+    display: none;
+}
+
+#internal-container .message_area.sendmail .cc_bcc {
+    display: inline-block;
+}
+
+.inbox_menu_column {
+    display: block;
+}
+
+.inboxitem.waiting .date_info .wait_time,
+.inboxitem.waiting .date_info .calling {
+    max-width: 125px;
+}
+
+.inboxitem .inboxitem_connected_icon {
+    display: block;
+}
+
+#body {
+    background: #FFF;
+}
+
+@keyframes MoveHeaderForWarning1 {
+    0% {
+        margin-top: 0;
+    }
+
+    100% {
+        margin-top: 35px;
+    }
+}
+
+.topWarningSpace {
+    animation: MoveHeaderForWarning1 .25s ease-in 0s 1;
+    animation-fill-mode: both;
+    margin-top: 35px;
+}
+
+@keyframes MoveHeaderForWarning2 {
+    0% {
+        top: -35px;
+    }
+
+    100% {
+        top: 0;
+    }
+}
+
+.alertBarContent {
+    animation: MoveHeaderForWarning2 .25s ease-in 0s 1;
+    animation-fill-mode: both;
+    position: absolute;
+    top: 0;
+    background-color: rgb(255, 164, 0);
+    width: 100%;
+    text-align: center;
+    z-index: 3;
+}
+
+    .alertBarContent p {
+        padding: 8px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+.alertBarIcon {
+    display: inline-flex;
+    margin-right: 8px;
+    font-size: 20px;
+}
+
+@keyframes MoveHeaderBackForWarning1 {
+    0% {
+        margin-top: 36px;
+    }
+
+    100% {
+        margin-top: 0;
+    }
+}
+
+.topWarningSpaceBack {
+    animation: MoveHeaderBackForWarning1 .25s ease-in 0s 1;
+    animation-fill-mode: both;
+}
+
+@keyframes MoveHeaderBackForWarning2 {
+    0% {
+        top: 0;
+    }
+
+    100% {
+        top: -36px;
+    }
+}
+
+.alertBarContentBack {
+    animation: MoveHeaderBackForWarning2 .25s ease-in 0s 1;
+    animation-fill-mode: both;
+}
+
+.widget-alert {
+    width: 90%;
+    margin: 15px auto 15px auto;
+    border-radius: 9px;
+}
+
+.widget-alert-error {
+    background-color: rgba(255, 73, 92, 0.1);
+    display: flex;
+}
+
+.widget-alert-info {
+    background-color: rgba(0, 127, 255, 0.1);
+    display: flex;
+}
+
+.widget-alert-text {
+    font-size: 12px;
+    padding: 8px 8px 8px 0;
+    word-break: break-all;
+}
+
+.widget-alert-icon-container {
+    display: flex;
+}
+
+.widget-alert-icon {
+    display: flex;
+    width: 24px;
+    height: 24px;
+    font-size: 24px;
+    margin: auto 8px;
+    padding-top: 2px;
+}

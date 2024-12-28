@@ -1,0 +1,45 @@
+﻿<ul class="ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all" role="tablist">
+    <li class="non-wizard dashboard_tab ui-state-default ui-corner-top ui-state-active" role="tab" tabindex="0" aria-controls="tabs-1" aria-labelledby="ui-id-1" aria-selected="true">
+        <a href="/home/dashboard">
+            <span class="dashboard_tab_icon" data-icon="&"></span>
+            <span class="tabtask">Dashboard</span>
+            <span id="dashboard_tab_unreaditems" style="display: none;" class="dashboard_tab_unreaditems"></span>
+        </a>
+    </li>    
+    <li class="conv_tab ui-state-default ui-corner-top" aria-controls="ui-tabs-1" role="tab" tabindex="-1" aria-labelledby="ui-id-2" aria-selected="false">
+        <a id="tab_new_conversation" href="#new-tab" title="Start a new conversation">
+            <span class="image" data-icon="G"></span>
+            <span class="tabtask"></span>
+        </a>
+    </li>
+    <li class="non-wizard new_tab ui-state-default ui-corner-top" style="display: none">
+        <span data-icon="" class="support" onclick="return __robin.show();" title="Ask a question"></span>
+    </li>
+    <li class="reporting_tab no-closeicon" style="display: none;">
+        <a id="tab_reporting" href="#reporting-tabs">
+        </a>
+    </li>
+    <li class="feature_requests_tab no-closeicon" style="display: none">
+        <a id="tab_featurerequests"
+           href="https://cmcom.atlassian.net/servicedesk/customer/portal/38/group/166/create/626" target="_blank"
+           title="Feature requests">
+            <span data-icon="" class="tabtask"></span>
+        </a>
+    </li>
+    <li class="settings_tab no-closeicon" style="display: none">
+        <a id="tab_settings" href="#settings-tabs" title="Settings">
+            <span data-icon="R" class="tabtask"></span>
+        </a>
+    </li>
+    <li id="logout_tab" class="settings_tab no-closeicon" style="display: none">
+        <a>
+            <span data-icon="H" id="logout-icon" class="logout_tab tabtask" title="Logout"></span>
+        </a>
+    </li>
+    <li class="settings_tab no_pointer no-closeicon d-none">
+        <div class="headerlogo">
+            <span class="error_icon" data-icon="A"></span>
+            <span class="bulkaction_started_icon" data-icon=""></span>
+        </div>
+    </li>
+</ul>
