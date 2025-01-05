@@ -13,6 +13,13 @@
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <DefineConstants>RELEASE</DefineConstants>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="wwwroot\plugins\**" />
+    <Content Remove="wwwroot\plugins\**" />
+    <EmbeddedResource Remove="wwwroot\plugins\**" />
+    <None Remove="wwwroot\plugins\**" />
+  </ItemGroup>
   
   <ItemGroup>
     <PackageReference Include="Anthropic.SDK" Version="4.3.1" />
@@ -50,12 +57,6 @@
   <ItemGroup>
     <Folder Include="Migrations\" />
     <Folder Include="wwwroot\assets\content\fonts\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="wwwroot\plugins\pg-calendar\fonts\icon_navs.svg" />
-    <None Include="wwwroot\plugins\pg-calendar\fonts\pignose.calendar.svg" />
-    <None Include="wwwroot\plugins\pg-calendar\js\pignose.calendar.min.js" />
   </ItemGroup>
 
 </Project>

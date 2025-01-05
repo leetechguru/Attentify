@@ -146,7 +146,7 @@ namespace GoogleLogin.Controllers
             }
 
             if (result.Succeeded)
-                return Redirect("/home/dashboard");
+                return Redirect("/home/index");
             else
             {
                 AppUser user = new AppUser
@@ -162,7 +162,7 @@ namespace GoogleLogin.Controllers
                     if (identResult.Succeeded)
                     {
                         await signInManager.SignInAsync(user, false);
-                        return Redirect("/home/dashboard");
+                        return Redirect("/home/index");
                     }
                 }
                 return AccessDenied();

@@ -38,7 +38,7 @@ namespace GoogleLogin.Controllers
         }
        
         [HttpGet]
-        public async Task<IActionResult> Dashboard()
+        public async Task<IActionResult> Index()
         {
             AppUser? user = await userManager.GetUserAsync(HttpContext.User);
             if (user == null)
@@ -54,17 +54,6 @@ namespace GoogleLogin.Controllers
             if(string.IsNullOrEmpty(access_token))
 				return Redirect("/account/Login");
 
-
-            ViewBag.User = user;
-            ViewBag.scripts = new List<string> { "/assets/scripts/dashboard.js" };
-            ViewBag.styles = new List<string> { "/assets/bundles/css/customize.css" };
-            ViewBag.PageCnt = JsonConvert.SerializeObject(await GetCountPerType());
-
-            new Thread(async () =>
-            {
-                await UpdateEmail(user.Email);                
-            }).Start();
-            
             return View();
         }
 
