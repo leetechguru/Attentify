@@ -44,9 +44,10 @@ builder.Services.AddAuthentication()
     .AddGoogle(opts =>
     {
 #if DEBUG
-        opts.ClientId = "849361092514-782nq1ipi5irv59rjj00src6ar9scco5.apps.googleusercontent.com";//for me(test)        
-        opts.ClientSecret = "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";  //for me(test)
-
+        //opts.ClientId = "849361092514-782nq1ipi5irv59rjj00src6ar9scco5.apps.googleusercontent.com";//for me(test)        
+        //opts.ClientSecret = "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";  //for me(test)
+        opts.ClientId = "554411087297-k1a42bhgrutgbq5inss1qoj79tltd2on.apps.googleusercontent.com";//"903521853687-3gprhtno2qglf85ji87r01su2es6omno.apps.googleusercontent.com"; //for client                       
+        opts.ClientSecret = "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";//"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";  //for me(test)   
 #else
         opts.ClientId = "554411087297-k1a42bhgrutgbq5inss1qoj79tltd2on.apps.googleusercontent.com";//"903521853687-3gprhtno2qglf85ji87r01su2es6omno.apps.googleusercontent.com"; //for client                       
         opts.ClientSecret = "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";//"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";  //for client                           
