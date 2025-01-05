@@ -45,27 +45,14 @@ namespace GoogleLogin.Controllers
             {
 #if DEBUG
                 user = new AppUser();
-                user.PhoneNumber = _phoneNumber;                
+                user.Email = "sherman@zahavas.com";
 #else
-                return RedirectToAction("Login");
+                return Redirect("/account/Login");
 #endif
             }
-			string? myPhone = _phoneNumber;
-			if (user != null && !string.IsNullOrEmpty(user.PhoneNumber))
-				myPhone = user.PhoneNumber;
-
-			List<string> lstPhone = await _modelService.GetPhoneList(myPhone);
-            if (string.IsNullOrEmpty(phone))
-            {
-                phone = lstPhone.FirstOrDefault();
-            }
-
-
-            ViewBag.lstPhone = lstPhone;
-            ViewBag.phone = phone;
-            ViewBag.User = user;
-            ViewBag.scripts = new List<string>(){ "/js/sweetalert2.all.js", "/js/sms.js" };
-            ViewBag.styles = new List<string>() { "/css/sweetalert2.css", "/css/sms.css" };
+            string access_token = HttpContext.Session.GetString("AccessToken");
+            if (string.IsNullOrEmpty(access_token))
+                return Redirect("/account/Login");
 
             return View();
         }
