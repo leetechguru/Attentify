@@ -1,6 +1,6 @@
-@use '../../scss/_bootstrap-extended/include' as light;
-@use '../../scss/_bootstrap-extended/include-dark' as dark;
-@import '../../scss/_custom-variables/libs';
+@use '~/scss/_bootstrap-extended/include' as light;
+@use '~/scss/_bootstrap-extended/include-dark' as dark;
+@import '~/scss/_custom-variables/libs';
 @import 'sweetalert2/src/sweetalert2';
 
 // Sweet Alert2 Modal

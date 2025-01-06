@@ -1,5 +1,5 @@
-@use '../../scss/_bootstrap-extended/include' as light;
-@use '../../scss/_bootstrap-extended/include-dark' as dark;
+@use '~/scss/_bootstrap-extended/include' as light;
+@use '~/scss/_bootstrap-extended/include-dark' as dark;
 @import 'datatables.net-responsive-bs5/css/responsive.bootstrap5';
 @import 'mixins';
 

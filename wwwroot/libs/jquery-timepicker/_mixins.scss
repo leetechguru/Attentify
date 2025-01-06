@@ -1,4 +1,4 @@
-@import '../../scss/_bootstrap-extended/_functions';
+@import '~/scss/_bootstrap-extended/_functions';
 
 @mixin timepicker-theme($background, $color: null) {
   $color: if($color, $color, color-contrast($background));

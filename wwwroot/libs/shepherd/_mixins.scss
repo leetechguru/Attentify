@@ -1,4 +1,4 @@
-@import '../../scss/_bootstrap-extended/include';
+@import '~/scss/_bootstrap-extended/include';
 @mixin tour-theme($background) {
   // ! Note: If we remove this mixin, the background-color of label button in dark mode will not work properly.
   .shepherd-element {

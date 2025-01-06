@@ -1,9 +1,9 @@
 // Bootstrap Select
 // *******************************************************************************
 
-@use '../../scss/_bootstrap-extended/include' as light;
-@use '../../scss/_bootstrap-extended/include-dark' as dark;
-@import '../../scss/_custom-variables/libs';
+@use '~/scss/_bootstrap-extended/include' as light;
+@use '~/scss/_bootstrap-extended/include-dark' as dark;
+@import '~/scss/_custom-variables/libs';
 @import 'bootstrap-select/sass/bootstrap-select.scss';
 
 // Common Styles

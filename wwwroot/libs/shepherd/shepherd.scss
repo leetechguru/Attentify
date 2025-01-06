@@ -1,7 +1,7 @@
-@use '../../scss/_bootstrap-extended/include' as light;
-@use '../../scss/_bootstrap-extended/include-dark' as dark;
+@use '~/scss/_bootstrap-extended/include' as light;
+@use '~/scss/_bootstrap-extended/include-dark' as dark;
 @charset "UTF-8";
-@import '../../scss/_custom-variables/libs';
+@import '~/scss/_custom-variables/libs';
 @import 'shepherd.js/dist/css/shepherd';
 @import './mixins';
 

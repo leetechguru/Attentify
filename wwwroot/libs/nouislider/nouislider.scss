@@ -1,7 +1,7 @@
-@use '../../scss/_bootstrap-extended/include' as light;
-@use '../../scss/_bootstrap-extended/include-dark' as dark;
+@use '~/scss/_bootstrap-extended/include' as light;
+@use '~/scss/_bootstrap-extended/include-dark' as dark;
 @import 'nouislider/dist/nouislider';
-@import '../../scss/_custom-variables/libs';
+@import '~/scss/_custom-variables/libs';
 @import 'mixins';
 
 $noUiSlider-handle-color: #fff !default;

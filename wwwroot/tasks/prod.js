@@ -18,10 +18,10 @@ module.exports = conf => {
   // -------------------------------------------------------------------------------
   const prodRenameTasks = function () {
     return src(`${buildPath}/*.html`)
-      .pipe(replace('../../assets', 'assets'))
+      .pipe(replace('~/assets', 'assets'))
       .pipe(dest(buildPath))
       .pipe(src(`${buildPath}/assets/**/*`))
-      .pipe(replace('../../assets', 'assets'))
+      .pipe(replace('~/assets', 'assets'))
       .pipe(dest(`${buildPath}/assets/`));
   };
 

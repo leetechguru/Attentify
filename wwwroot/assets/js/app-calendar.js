@@ -222,7 +222,7 @@ document.addEventListener('DOMContentLoaded', function () {
       // Fetch Events from API endpoint reference
       /* $.ajax(
         {
-          url: '../../../app-assets/data/app-calendar-events.js',
+          url: '~/../app-assets/data/app-calendar-events.js',
           type: 'GET',
           success: function (result) {
             // Get requested calendars as Array

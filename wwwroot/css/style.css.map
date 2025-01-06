@@ -169,7 +169,7 @@
 		"../scss/responsive/responsive-header.scss",
 		"../scss/layout/rtl/_rtl.scss",
 		"../scss/layout/rtl/_rtl-reset.scss",
-		"../../node_modules/bootstrap-v4-rtl/scss/_rtl.scss",
+		"~/node_modules/bootstrap-v4-rtl/scss/_rtl.scss",
 		"../scss/layout/rtl/_rtl-nav-header.scss",
 		"../scss/layout/rtl/_rtl-header.scss",
 		"../scss/layout/rtl/_rtl-sidebar.scss",

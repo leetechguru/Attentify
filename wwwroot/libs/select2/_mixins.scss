@@ -1,4 +1,4 @@
-@import '../../scss/_bootstrap-extended/include';
+@import '~/scss/_bootstrap-extended/include';
 @mixin select2-variant($background, $color: null) {
   $color: if($color, $color, color-contrast($background));
 

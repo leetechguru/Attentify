@@ -1,9 +1,9 @@
 // Select2
 // *******************************************************************************
 
-@use '../../scss/_bootstrap-extended/include' as light;
-@use '../../scss/_bootstrap-extended/include-dark' as dark;
-@import '../../scss/_custom-variables/libs';
+@use '~/scss/_bootstrap-extended/include' as light;
+@use '~/scss/_bootstrap-extended/include-dark' as dark;
+@import '~/scss/_custom-variables/libs';
 @import 'mixins';
 
 $select2-arrow-wrapper-width: 2.25rem !default;

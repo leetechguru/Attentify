@@ -1,6 +1,6 @@
-@use '../../scss/_bootstrap-extended/include' as light;
-@use '../../scss/_bootstrap-extended/include-dark' as dark;
-@import '../../scss/_custom-variables/libs';
+@use '~/scss/_bootstrap-extended/include' as light;
+@use '~/scss/_bootstrap-extended/include-dark' as dark;
+@import '~/scss/_custom-variables/libs';
 
 $daterangepicker-arrow-size: 0.45rem !default;
 $daterangepicker-select-width: 3.125rem !default;

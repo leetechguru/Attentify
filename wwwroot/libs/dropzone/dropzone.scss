@@ -1,8 +1,8 @@
 // Dropzone
 
-@use '../../scss/_bootstrap-extended/include' as light;
-@use '../../scss/_bootstrap-extended/include-dark' as dark;
-@import '../../scss/_custom-variables/libs';
+@use '~/scss/_bootstrap-extended/include' as light;
+@use '~/scss/_bootstrap-extended/include-dark' as dark;
+@import '~/scss/_custom-variables/libs';
 
 $dz-box-padding: 1.25rem !default;
 $dz-icon-size: 1.875rem !default;

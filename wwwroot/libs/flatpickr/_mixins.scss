@@ -1,4 +1,4 @@
-@import '../../scss/_bootstrap-extended/functions';
+@import '~/scss/_bootstrap-extended/functions';
 
 @mixin flatpickr-theme($background, $color: null) {
   $in-range-bg: rgba-to-hex(rgba($background, 0.16), $card-bg);
