@@ -359,7 +359,7 @@ namespace GoogleLogin.Services
 			return nCnt;
 		}
 
-        public int GetMailListPerUserCount(string strUser, int nPerPage, int nType = 1)
+        public int GetMailListPerUserCount(string strEmail, int nPerPage, int nType = 1)
         {
             try
             {
@@ -367,14 +367,14 @@ namespace GoogleLogin.Services
                 {
                     var dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
 
-                    var rawEmails = dbContext.TbEmails.Where(e => e.em_to.Contains(strUser)).ToList();
+                    var rawEmails = dbContext.TbEmails.Where(e => e.em_to.Contains(strEmail)).ToList();
                     if (nType == 2)
                     {
-                        rawEmails = dbContext.TbEmails.Where(e => e.em_state == 3 && e.em_to.Contains(strUser)).ToList();
+                        rawEmails = dbContext.TbEmails.Where(e => e.em_state == 3 && e.em_to.Contains(strEmail)).ToList();
                     }
                     else if (nType == 1)
                     {
-                        rawEmails = dbContext.TbEmails.Where(e => e.em_state == 0 && e.em_to.Contains(strUser)).ToList();
+                        rawEmails = dbContext.TbEmails.Where(e => e.em_state == 0 && e.em_to.Contains(strEmail)).ToList();
                     }
 
                     var nCnt = rawEmails
@@ -395,7 +395,7 @@ namespace GoogleLogin.Services
             return 0;
         }
 
-        public List<TbEmail> GetMailListPerUser(string strUser, int nPageIndex, int nPerPage, int nType = 1)
+        public List<TbEmail> GetMailListPerUser(string strEmail, int nPageIndex, int nPerPage, int nType = 1)
         {
             try
             {
@@ -403,13 +403,13 @@ namespace GoogleLogin.Services
                 {
                     var dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
 
-                    var rawEmails = dbContext.TbEmails.Where(e => e.em_to.Contains(strUser)).ToList();
+                    var rawEmails = dbContext.TbEmails.Where(e => e.em_to.Contains(strEmail)).ToList();
                     if(nType == 2)
                     {
-                        rawEmails = dbContext.TbEmails.Where(e => e.em_state == 3 && e.em_to.Contains(strUser)).ToList();
+                        rawEmails = dbContext.TbEmails.Where(e => e.em_state == 3 && e.em_to.Contains(strEmail)).ToList();
                     }else if(nType == 1)
                     {
-						rawEmails = dbContext.TbEmails.Where(e => e.em_state == 0 && e.em_to.Contains(strUser)).ToList();
+						rawEmails = dbContext.TbEmails.Where(e => e.em_state == 0 && e.em_to.Contains(strEmail)).ToList();
 					}
 
                     var lstFrom = rawEmails

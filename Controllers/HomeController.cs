@@ -57,6 +57,36 @@ namespace GoogleLogin.Controllers
             return View();
         }
 
+        [HttpPost]
+        public async Task<IActionResult> GetMailList(string strEmail, int PageNo = 1, int Type = 1)
+        {
+            var user = await userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return PartialView("EmailList");
+            }
+
+            int nPageCnt = 0;
+            nPageCnt = _emailService.GetMailListPerUserCount(strEmail, PerPageCnt, Type);
+            var emails = _emailService.GetMailListPerUser(strEmail, PageNo > 0 ? PageNo - 1 : PageNo, PerPageCnt, Type);
+
+            List<TbEmailsExt> lstEmails = new List<TbEmailsExt>();
+            foreach (var email in emails)
+            {
+                lstEmails.Add(new TbEmailsExt(email));
+            }
+
+            ViewBag.Emails = lstEmails;
+            if (lstEmails.Count == 0)
+                PageNo -= 1;
+
+            ViewBag.PageCnt = nPageCnt;
+            ViewBag.PageNo = PageNo;
+            ViewBag.Type = Type;
+
+            return PartialView("EmailList");
+        }
+
         [HttpGet]
         public async Task<IActionResult> Conversation(string id, int Type)
         {
@@ -158,52 +188,7 @@ namespace GoogleLogin.Controllers
         /// Type == 1 : my inbox
         /// Type == 2 : archived
         /// Type == 3 : my SMS
-        [HttpPost]
-        public async Task<IActionResult> MessagesByUserPerPage(int PageNo = 1, int Type = 1)
-        {
-            var user = await userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                return PartialView("Message");
-            }
-            string myPhone = _phoneNumber;
-            if (!string.IsNullOrEmpty(user.PhoneNumber))
-                myPhone = user.PhoneNumber;
-
-            int nPageCnt = 0;
-            if (Type == 1 || Type == 2)
-            {
-                nPageCnt = _emailService.GetMailListPerUserCount(user.Email, PerPageCnt, Type);
-                var emails = _emailService.GetMailListPerUser(user.Email, PageNo > 0 ? PageNo - 1 : PageNo, PerPageCnt, Type);
-                List<TbEmailsExt> lstEmails = new List<TbEmailsExt>();
-                foreach (var email in emails)
-                {
-                    lstEmails.Add(new TbEmailsExt(email));
-                }
-
-                ViewBag.Emails = lstEmails;
-                if (lstEmails.Count == 0)
-                    PageNo -= 1;
-            }
-            else
-            {
-                nPageCnt = _smsService.GetSMSListPerUserCount(myPhone, PerPageCnt);
-                var emails = _smsService.GetSMSListPerUser(myPhone, PageNo > 0 ? PageNo - 1 : PageNo, PerPageCnt);
-                List<TbEmailsExt> lstEmails = new List<TbEmailsExt>();
-                foreach (var email in emails)
-                {
-                    lstEmails.Add(new TbEmailsExt(email));
-                }
-
-                ViewBag.Emails = lstEmails;
-            }
-
-            ViewBag.PageCnt = nPageCnt;
-            ViewBag.PageNo = PageNo;
-            ViewBag.Type = Type;
-
-            return PartialView("Message");
-        }
+        
         
 		[HttpPost]
 		public async Task<IActionResult> MakeStateByGMail(string strGmail, int em_state)
