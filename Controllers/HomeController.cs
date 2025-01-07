@@ -58,14 +58,14 @@ namespace GoogleLogin.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> GetMailList(string strEmail, int PageNo = 1, int Type = 1)
+        public async Task<IActionResult> GetMailList(string strEmail, int PageNo = 1, int Type = 0)
         {
             var user = await userManager.GetUserAsync(User);
             if (user == null)
             {
                 return PartialView("EmailList");
             }
-
+            Console.WriteLine(strEmail);
             int nPageCnt = 0;
             nPageCnt = _emailService.GetMailListPerUserCount(strEmail, PerPageCnt, Type);
             var emails = _emailService.GetMailListPerUser(strEmail, PageNo > 0 ? PageNo - 1 : PageNo, PerPageCnt, Type);
@@ -447,32 +447,6 @@ namespace GoogleLogin.Controllers
                 Console.WriteLine($"Raw Request Body: {rawBody}");
             }
             return Ok();
-        }
-
-        private async Task UpdateEmail(string strUserEmail)
-        {
-            while(true)
-            {
-                if(Global.lstHistoryIds.Count == 0)
-                {
-                    Thread.Sleep(5 * 100);
-                    continue;
-                }
-                try
-                {
-                    ulong strMsgId = Global.lstHistoryIds.First();
-                    ulong responseId = await _emailService.UpdateEmail(strMsgId, strUserEmail);
-                    if(responseId != 0)
-                    {
-                        if(!Global.lstHistoryIds.Contains(responseId))
-                            Global.lstHistoryIds.Add(responseId);
-                    }
-                    Global.lstHistoryIds.Remove(strMsgId);
-                }catch(Exception ex)
-                {
-                    _logger.LogError("in Update Email " + ex.Message);                    
-                }
-            }
         }
     }
 }

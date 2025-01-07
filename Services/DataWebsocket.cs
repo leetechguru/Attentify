@@ -52,7 +52,7 @@ namespace GoogleLogin.Services
             AppUser? user = await _userManager.GetUserAsync(httpContext.User);
             if(user != null && !string.IsNullOrEmpty(user.Email))
             {
-                MailInfo p = await _emailService.GetMailCount(user.Email);
+                MailInfo p =  _emailService.GetMailCount(user.Email);
                 var objPacket = new
                 {
                     MailInfo = p,

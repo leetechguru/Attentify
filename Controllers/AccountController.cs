@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore.SqlServer.Query.Internal;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using ShopifyService = GoogleLogin.Services.ShopifyService;
+using Google.Apis.Gmail.v1;
 
 namespace GoogleLogin.Controllers
 {
@@ -107,18 +108,29 @@ namespace GoogleLogin.Controllers
                 new Thread(async () =>
                 {
                     int nCnt = 500;
-                    //while (true)
+                    while (true)
                     {
-                        List<string> lstLabelIds = await _emailService.GetMailList(access_token, info.Principal.FindFirst(ClaimTypes.Email)?.Value ?? "", nCnt);
-                        await _emailService.SubscribeToPushNotifications(access_token);
+                        int nResponse = await _emailService.UpdateMailDatabase(access_token, info.Principal.FindFirst(ClaimTypes.Email)?.Value ?? "", nCnt);
+                        //_emailService.SubscribeToPushNotifications(access_token);
+                        if (nResponse == 1) {
+                            Console.WriteLine("**************PKH: TEST updated mail list to database ***************");
+                        }
+                        else
+                        {
+                            Console.WriteLine("**************PKH: TEST no update mail list to database ***************");
+                        }
+                        Thread.Sleep(1000 * 10);
                     }
                 }).Start();
+
                 new Thread(async () => {
                     await _shopifyService.OrderRequest();
                 }).Start();
+
                 new Thread(async () => {
                     await _shopifyService.CustomersRequest();
                 }).Start();
+
                 new Thread(async () =>
                 {
                     try

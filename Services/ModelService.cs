@@ -353,14 +353,14 @@ namespace GoogleLogin.Services
 
                 var _result = new
                 {
-                    nCntWhole = result.nCntWhole,
-                    nCntRead = result.nCntRead,
-                    nCntUnread = result.nCntUnread,
-                    nCntOnTime = result.nCntOnTime,
-                    nCntLate = result.nCntLate,
-                    nCntDanger = result.nCntDanger,
-                    nCntArchived = result.nCntArchived,
-                    nCntReply = nCntReply
+                    nCntWhole       = result?.nCntWhole,
+                    nCntRead        = result?.nCntRead,
+                    nCntUnread      = result?.nCntUnread,
+                    nCntOnTime      = result?.nCntOnTime,
+                    nCntLate        = result?.nCntLate,
+                    nCntDanger      = result?.nCntDanger,
+                    nCntArchived    = result?.nCntArchived,
+                    nCntReply       = nCntReply
                 };
 
                 var objPacket = new

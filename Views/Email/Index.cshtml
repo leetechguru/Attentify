@@ -70,6 +70,16 @@
                                                            aria-describedby="email-search" />
                                                 </div>
                                             </div>
+                                            <nav aria-label="Page navigation">
+                                                <ul class="pagination">
+                                                    <li class="page-item prev">
+                                                        <a class="page-link waves-effect" href="javascript:void(0);" onclick="handlePrevPage();"><i class="ti ti-chevron-left ti-sm"></i></a>
+                                                    </li>
+                                                    <li class="page-item next">
+                                                        <a class="page-link waves-effect" href="javascript:void(0);" onclick= "handleNextPage();"><i class="ti ti-chevron-right ti-sm"></i></a>
+                                                    </li>
+                                                </ul>
+                                            </nav>
                                         </div>
                                     </div>
                                     <hr class="mx-n3 emails-list-header-hr mb-2" />
@@ -626,8 +636,13 @@
                 </div>
             </div>
         </div>
-        
     </div>
+
+    <input type="hidden" name="PageNo" value="@(ViewBag.PageNo ?? 1)" />
+    <input type="hidden" name="Type" value="@(ViewBag.Type ?? 0)" />
+    <input type="hidden" name="PageCnt" value="@(ViewBag.PageCnt ?? 20)" />
+    <input type="hidden" name="selectedEmail" value="@(ViewBag.selectedEmail ?? "sherman@zahavas.com")" />
+
     <script type="text/javascript">
         $(document).ready(function() {
             loadMailList("sherman@zahavas.com");
@@ -635,9 +650,7 @@
 
         function loadMailList (strEmail) {
             let PageNo = $('input[name="PageNo"]').val();
-            if (!PageNo) PageNo = 1;
             let Type = $('input[name="Type"]').val();
-            if (!Type) Type = 1;
 
             $.post('/home/GetMailList', { strEmail, PageNo, Type }, function (data) {
                 try {
@@ -651,8 +664,27 @@
 
         function handleListClick(element) {
             const content = element.textContent;
+            $('input[name="selectedEmail"]').val(content);
             loadMailList(content);
         }
+
+        function handlePrevPage() {
+            let PageNo = $('input[name="PageNo"]').val();
+            PageNo--;
+            if (PageNo < 1) PageNo = 1;
+            $('input[name="PageNo"]').val(PageNo);
+            const strMail = $('input[name="selectedEmail"]').val();
+            loadMailList(strMail);
+        }
+
+        function handleNextPage() {
+            let PageNo = $('input[name="PageNo"]').val();
+            PageNo++;
+            $('input[name="PageNo"]').val(PageNo);
+            const strMail = $('input[name="selectedEmail"]').val();
+            loadMailList(strMail);
+        }
+
     </script>
 }
 catch (Exception ex)

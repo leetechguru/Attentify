@@ -2,9 +2,11 @@
 using Azure.Core;
 using Google.Api;
 using Google.Apis.Auth.OAuth2;
+using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Gmail.v1;
 using Google.Apis.Gmail.v1.Data;
 using Google.Apis.Services;
+using Google.Apis.Util.Store;
 using Google.Cloud.PubSub.V1;
 using GoogleLogin.Models;
 using MailKit;
@@ -18,6 +20,7 @@ using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure.Interception;
 using System.Drawing.Printing;
+using System.Net;
 using System.Net.Mail;
 using System.Text;
 using Tesseract;
@@ -25,7 +28,7 @@ using Twilio.TwiML.Messaging;
 using Twilio.TwiML.Voice;
 using static Google.Api.ResourceDescriptor.Types;
 using MessagePart = Google.Apis.Gmail.v1.Data.MessagePart;
-using Task = System.Threading.Tasks.Task;
+using ThreadTask = System.Threading.Tasks.Task;
 
 namespace GoogleLogin.Services
 {
@@ -41,106 +44,6 @@ namespace GoogleLogin.Services
             _serviceScopeFactory = serviceScopeFactory;
             _hubContext = dataWebsocket;
             _logger = logger;
-        }
-        
-        public async Task<List<string>> GetMailInfo(GmailService service, string msgId, string strMyGmail)
-        {
-            var emailInfoRequest = service.Users.Messages.Get("me", msgId);
-            var emailInfoResponse = await emailInfoRequest.ExecuteAsync();
-            List<string> lstReturn = new List<string>();
-            if (emailInfoResponse != null)
-            {
-                try
-                {
-                    string? body = "";
-                    var _date = DateTime.Now;
-
-                    var dateHeader = emailInfoResponse.Payload.Headers.FirstOrDefault(h => h.Name == "Date")?.Value;
-                    if (DateTime.TryParse(dateHeader, out var emailDate))
-                    {
-                        _date = emailDate;
-                    }
-
-                    string _from = emailInfoResponse.Payload.Headers.Where(obj => obj.Name == "From").FirstOrDefault()?.Value ?? "";
-                    string _to = emailInfoResponse.Payload.Headers.Where(obj => obj.Name == "To").FirstOrDefault()?.Value ?? "";
-                    string? _subject = emailInfoResponse.Payload.Headers.Where(obj => obj.Name == "Subject").FirstOrDefault()?.Value;
-                    _subject = string.IsNullOrEmpty(_subject) ? "No Subject" : _subject;
-
-                    string? _inReplyTo = emailInfoResponse.Payload.Headers.Where(obj => obj.Name == "In-Reply-To").FirstOrDefault()?.Value;
-                    string? _threadId = emailInfoResponse.ThreadId;
-                    if (emailInfoResponse.LabelIds == null) return lstReturn;
-                    bool isRead = !emailInfoResponse.LabelIds.Contains("UNREAD");
-                    bool isInInbox = emailInfoResponse.LabelIds.Contains("INBOX");
-                    bool isArchived = !isInInbox;
-                    lstReturn = emailInfoResponse.LabelIds.ToList();
-
-                    //Console.WriteLine(string.Join(',', emailInfoResponse.LabelIds));
-                    if (_from != null)
-                    {
-                        if (emailInfoResponse.Payload.MimeType == "text/html")
-                        {
-                            body = emailInfoResponse.Payload.Body.Data;
-                        }
-                        else if (emailInfoResponse.Payload.MimeType == "multipart/alternative" || emailInfoResponse.Payload.MimeType == "multipart/mixed"
-                            || emailInfoResponse.Payload.MimeType == "multipart/related")
-                        {
-                            body = emailInfoResponse.Payload.Parts.Where(o => o.MimeType == "text/html").FirstOrDefault()?.Body.Data;
-                            if (body == null)
-                            {
-                                foreach (var part in emailInfoResponse.Payload.Parts)
-                                {
-                                    if (part.MimeType == "multipart/alternative")
-                                    {
-                                        //var _data = "";
-                                        //foreach(var _part in part.Parts)
-                                        //{
-                                        //    if(_part.MimeType == "text/html" || _part.MimeType == "text/plain")
-                                        //    {
-                                        //        _data += GetMailBodyAsHtml(_part.Body.Data);
-                                        //    }
-                                        //}
-                                        //if (!string.IsNullOrEmpty(_data))
-                                        //{
-                                        //    body = GetMailBodyAsHtml(_data);
-                                        //}
-                                    }
-                                    else if (part.MimeType.StartsWith("image/"))
-                                    {
-                                        var _data = part.Body.Data;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    if (string.IsNullOrEmpty(_to) || string.IsNullOrEmpty(_from)) return lstReturn;
-                    TbEmail p = new TbEmail
-                    {
-                        em_id = msgId,
-                        em_from = _from,
-                        em_to = _to,
-                        em_replay = _inReplyTo,
-                        em_subject = _subject,
-                        em_state = isArchived ? 3 : 0,
-                        em_body = body,
-                        em_threadId = _threadId,
-                        em_level = 0,
-                        em_date = _date,
-                        em_read = isRead ? 1 : 0,
-                    };
-
-                    _ = Task.Run(async () => 
-                    {
-                        await WriteOne(p);
-                        //await SendMailInfo(strMyGmail);
-                    });
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError($"EmailService {ex.Message}");
-                    Console.WriteLine(ex.ToString());
-                }
-            }
-            return lstReturn;
         }
 
         private GmailService MakeGmailService(string access_token = "")
@@ -167,42 +70,149 @@ namespace GoogleLogin.Services
             }
             return _service;
         }
-        public async Task<List<string>> GetMailList(string accessToken, string strUser, int nCnt = 10)
+
+        public int UpdateOneMail(Google.Apis.Gmail.v1.Data.Message mailMessage)
+        {
+            if (mailMessage.LabelIds == null)
+            {
+                Console.WriteLine("************PKH: Message Empty****************");
+                return 0; 
+            }
+            
+            using (var scope = _serviceScopeFactory.CreateScope())  // Create a new scope
+            {
+                var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
+                try
+                {
+                    var _one = _dbContext.TbEmails.Where(e => e.em_id == mailMessage.Id).FirstOrDefault();
+
+                    if (_one == null)
+                    {
+                        string? body = "";
+                        var _date = DateTime.Now;
+
+                        var dateHeader = mailMessage.Payload.Headers.FirstOrDefault(h => h.Name == "Date")?.Value;
+                        if (DateTime.TryParse(dateHeader, out var emailDate))
+                        {
+                            _date = emailDate;
+                        }
+
+                        string _from = mailMessage.Payload.Headers.Where(obj => obj.Name == "From").FirstOrDefault()?.Value ?? "";
+                        string _to = mailMessage.Payload.Headers.Where(obj => obj.Name == "To").FirstOrDefault()?.Value ?? "";
+                        string? _subject = mailMessage.Payload.Headers.Where(obj => obj.Name == "Subject").FirstOrDefault()?.Value;
+                        _subject = string.IsNullOrEmpty(_subject) ? "No Subject" : _subject;
+
+                        string? _inReplyTo = mailMessage.Payload.Headers.Where(obj => obj.Name == "In-Reply-To").FirstOrDefault()?.Value;
+                        string? _threadId = mailMessage.ThreadId;
+
+                        bool isInInbox = mailMessage.LabelIds.Contains("INBOX");
+                        bool isArchived = !isInInbox;
+
+                        if (_from != null)
+                        {
+                            if (mailMessage.Payload.MimeType == "text/html")
+                            {
+                                body = mailMessage.Payload.Body.Data;
+                            }
+                            else if (mailMessage.Payload.MimeType == "multipart/alternative" || mailMessage.Payload.MimeType == "multipart/mixed"
+                                || mailMessage.Payload.MimeType == "multipart/related")
+                            {
+                                body = mailMessage.Payload.Parts.Where(o => o.MimeType == "text/html").FirstOrDefault()?.Body.Data;
+                                if (body == null)
+                                {
+                                    foreach (var part in mailMessage.Payload.Parts)
+                                    {
+                                        if (part.MimeType == "multipart/alternative")
+                                        {
+                                        }
+                                        else if (part.MimeType.StartsWith("image/"))
+                                        {
+                                            var _data = part.Body.Data;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if (string.IsNullOrEmpty(_to) || string.IsNullOrEmpty(_from)) return 0;
+
+                        TbEmail p = new TbEmail
+                        {
+                            em_id = mailMessage.Id,
+                            em_from = _from,
+                            em_to = _to,
+                            em_replay = _inReplyTo,
+                            em_subject = _subject,
+                            em_state = isArchived ? 3 : 0,
+                            em_body = body,
+                            em_threadId = _threadId,
+                            em_level = 0,
+                            em_date = _date,
+                            em_read = 0,
+                        };
+
+                        _dbContext.Add(p);
+                        _dbContext.SaveChangesAsync();
+                        Console.WriteLine("*********************PKH: Insertted One Mail into tbemail database *****************************");
+                    }
+                }
+                catch
+                {
+                    Console.WriteLine("*********************PKH: Insert One Mail into tbeamil database fail *****************************");
+                }
+            };
+            
+            return 1;
+        }
+
+        public async Task<int> UpdateMailDatabase(string accessToken, string strUser, int nCnt = 10)
         {
             Global.access_token = accessToken;
 
             GmailService service = MakeGmailService(accessToken);
-            long nWholeInboxCnt = await GetWholeMessageCnt(service);
             var request = service.Users.Messages.List("me");
 
-            request.MaxResults = Math.Min(nWholeInboxCnt, nCnt);
-            var messagesResponse = await request.ExecuteAsync();
-            List<string> lstUsers = await GetCustomerMails();
-
-            List<string> lstLabelIds = new List<string>();
-            if (messagesResponse.Messages != null && messagesResponse.Messages.Count > 0)
+            request.MaxResults = nCnt;
+            try
             {
-                foreach (var msg in messagesResponse.Messages)
+                var response = await request.ExecuteAsync();
+                using (var scope = _serviceScopeFactory.CreateScope())  // Create a new scope
                 {
-                    try
+                    var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
+
+                    if (response.Messages != null && response.Messages.Count > 0)
                     {
-                        var lstItems = await GetMailInfo(service, msg.Id, strUser);
-                        foreach(var item in lstItems)
+                        foreach (var msg in response.Messages)
                         {
-                            if(!lstLabelIds.Contains(item) && item != "READ" && item != "UNREAD")
-                                lstLabelIds.Add(item);
+                            var _one = _dbContext.TbEmails.Where(e => e.em_id == msg.Id).FirstOrDefault();
+
+                            if (_one == null)
+                            {
+                                try
+                                {
+                                    var messageRequest = service.Users.Messages.Get("me", msg.Id);
+                                    var fullMessage = await messageRequest.ExecuteAsync();
+
+                                    UpdateOneMail(fullMessage);
+                                    return 1;
+                                }
+                                catch
+                                {
+                                    Console.WriteLine("****************PKH: Get One Message from server failed! ********************");
+                                    return 0;
+                                }
+                            }
                         }
                     }
-					catch (Exception ex)
-					{
-						Console.WriteLine(ex.ToString());
-					}
-				}
+                };
             }
-            Global.lstLabelIds = lstLabelIds;
-            return lstLabelIds;
+            catch {
+                Console.WriteLine("****************PKH: Get Message Lists from server failed! ********************");
+                return 0;
+            }
+            return 1;
         }
-        
+
         private byte[] FromBase64ForUrlString(string base64Url)
         {
             string padded = base64Url.Replace('-', '+').Replace('_', '/');
@@ -232,38 +242,8 @@ namespace GoogleLogin.Services
 
             return response.ResultSizeEstimate ?? 0;
         }
-       
-        private async Task WriteOne(TbEmail p)
-        {
-            {
-                using (var scope = _serviceScopeFactory.CreateScope())  // Create a new scope
-                {
-                    var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
 
-                    try
-                    {
-                        var _one = _dbContext.TbEmails.Where(e => e.em_id == p.em_id).FirstOrDefault();
-                        if (_one == null)
-                        {
-                            _dbContext.Add(p);
-                        }
-                        else
-                        {
-                            _one.em_state = p.em_state;
-                            _one.em_read = p.em_read;
-                            _one.em_level = p.em_level;
-                        }
-                        await _dbContext.SaveChangesAsync();
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex.StackTrace);
-                    }
-                }
-            }
-        }
-
-        private async Task<List<string>> GetCustomerMails()
+        private  List<string> GetCustomerMails()
         {
             using (var scope = _serviceScopeFactory.CreateScope())  // Create a new scope
             {
@@ -281,7 +261,7 @@ namespace GoogleLogin.Services
             return new List<string>();
         }
 
-        public async Task<MailInfo> GetMailCount(string strGmail)
+        public MailInfo GetMailCount(string strGmail)
         {
 
             MailInfo pInfo = new MailInfo();
@@ -395,49 +375,29 @@ namespace GoogleLogin.Services
             return 0;
         }
 
-        public List<TbEmail> GetMailListPerUser(string strEmail, int nPageIndex, int nPerPage, int nType = 1)
+        public List<TbEmail> GetMailListPerUser(string strEmail, int nPageIndex, int nPerPage, int nType = 0)
         {
+            List<TbEmail> emailList = new List<TbEmail>();
+
             try
             {
                 using (var scope = _serviceScopeFactory.CreateScope())
                 {
                     var dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
 
-                    var rawEmails = dbContext.TbEmails.Where(e => e.em_to.Contains(strEmail)).ToList();
-                    if(nType == 2)
-                    {
-                        rawEmails = dbContext.TbEmails.Where(e => e.em_state == 3 && e.em_to.Contains(strEmail)).ToList();
-                    }else if(nType == 1)
-                    {
-						rawEmails = dbContext.TbEmails.Where(e => e.em_state == 0 && e.em_to.Contains(strEmail)).ToList();
-					}
+                    emailList = dbContext.TbEmails.Where(e => e.em_state == nType && e.em_to.Contains(strEmail))
+                            .OrderByDescending(e => e.em_date)
+                            .Skip(nPageIndex * nPerPage)
+                            .Take(nPerPage).ToList();
 
-                    var lstFrom = rawEmails
-                        .GroupBy(e => e.em_from)
-                        .Select(g => new EmailDto
-                        {
-                            em_from = g.Key,
-                            em_date = g.Max(e => e.em_date)
-                        })
-                        .OrderByDescending(e => e.em_date)
-                        .Skip(nPageIndex * nPerPage)
-                        .Take(nPerPage).ToList();
-
-                    List<TbEmail> lstResult = new List<TbEmail>();
-                    foreach(var item in lstFrom)
-                    {
-                        var result = dbContext.TbEmails.Where(e => e.em_from == item.em_from && e.em_date == item.em_date).FirstOrDefault();
-                        if (result == null) continue;
-                        lstResult.Add(result);
-                    }
-                    return lstResult;
+                    return emailList;
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.StackTrace);
+                return emailList;
             }
-            return null;
         }
 
         public async Task<List<TbEmail>> GetMailListPerPage(string strGmail, int nPageNo, int nPerCnt, int em_state, string strSearch)
@@ -901,21 +861,17 @@ namespace GoogleLogin.Services
             return GetMailBodyAsHtml(body);
 		}
 
-		public async Task SubscribeToPushNotifications(string accessToken)
+		public void SubscribeToPushNotifications(string accessToken)
         {
             GmailService service = MakeGmailService(accessToken);
             
-            var request = service.Users.Watch(new WatchRequest()
+            var request =  service.Users.Watch(new WatchRequest()
             {
 #if DEBUG
-
                 TopicName = "projects/extended-bongo-444622-u5/topics/pubsub",
-
-
 #else
                 TopicName = "projects/plasma-galaxy-444920-h0/topics/attentify",//"projects/grand-proton-441717-c4/topics/attentify",
 #endif
-
                 LabelFilterAction = "INCLUDE",
                 LabelIds = Global.lstLabelIds,//new List<string> { "INBOX", "UNREAD", "READ", "CATEGORY_SOCIAL", "CATEGORY_UPDATES", "CATEGORY_PROMOTIONS", "SENT"},
             }, "me");;
@@ -934,11 +890,11 @@ namespace GoogleLogin.Services
             }            
         }
 
-		public async Task SendMailInfo(string strGmail)
+		public async ThreadTask SendMailInfo(string strGmail)
 		{
             if (!string.IsNullOrEmpty(strGmail))
             {
-                MailInfo pMailInfo = await GetMailCount(strGmail);
+                MailInfo pMailInfo = GetMailCount(strGmail);
                 var objPacket = new
                 {
                     MailInfo = pMailInfo,
@@ -966,7 +922,6 @@ namespace GoogleLogin.Services
                     //else
                     {
                         GmailService _p = MakeGmailService();
-                        GetMailInfo(_p, em_id, userId);
                     }
 
                 }
@@ -974,141 +929,6 @@ namespace GoogleLogin.Services
             {
                 _logger.LogError("emailservice/removeEmail " + ex.Message);
             }            
-        }
-
-        public async Task<ulong> UpdateEmail(ulong msgId, string strUserEmail)
-        {
-            GmailService _service = MakeGmailService();
-            if (_service == null) return 0;
-            try
-            {
-                //var request = _service.Users.Messages.Get("me", $"{msgId}");
-
-                //var messagesResponse = await request.ExecuteAsync();
-                var profile = _service.Users.GetProfile("me").Execute();
-                var currentHistoryId = profile.HistoryId;
-
-
-                UInt64 lMsgId = msgId;
-                var historyRequest = _service.Users.History.List("me");
-                historyRequest.StartHistoryId = lMsgId > currentHistoryId ? currentHistoryId : lMsgId;
-                var historyResponse = historyRequest.Execute();
-                if (historyResponse != null)
-                {
-                    if (historyResponse.History == null && historyResponse.HistoryId != null)
-                    {
-                        return historyResponse.HistoryId.Value;
-                    }
-                }
-                if (historyResponse.History == null || !historyResponse.History.Any())
-                {
-                    Console.WriteLine("No history records found.");
-                    return 0;
-                }
-                
-                foreach (var history in historyResponse.History)
-                {
-                    if (history.MessagesAdded != null)
-                    {
-                        foreach (var message in history.MessagesAdded)
-                        {
-                            await GetMailInfo(_service, message.Message.Id, strUserEmail);
-                            _logger.LogInformation($"{message.Message.Id} message was added");
-                            Console.WriteLine($"New message ID: {message.Message.Id}");
-                        }
-                    }
-
-                    if (history.MessagesDeleted != null)
-                    {
-                        foreach (var message in history.MessagesDeleted)
-                        {
-                            var msg_id = message.Message.Id;
-                            using (var scope = _serviceScopeFactory.CreateScope())
-                            {
-                                var dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
-                                TbEmail p = dbContext.TbEmails.Where(p => p.em_id == msg_id).FirstOrDefault();
-                                if (p != null)
-                                {
-                                    dbContext.TbEmails.Remove(p);
-                                    await dbContext.SaveChangesAsync();
-                                    _logger.LogInformation($"{msg_id} message was deleted");
-                                    await SendMailInfo(strUserEmail);
-                                }
-                            }
-                        }
-                    }
-
-                    if (history.LabelsAdded != null)
-                    {
-                        foreach (var labelChange in history.LabelsAdded)
-                        {
-                            string msg_id = labelChange.Message.Id;
-                            List<string> labelIds = labelChange.LabelIds.ToList();
-                            bool isRead = labelIds.Contains("READ");
-                            bool isInInbox = labelIds.Contains("INBOX");
-                            bool isArchived = !isInInbox;
-
-                            using (var scope = _serviceScopeFactory.CreateScope())
-                            {
-                                var dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
-                                TbEmail p = dbContext.TbEmails.Where(p => p.em_id == msg_id).FirstOrDefault();
-                                if (p != null)
-                                {
-                                    p.em_state = isArchived ? 3 : 0;
-                                    p.em_read = isRead ? 1 : 0;
-
-                                    await dbContext.SaveChangesAsync();
-                                    _logger.LogInformation($"{msg_id} message was added");
-                                    //await SendMailInfo(strUserEmail);
-                                }
-                            }
-                            Console.WriteLine($"Labels added from message ID {labelChange.Message.Id}: {string.Join(", ", labelChange.LabelIds)}");
-                        }
-                    }
-
-                    if (history.LabelsRemoved != null)
-                    {
-                        foreach (var labelChange in history.LabelsRemoved)
-                        {
-                            string msg_id = labelChange.Message.Id;
-                            List<string> labelIds = labelChange.LabelIds.ToList();
-                            bool isRead = !labelIds.Contains("READ");
-                            bool isInInbox = !labelIds.Contains("INBOX");
-                            bool isArchived = !isInInbox;
-
-                            using (var scope = _serviceScopeFactory.CreateScope())
-                            {
-                                var dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
-                                TbEmail p = dbContext.TbEmails.Where(p => p.em_id == msg_id).FirstOrDefault();
-                                if (p != null)
-                                {
-                                    p.em_state = isArchived ? 3 : 0;
-                                    p.em_read = isRead ? 1 : 0;
-
-                                    await dbContext.SaveChangesAsync();
-                                    _logger.LogInformation($"{msg_id} message was changed");
-                                    //await SendMailInfo(strUserEmail);
-                                }
-                            }
-                            Console.WriteLine($"Labels removed from message ID {labelChange.Message.Id}: {string.Join(", ", labelChange.LabelIds)}");
-                        }
-                    }
-
-                    //if (history.MessagesAdded == null && history.MessagesDeleted == null && history.LabelsAdded == null && history.LabelsRemoved == null)
-                    //{
-                    //    foreach (var _m in history.Messages)
-                    //    {
-                    //        RemoveEmail(_m.Id, strUserEmail);
-                    //    }
-                    //}
-                }
-            }
-            catch(Exception ex)
-            {
-                _logger.LogError($"in EmailService {ex.Message}");
-                Console.WriteLine(ex.Message);
-            }
-            return 0;
         }
 	}
     public class EmailDto
