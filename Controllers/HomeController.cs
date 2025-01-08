@@ -10,6 +10,7 @@ using ShopifyService = GoogleLogin.Services.ShopifyService;
 using Newtonsoft.Json;
 using Org.BouncyCastle.Asn1;
 using Microsoft.AspNetCore.Connections;
+using ShopifySharp;
 
 namespace GoogleLogin.Controllers
 {
@@ -23,7 +24,7 @@ namespace GoogleLogin.Controllers
         private readonly ShopifyService _shopifyService;
         private readonly ModelService _smsService;
         private readonly LLMService _llmService;
-		private const int PerPageCnt = 20;
+		private const int nCntPerPage = 20;
         private readonly string _phoneNumber;
         public HomeController(SignInManager<AppUser> signinMgr, Microsoft.AspNetCore.Identity.UserManager<AppUser> userMgr, EMailService service, ShopifyService shopifyService, ModelService smsService, ILogger<HomeController> logger, IConfiguration _configuration, LLMService llmService)
         {
@@ -44,47 +45,17 @@ namespace GoogleLogin.Controllers
             if (user == null)
             {
 #if DEBUG
-				user = new AppUser();
-				user.Email = "sherman@zahavas.com";
+                user = new AppUser();
+                user.Email = "sherman@zahavas.com";
 #else
                 return Redirect("/account/Login");
 #endif
-			}
-			string access_token = HttpContext.Session.GetString("AccessToken");
+            }
+            string access_token = HttpContext.Session.GetString("AccessToken");
             if(string.IsNullOrEmpty(access_token))
 				return Redirect("/account/Login");
 
             return View();
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> GetMailList(string strEmail, int PageNo = 1, int Type = 0)
-        {
-            var user = await userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                return PartialView("EmailList");
-            }
-            Console.WriteLine(strEmail);
-            int nPageCnt = 0;
-            nPageCnt = _emailService.GetMailListPerUserCount(strEmail, PerPageCnt, Type);
-            var emails = _emailService.GetMailListPerUser(strEmail, PageNo > 0 ? PageNo - 1 : PageNo, PerPageCnt, Type);
-
-            List<TbEmailsExt> lstEmails = new List<TbEmailsExt>();
-            foreach (var email in emails)
-            {
-                lstEmails.Add(new TbEmailsExt(email));
-            }
-
-            ViewBag.Emails = lstEmails;
-            if (lstEmails.Count == 0)
-                PageNo -= 1;
-
-            ViewBag.PageCnt = nPageCnt;
-            ViewBag.PageNo = PageNo;
-            ViewBag.Type = Type;
-
-            return PartialView("EmailList");
         }
 
         [HttpGet]
@@ -135,61 +106,20 @@ namespace GoogleLogin.Controllers
                 int nPageCnt = 0;
                 if (nType == 1 || nType == 2)
                 {
-                    nPageCnt = _emailService.GetMailListPerUserCount(user.Email, PerPageCnt, nType);
+                    nPageCnt = _emailService.GetMailCnt(user.Email, nType);
                 }else if(nType == 3)
                 {
                     string myPhone = _phoneNumber;
                     if (user != null && !string.IsNullOrEmpty(user.PhoneNumber))
                         myPhone = user.PhoneNumber;
 
-                    nPageCnt = _smsService.GetSMSListPerUserCount(myPhone, PerPageCnt);
+                    nPageCnt = _smsService.GetSMSListPerUserCount(myPhone, nCntPerPage);
                 }
                 lstReturn.Add((nType, nPageCnt));
             }
             return lstReturn.Select(e => new [] {e.Item1, e.Item2}).ToList();
         }
-
-        [HttpPost]
-        public async Task<IActionResult> GetMessageList(string id, int Type, string GMail)
-        {
-			AppUser? user = await userManager.GetUserAsync(HttpContext.User);
-			if (user == null)
-			{
-#if DEBUG
-				user = new AppUser();
-				user.Email = "sherman@zahavas.com";
-#else
-                return Redirect("/account/Login");
-#endif
-            }
-            string access_token = HttpContext.Session.GetString("AccessToken");
-            List<EmailExt> lstResult = new List<EmailExt>();
-
-            if(Type == 1 || Type == 2) 
-            {
-                lstResult = await _emailService.GetGmailList(GMail, access_token, user.Email); //await _emailService.GetGmailList(GMail, user.Email);
-            }
-            else if(Type == 3)
-            {
-                string myPhone = _phoneNumber;
-                if (user.PhoneNumber != null)
-                    myPhone = user.PhoneNumber;
-                lstResult = await _smsService.GetMessageList(GMail, myPhone);                
-            }
-
-			ViewBag.MessageList = lstResult;
-            ViewBag.id = id;
-            ViewBag.Type = Type;
-
-            return PartialView("MessageDetail");
-		}
-        
-        /// <param name="Type"></param>
-        /// Type == 1 : my inbox
-        /// Type == 2 : archived
-        /// Type == 3 : my SMS
-        
-        
+      
 		[HttpPost]
 		public async Task<IActionResult> MakeStateByGMail(string strGmail, int em_state)
 		{
@@ -260,7 +190,7 @@ namespace GoogleLogin.Controllers
                             await _emailService.ChangeState(em_idx, 2); 
                         }
 					}
-					TbOrder p = await _shopifyService.GetOrderInfo(orderId);
+					TbOrder p = _shopifyService.GetOrderInfo(orderId);
                     string orderDetail = await _shopifyService.GetOrderInfoRequest(p.or_id);
                     return Json(new { status = isResult ? 1 : 0, order = p, orderDetail = orderDetail });
                 }
@@ -390,7 +320,7 @@ namespace GoogleLogin.Controllers
 					string strOrderId = jsonObj["order_id"].ToString();
                     if (!string.IsNullOrEmpty(strOrderId))
                     {
-                        TbOrder p = await _shopifyService.GetOrderInfo(strOrderId);
+                        TbOrder p = _shopifyService.GetOrderInfo(strOrderId);
                         
 						if (p == null)
 						{

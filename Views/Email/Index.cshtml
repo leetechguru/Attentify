@@ -7,19 +7,7 @@
 {
     <div class="container-fluid flex-grow-1 container-p-y">
         <div class="row">
-            <div class="col-xl-3">
-                <div class="card">
-                    <h5 class="card-header">Email Lists</h5>
-                    <div class="card-body">
-                        <div class="list-group" role="tablist">
-                            <a class="list-group-item list-group-item-action waves-effect"  data-bs-toggle="list" href="#" onclick="handleListClick(this)" aria-selected="false" role="tab" tabindex="-1">sherman@zahavas.com</a>
-                            <a class="list-group-item list-group-item-action waves-effect" data-bs-toggle="list" href="#" onclick="handleListClick(this)" aria-selected="false" role="tab" tabindex="-1">test@test.com</a>
-                        </div>
-                    </div>
-                    
-                </div>
-            </div>
-            <div class="col-xl-9">
+            <div class="" id="email_part">
                 <div class="app-email card">
                     <div class="row g-0">
                         <!-- Email Sidebar -->
@@ -37,11 +25,18 @@
                                 <!-- Email Filters: Folder -->
                                 <ul class="email-filter-folders list-unstyled">
                                     <li class="active d-flex justify-content-between align-items-center mb-1" data-target="inbox">
-                                        <a href="javascript:void(0);" class="d-flex flex-wrap align-items-center">
+                                        <a href="javascript:void(0);" onclick="handleInboxClick();" class="d-flex flex-wrap align-items-center">
                                             <i class="ti ti-mail"></i>
                                             <span class="align-middle ms-2">Inbox</span>
                                         </a>
-                                        <div class="badge bg-label-primary rounded-pill">21</div>
+                                        <div class="badge bg-label-primary rounded-pill" id="inbox_cnt">21</div>
+                                    </li>
+                                    <li class="d-flex justify-content-between align-items-center mb-1" data-target="archieved">
+                                        <a href="javascript:void(0);" onclick="handleArchieveClick();" class="d-flex flex-wrap align-items-center">
+                                            <i class="ti ti-alert-octagon"></i>
+                                            <span class="align-middle ms-2">Archieved</span>
+                                        </a>
+                                        <div class="badge bg-label-warning rounded-pill" id="archieved_cnt">4</div>
                                     </li>
                                 </ul>
                             </div>
@@ -185,307 +180,9 @@
                         <!-- /Emails List -->
                         <!-- Email View -->
                         <div class="col app-email-view flex-grow-0 bg-lighter" id="app-email-view">
-                            <div class="card shadow-none border-0 rounded-0 app-email-view-header p-5 pt-md-4 py-2">
-                                <!-- Email View : Title  bar-->
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div class="d-flex align-items-center overflow-hidden">
-                                        <span class="ms-sm-2 me-4">
-                                            <i class="ti ti-chevron-left ti-md cursor-pointer"
-                                               data-bs-toggle="sidebar"
-                                               data-target="#app-email-view"></i>
-                                        </span>
-                                        <h6 class="text-truncate mb-0 me-2 fw-normal">Focused impactful open issues</h6>
-                                        <span class="badge bg-label-warning rounded-pill">Important</span>
-                                    </div>
-                                    <!-- Email View : Action bar-->
-                                    <div class="d-flex align-items-center">
-                                        <span class="btn btn-icon p-0 me-2 text-muted">
-                                            <i class="ti ti-chevron-left ti-md"></i>
-                                        </span>
-                                        <span class="btn btn-icon p-0">
-                                            <i class="ti ti-chevron-right ti-md"></i>
-                                        </span>
-                                    </div>
-                                </div>
-                                <hr class="app-email-view-hr mx-n5 mb-2" />
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div class="d-flex align-items-center">
-                                        <span class="btn btn-icon btn-text-secondary rounded-pill me-1">
-                                            <i class="ti ti-trash ti-md cursor-pointer"></i>
-                                        </span>
-                                        <span class="btn btn-icon btn-text-secondary rounded-pill me-1">
-                                            <i class="ti ti-mail ti-md cursor-pointer"
-                                               data-bs-toggle="sidebar"
-                                               data-target="#app-email-view"></i>
-                                        </span>
-                                        <div class="dropdown">
-                                            <button class="btn btn-icon btn-text-secondary rounded-pill p-0 me-1"
-                                                    type="button"
-                                                    id="dropdownMenuFolderTwo"
-                                                    data-bs-toggle="dropdown"
-                                                    aria-haspopup="true"
-                                                    aria-expanded="false">
-                                                <i class="ti ti-folder ti-md"></i>
-                                            </button>
-                                            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuFolderTwo">
-                                                <a class="dropdown-item" href="javascript:void(0)">
-                                                    <i class="ti ti-alert-octagon me-1"></i>
-                                                    <span class="align-middle">Spam</span>
-                                                </a>
-                                                <a class="dropdown-item" href="javascript:void(0)">
-                                                    <i class="ti ti-edit me-1"></i>
-                                                    <span class="align-middle">Draft</span>
-                                                </a>
-                                                <a class="dropdown-item" href="javascript:void(0)">
-                                                    <i class="ti ti-trash me-1"></i>
-                                                    <span class="align-middle">Trash</span>
-                                                </a>
-                                            </div>
-                                        </div>
-                                        <div class="dropdown">
-                                            <button class="btn btn-icon btn-text-secondary rounded-pill p-0"
-                                                    type="button"
-                                                    id="dropdownLabelTwo"
-                                                    data-bs-toggle="dropdown"
-                                                    aria-haspopup="true"
-                                                    aria-expanded="false">
-                                                <i class="ti ti-tag ti-md"></i>
-                                            </button>
-                                            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownLabelTwo">
-                                                <a class="dropdown-item" href="javascript:void(0)">
-                                                    <i class="badge badge-dot bg-success me-1"></i>
-                                                    <span class="align-middle">Workshop</span>
-                                                </a>
-                                                <a class="dropdown-item" href="javascript:void(0)">
-                                                    <i class="badge badge-dot bg-primary me-1"></i>
-                                                    <span class="align-middle">Company</span>
-                                                </a>
-                                                <a class="dropdown-item" href="javascript:void(0)">
-                                                    <i class="badge badge-dot bg-info me-1"></i>
-                                                    <span class="align-middle">Important</span>
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="d-flex align-items-center">
-                                        <span class="btn btn-icon btn-text-secondary rounded-pill p-0">
-                                            <i class="ti ti-star ti-md"></i>
-                                        </span>
-                                        <div class="dropdown ms-1">
-                                            <button class="btn btn-icon btn-text-secondary rounded-pill p-0"
-                                                    type="button"
-                                                    id="dropdownMoreOptions"
-                                                    data-bs-toggle="dropdown"
-                                                    aria-haspopup="true"
-                                                    aria-expanded="false">
-                                                <i class="ti ti-dots-vertical ti-md"></i>
-                                            </button>
-                                            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMoreOptions">
-                                                <a class="dropdown-item" href="javascript:void(0)">
-                                                    <i class="ti ti-mail me-1"></i>
-                                                    <span class="align-middle">Mark as unread</span>
-                                                </a>
-                                                <a class="dropdown-item" href="javascript:void(0)">
-                                                    <i class="ti ti-mail-opened me-1"></i>
-                                                    <span class="align-middle">Mark as read</span>
-                                                </a>
-                                                <a class="dropdown-item" href="javascript:void(0)">
-                                                    <i class="ti ti-star ti-sm me-1"></i>
-                                                    <span class="align-middle">Add star</span>
-                                                </a>
-                                                <a class="dropdown-item" href="javascript:void(0)">
-                                                    <i class="ti ti-calendar me-1"></i>
-                                                    <span class="align-middle">Create Event</span>
-                                                </a>
-                                                <a class="dropdown-item" href="javascript:void(0)">
-                                                    <i class="ti ti-volume-off me-1"></i>
-                                                    <span class="align-middle">Mute</span>
-                                                </a>
-                                                <a class="dropdown-item d-sm-none d-block" href="javascript:void(0)">
-                                                    <i class="ti ti-printer me-1"></i>
-                                                    <span class="align-middle">Print</span>
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <hr class="m-0" />
-                            <!-- Email View : Content-->
-                            <div class="app-email-view-content py-4">
-                                <p class="email-earlier-msgs text-center cursor-pointer mb-12">1 Earlier Message</p>
-                                <!-- Email View : Previous mails-->
-                                <div class="card email-card-prev mx-sm-6 mx-3">
-                                    <div class="card-header d-flex justify-content-between align-items-center flex-wrap border-bottom">
-                                        <div class="d-flex align-items-center mb-sm-0 mb-3">
-                                            <img src="~/assets/img/avatars/2.png"
-                                                 alt="user-avatar"
-                                                 class="flex-shrink-0 rounded-circle me-4"
-                                                 height="38"
-                                                 width="38" />
-                                            <div class="flex-grow-1 ms-1">
-                                                <h6 class="m-0 fw-normal">Ross Geller</h6>
-                                                <small class="text-body">rossGeller@email.com</small>
-                                            </div>
-                                        </div>
-                                        <div class="d-flex align-items-center">
-                                            <p class="mb-0 me-4 text-muted">June 20th 2020, 08:30 AM</p>
-                                            <span class="btn btn-icon btn-text-secondary rounded-pill">
-                                                <i class="ti ti-paperclip ti-md cursor-pointer"></i>
-                                            </span>
-                                            <span class="btn btn-icon btn-text-secondary rounded-pill">
-                                                <i class="email-list-item-bookmark ti ti-star ti-md cursor-pointer"></i>
-                                            </span>
-                                            <div class="dropdown">
-                                                <button class="btn btn-icon btn-text-secondary rounded-pill p-0"
-                                                        type="button"
-                                                        id="dropdownEmailOne"
-                                                        data-bs-toggle="dropdown"
-                                                        aria-haspopup="true"
-                                                        aria-expanded="false">
-                                                    <i class="ti ti-dots-vertical ti-md"></i>
-                                                </button>
-                                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownEmailOne">
-                                                    <a class="dropdown-item scroll-to-reply" href="javascript:void(0)">
-                                                        <i class="ti ti-corner-up-left me-1"></i>
-                                                        <span class="align-middle">Reply</span>
-                                                    </a>
-                                                    <a class="dropdown-item" href="javascript:void(0)">
-                                                        <i class="ti ti-corner-up-right me-1"></i>
-                                                        <span class="align-middle">Forward</span>
-                                                    </a>
-                                                    <a class="dropdown-item" href="javascript:void(0)">
-                                                        <i class="ti ti-alert-octagon me-1"></i>
-                                                        <span class="align-middle">Report</span>
-                                                    </a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="card-body pt-5">
-                                        <p class="fw-medium">Greetings!</p>
-                                        <p>
-                                            It is a long established fact that a reader will be distracted by the readable content of a
-                                            page when looking at its layout.The point of using Lorem Ipsum is that it has a more-or-less
-                                            normal distribution of letters, as opposed to using 'Content here, content here',making it
-                                            look like readable English.
-                                        </p>
-                                        <p>
-                                            There are many variations of passages of Lorem Ipsum available, but the majority have
-                                            suffered alteration in some form, by injected humour, or randomised words which don't look
-                                            even slightly believable.
-                                        </p>
-                                        <p class="mb-0">Sincerely yours,</p>
-                                        <p class="fw-medium mb-0">Envato Design Team</p>
-                                        <hr />
-                                        <p class="text-muted mb-2">Attachments</p>
-                                        <div class="cursor-pointer">
-                                            <i class="ti ti-file"></i>
-                                            <span class="align-middle ms-1">report.xlsx</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- Email View : Last mail-->
-                                <div class="card email-card-last mx-sm-6 mx-3 mt-4">
-                                    <div class="card-header d-flex justify-content-between align-items-center flex-wrap border-bottom">
-                                        <div class="d-flex align-items-center mb-sm-0 mb-3">
-                                            <img src="~/assets/img/avatars/1.png"
-                                                 alt="user-avatar"
-                                                 class="flex-shrink-0 rounded-circle me-4"
-                                                 height="38"
-                                                 width="38" />
-                                            <div class="flex-grow-1 ms-1">
-                                                <h6 class="m-0 fw-normal">Chandler Bing</h6>
-                                                <small class="text-body">iAmAhoot@email.com</small>
-                                            </div>
-                                        </div>
-                                        <div class="d-flex align-items-center">
-                                            <p class="mb-0 me-4 text-muted">June 20th 2020, 08:10 AM</p>
-                                            <span class="btn btn-icon btn-text-secondary rounded-pill">
-                                                <i class="ti ti-paperclip ti-md cursor-pointer"></i>
-                                            </span>
-                                            <span class="btn btn-icon btn-text-secondary rounded-pill">
-                                                <i class="email-list-item-bookmark ti ti-star ti-md cursor-pointer"></i>
-                                            </span>
-                                            <div class="dropdown">
-                                                <button class="btn btn-icon btn-text-secondary rounded-pill dropdown-toggle hide-arrow"
-                                                        id="dropdownEmailTwo"
-                                                        data-bs-toggle="dropdown"
-                                                        aria-expanded="true">
-                                                    <i class="ti ti-dots-vertical ti-md"></i>
-                                                </button>
-                                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownEmailTwo">
-                                                    <a class="dropdown-item scroll-to-reply" href="javascript:void(0)">
-                                                        <i class="ti ti-corner-up-left me-1"></i>
-                                                        <span class="align-middle">Reply</span>
-                                                    </a>
-                                                    <a class="dropdown-item" href="javascript:void(0)">
-                                                        <i class="ti ti-corner-up-right me-1"></i>
-                                                        <span class="align-middle">Forward</span>
-                                                    </a>
-                                                    <a class="dropdown-item" href="javascript:void(0)">
-                                                        <i class="ti ti-alert-octagon me-1"></i>
-                                                        <span class="align-middle">Report</span>
-                                                    </a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="card-body pt-5">
-                                        <p class="fw-medium">Greetings!</p>
-                                        <p>
-                                            It is a long established fact that a reader will be distracted by the readable content of a
-                                            page when looking at its layout.The point of using Lorem Ipsum is that it has a more-or-less
-                                            normal distribution of letters, as opposed to using 'Content here, content here',making it
-                                            look like readable English.
-                                        </p>
-                                        <p>
-                                            There are many variations of passages of Lorem Ipsum available, but the majority have
-                                            suffered alteration in some form, by injected humour, or randomised words which don't look
-                                            even slightly believable.
-                                        </p>
-                                        <p class="mb-0">Sincerely yours,</p>
-                                        <p class="fw-medium mb-0">Envato Design Team</p>
-                                        <hr />
-                                        <p class="text-muted mb-2">Attachments</p>
-                                        <div class="cursor-pointer">
-                                            <i class="ti ti-file"></i>
-                                            <span class="align-middle ms-1">report.xlsx</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- Email View : Reply mail-->
-                                <div class="email-reply card mt-4 mx-sm-6 mx-3 mb-4">
-                                    <h6 class="card-header border-0 fw-normal pb-4">Reply to Ross Geller</h6>
-                                    <div class="card-body pt-0 ps-3">
-                                        <div class="d-flex justify-content-start">
-                                            <div class="email-reply-toolbar border-0 w-100 ps-0 pb-4">
-                                                <span class="ql-formats me-0">
-                                                    <button class="ql-bold"></button>
-                                                    <button class="ql-italic"></button>
-                                                    <button class="ql-underline"></button>
-                                                    <button class="ql-list" value="ordered"></button>
-                                                    <button class="ql-list" value="bullet"></button>
-                                                    <button class="ql-link"></button>
-                                                    <button class="ql-image"></button>
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div class="email-reply-editor"></div>
-                                        <div class="d-flex justify-content-end align-items-center mt-4">
-                                            <div class="cursor-pointer btn btn-text-secondary text-secondary me-4">
-                                                <i class="ti ti-paperclip ti-16px text-heading me-2"></i>
-                                                <span class="align-middle">Attachments</span>
-                                            </div>
-                                            <button class="btn btn-primary">
-                                                <span class="align-middle">Send</span>
-                                                <i class="ti ti-send ti-16px ms-2 scaleX-n1-rtl"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            
                         </div>
+                        
                         <!-- Email View -->
                     </div>
 
@@ -635,26 +332,100 @@
                     <!-- /Compose Email -->
                 </div>
             </div>
+            <div class="col-xl-5" id="info_part">
+                <div class="card mb-3">
+                    <h5 class="card-header pb-2">Customer Profile</h5>
+                    <div class="card-body">
+                        <p class="mb-1">Name : </p>
+                        <p class="mb-1">Phone: </p>
+                        <p class="mb-1">Email: </p>
+                    </div>
+
+                </div>
+
+                <div class="card mb-3" id="fake_order_detail">
+                    <h5 class="card-header pb-2">Order Detail</h5>
+                    <div class="card-body">
+                        <p class="mb-1" id="fake_order_detail_content">Processing... </p>
+                    </div>
+                </div>
+
+                <div class="card mb-3" id="real_order_detail">
+                </div>
+            </div>
         </div>
     </div>
 
-    <input type="hidden" name="PageNo" value="@(ViewBag.PageNo ?? 1)" />
-    <input type="hidden" name="Type" value="@(ViewBag.Type ?? 0)" />
-    <input type="hidden" name="PageCnt" value="@(ViewBag.PageCnt ?? 20)" />
-    <input type="hidden" name="selectedEmail" value="@(ViewBag.selectedEmail ?? "sherman@zahavas.com")" />
+    <input type="hidden" name="nPageIndex"        value="@(ViewBag.PageNo ?? 0)" />
+    <input type="hidden" name="nEmailState"       value="@(ViewBag.Type ?? 0)" />
+    <input type="hidden" name="nCntPerPage"          value="@(ViewBag.PageCnt ?? 20)" />
+    <input type="hidden" name="selectedEmail"     value="@(ViewBag.selectedEmail ?? "sherman@zahavas.com")" />
+
+
+    <!-- Email Page JS -->
+    <script src="~/assets/js/app-email.js"></script>
 
     <script type="text/javascript">
         $(document).ready(function() {
-            loadMailList("sherman@zahavas.com");
+            $('#info_part').hide();
+            loadMailCntInfo();
+            loadMailList();
         });
 
-        function loadMailList (strEmail) {
-            let PageNo = $('input[name="PageNo"]').val();
-            let Type = $('input[name="Type"]').val();
+        function loadMailCntInfo() {
+            let strEmail = $('input[name="selectedEmail"]').val();
+            $.post('/email/GetMailCntInfo', { strEmail : strEmail }, function (data) {
+                if (data.status == 200) {
+                    $('#inbox_cnt').html(data.nInboxCnt);
+                    $('#archieved_cnt').html(data.nArchievedCnt);
+                    $('input[name="nCntPerPage"]').html(data.nCntPerPage);
+                }
+            }, 'json')
+        }
 
-            $.post('/home/GetMailList', { strEmail, PageNo, Type }, function (data) {
+        function loadMailList () {
+            let strEmail    = $('input[name="selectedEmail"]').val();
+            let nPageIndex  = $('input[name="nPageIndex"]').val();
+            let nEmailState = $('input[name="nEmailState"]').val();
+
+            $.post('/email/GetMailList', { strEmail: strEmail, nPageIndex: nPageIndex, nEmailState: nEmailState }, function (data) {
                 try {
                     $('#email_list').html(data);
+                    email.init();
+                } catch (e) {
+                    console.log(e);
+                } finally {
+                }
+            }, 'html');
+        }
+
+        function loadMailDetail(strMailId) {
+            $('#fake_order_detail').show();
+            $('#fake_order_detail_content').html("Processing...");
+            $('#real_order_detail').hide();
+
+            $.post('/email/GetMailDetail', { strMailId: strMailId}, function (data) {
+                try {
+                    $('#app-email-view').html(data);
+                    $('#app-email-view').toggleClass("show");
+                    $('#email_part').toggleClass("col-xl-7");
+                    $('#info_part').show();
+                    email.init();
+
+                    loadOrderInfo(strMailId);
+                } catch (e) {
+                    console.log(e);
+                } finally {
+                }
+            }, 'html');
+        }
+
+        function loadOrderInfo(strMailId) {
+            $.post('/email/GetOrderInfo', { strMailId: strMailId }, function (data) {
+                try {
+                    $('#fake_order_detail').hide();
+                    $('#real_order_detail').show();
+                    $('#real_order_detail').html(data);
                 } catch (e) {
                     console.log(e);
                 } finally {
@@ -665,26 +436,59 @@
         function handleListClick(element) {
             const content = element.textContent;
             $('input[name="selectedEmail"]').val(content);
-            loadMailList(content);
+            $('input[name="nPageIndex"]').val(0);
+            $('input[name="nEmailState"]').val(0);
+            loadMailCntInfo();
+            loadMailList();
         }
 
         function handlePrevPage() {
-            let PageNo = $('input[name="PageNo"]').val();
-            PageNo--;
-            if (PageNo < 1) PageNo = 1;
-            $('input[name="PageNo"]').val(PageNo);
+            let nPageIndex = $('input[name="nPageIndex"]').val();
+            nPageIndex--;
+            if (nPageIndex < 0) nPageIndex = 0;
+            $('input[name="nPageIndex"]').val(nPageIndex);
             const strMail = $('input[name="selectedEmail"]').val();
-            loadMailList(strMail);
+            loadMailCntInfo();
+            loadMailList();
         }
 
         function handleNextPage() {
-            let PageNo = $('input[name="PageNo"]').val();
-            PageNo++;
-            $('input[name="PageNo"]').val(PageNo);
+            let nPageIndex  = Number($('input[name="nPageIndex"]').val());
+            let nCntPerPage = Number($('input[name="nCntPerPage"]').val());
+            let nEmailState = Number($('input[name="nEmailState"]').val());
+
+            let nTotalCnt = 0;
+            nEmailState == 0 ? nTotalCnt = Number($('#inbox_cnt').html()) : nTotalCnt = Number($('#archieved_cnt').html());
+            let nPageCnt = Math.floor(nTotalCnt / nCntPerPage) + 1;
+            if (nPageIndex + 1 == nPageCnt) return;
+            nPageIndex++;
+            $('input[name="nPageIndex"]').val(nPageIndex);
             const strMail = $('input[name="selectedEmail"]').val();
-            loadMailList(strMail);
+            loadMailCntInfo();
+            loadMailList();
         }
 
+        function handleInboxClick() {
+            $('input[name="nPageIndex"]').val(0);
+            $('input[name="nEmailState"]').val(0);
+            const strMail = $('input[name="selectedEmail"]').val();
+            loadMailCntInfo();
+            loadMailList();
+        }
+
+        function handleArchieveClick() {
+            $('input[name="nPageIndex"]').val(0);
+            $('input[name="nEmailState"]').val(3);
+            const strMail = $('input[name="selectedEmail"]').val();
+            loadMailCntInfo();
+            loadMailList();
+        }
+
+        function handleBackClick() {
+            $('#app-email-view').toggleClass("show");
+            $('#email_part').toggleClass("col-xl-7");
+            $('#info_part').hide();
+        }
     </script>
 }
 catch (Exception ex)

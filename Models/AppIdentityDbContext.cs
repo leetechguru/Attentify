@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography.X509Certificates;
 
 namespace GoogleLogin.Models
 {
@@ -13,5 +14,7 @@ namespace GoogleLogin.Models
         public DbSet<TbShopifyToken> TbTokens{ get; set; }
         public DbSet<TbShopifyUser> TbShopifyUsers{ get; set; }        
         public DbSet<TbSms> TbSmss { get; set; }
+
+        public DbSet<TbMailAccount> TbMailAccount { get; set; }
     }
 }

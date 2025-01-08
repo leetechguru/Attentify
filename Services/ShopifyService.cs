@@ -1053,22 +1053,23 @@ namespace GoogleLogin.Services
             }
         }
     
-        public async Task<TbOrder> GetOrderInfo(string strOrderNo)
+        public TbOrder GetOrderInfo(string strOrderId)
         {
             using (var scope = _serviceScopeFactory.CreateScope())  // Create a new scope
             {
-                string strOrderNum = AddPrefixIfMissing(strOrderNo);
+                string strOrderNum = AddPrefixIfMissing(strOrderId);
+                Console.WriteLine(strOrderNum);
                 var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
-                return await _dbContext.TbOrders.Where(e => e.or_name == strOrderNum).FirstOrDefaultAsync();
+                return _dbContext.TbOrders.Where(e => e.or_name == strOrderNum).FirstOrDefault();
             }
         }
 
-		public async Task<TbOrder> GetOrderInfo(long nOrderId)
+		public TbOrder GetOrderInfo(long nOrderId)
 		{
 			using (var scope = _serviceScopeFactory.CreateScope())  // Create a new scope
 			{				
 				var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
-				return await _dbContext.TbOrders.Where(e => e.or_id == nOrderId).FirstOrDefaultAsync();
+                return _dbContext.TbOrders.Where(e => e.or_id == nOrderId).FirstOrDefault();
 			}
 		}
 

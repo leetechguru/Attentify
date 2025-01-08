@@ -15,7 +15,7 @@
                     <span class="ms-sm-3 me-4 d-sm-inline-block d-none">
                         <i class="email-list-item-bookmark ti ti-star ti-md cursor-pointer"></i>
                     </span>
-                    <div class="email-list-item-content ms-2 ms-sm-0 me-2">
+                    <div class="email-list-item-content ms-2 ms-sm-0 me-2" onclick="javascript:loadMailDetail('@item.em_id');">
                         <span class="email-list-item-username me-2 text-heading">@item.em_from</span>
                         <small class="email-list-item-subject d-xl-inline-block d-block">
                             @item.em_subject
@@ -38,5 +38,5 @@
                 </div>
             </li>
         }
-	}    
+	}
 }

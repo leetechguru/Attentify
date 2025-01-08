@@ -160,7 +160,7 @@ namespace GoogleLogin.Controllers
                     string strOrderId = jsonObj["order_id"].ToString();
                     if (!string.IsNullOrEmpty(strOrderId))
                     {                        
-                        TbOrder p = await _shopifyService.GetOrderInfo(strOrderId);
+                        TbOrder p = _shopifyService.GetOrderInfo(strOrderId);
                         if (p == null)
                         {                            
                             p = _shopifyService.GetOrderInfoByPhone(phone);

@@ -25,7 +25,7 @@ namespace GoogleLogin.Controllers
         private readonly ShopifyService _shopifyService;
         private readonly ModelService _smsService;
         private readonly LLMService _llmService;
-        private const int PerPageCnt = 20;
+        private const int nCntPerPage = 20;
         private readonly string _phoneNumber;
 
         public EmailController(SignInManager<AppUser> signinMgr, Microsoft.AspNetCore.Identity.UserManager<AppUser> userMgr, EMailService service, ShopifyService shopifyService, ModelService smsService, ILogger<EmailController> logger, IConfiguration _configuration, LLMService llmService)
@@ -58,6 +58,86 @@ namespace GoogleLogin.Controllers
                 return Redirect("/account/Login");
 
             return View();
+        }
+
+        [HttpPost]
+        public IActionResult GetMailList(string strEmail, int nPageIndex = 0, int nEmailState = 0)
+        {
+            int nMailCnt = _emailService.GetMailCnt(strEmail, nEmailState);
+            var emailList = _emailService.GetMailList(strEmail, nPageIndex, nCntPerPage, nEmailState);
+
+            List<TbEmailsExt> emailExtList = new List<TbEmailsExt>();
+            foreach (var email in emailList)
+            {
+                emailExtList.Add(new TbEmailsExt(email));
+            }
+
+            ViewBag.Emails = emailExtList;
+            ViewBag.nMailTotalCnt = nMailCnt;
+
+            return PartialView("View_EmailList");
+        }
+
+        [HttpPost]
+        public IActionResult GetMailCntInfo(string strEmail)
+        {
+            int nInboxCnt = _emailService.GetMailCnt(strEmail, 0);
+            int nArchievedCnt = _emailService.GetMailCnt(strEmail, 3);
+            return Json(new { status = 200, nInboxCnt = nInboxCnt, nArchievedCnt = nArchievedCnt, nCntPerPage = nCntPerPage });
+        }
+
+        [HttpPost]
+        public IActionResult GetMailDetail(string strMailId)
+        {
+            EmailExt emailExt = new EmailExt();
+            emailExt = _emailService.GetMailDetail(strMailId);
+            ViewBag.emailExt = emailExt;
+            return PartialView("View_EmailDetail");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetOrderInfo(string strMailId)
+        {
+            try
+            {
+                var user = await userManager.GetUserAsync(User);
+
+                int status = 0;
+                string strRespond = string.Empty;
+
+                string strMailEncodeBody = _emailService.GetMailEncodeBody(strMailId);
+                if (strMailEncodeBody != "")
+                {
+                    strRespond = await _llmService.GetResponseLLM(strMailEncodeBody);
+                    JObject jsonObj = JObject.Parse(strRespond);
+                    status = Convert.ToInt32((jsonObj["status"] ?? '0').ToString());
+                }
+                Console.WriteLine(strRespond);
+                if (status == 1)
+                {
+                    JObject jsonObj = JObject.Parse(strRespond);
+                    string strType = (jsonObj["type"] ?? "").ToString();
+                    string strOrderName = (jsonObj["order_id"] ?? "").ToString();
+
+                    TbOrder tbOrder = _shopifyService.GetOrderInfo(strOrderName);
+                    Console.WriteLine(tbOrder);
+                    if ( tbOrder != null)
+                    {
+                        string orderDetail = await _shopifyService.GetOrderInfoRequest(tbOrder.or_id);
+                        ViewBag.status = 201;
+                        ViewBag.orderName = strOrderName;
+                        ViewBag.order = tbOrder;
+                        ViewBag.orderDetail = orderDetail;
+                        return PartialView("View_OrderDetail");
+                    }
+                } 
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            ViewBag.status = -201;
+            return PartialView("View_OrderDetail");
         }
     }
 }
