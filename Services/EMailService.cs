@@ -3,6 +3,7 @@ using Azure.Core;
 using Google.Api;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
+using Google.Apis.Auth.OAuth2.Responses;
 using Google.Apis.Gmail.v1;
 using Google.Apis.Gmail.v1.Data;
 using Google.Apis.Services;
@@ -23,6 +24,7 @@ using System.Drawing.Printing;
 using System.Net;
 using System.Net.Mail;
 using System.Text;
+using System.Web;
 using Tesseract;
 using Twilio.TwiML.Messaging;
 using Twilio.TwiML.Voice;
@@ -929,7 +931,83 @@ namespace GoogleLogin.Services
                 _logger.LogError("emailservice/removeEmail " + ex.Message);
             }            
         }
-	}
+
+        public async Task<string> GetAccessToken()
+        {
+            string clientId = "554411087297-k1a42bhgrutgbq5inss1qoj79tltd2on.apps.googleusercontent.com";
+            string clientSecret = "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";
+
+            // URL decode the authorization code
+            string authorizationCode = HttpUtility.UrlDecode("4/0AanRRrvTpsSh3hl7c-xVu44BgD4Qn4wjnkhhHFGc2iiXb9cxH1Dp0NlNhIcPdgMYGSBzZg");
+            string redirectUri = "https://localhost:7150/test";
+
+            var flow = new GoogleAuthorizationCodeFlow(
+                new GoogleAuthorizationCodeFlow.Initializer
+                {
+                    ClientSecrets = new ClientSecrets
+                    {
+                        ClientId = clientId,
+                        ClientSecret = clientSecret
+                    },
+                    Scopes = new[] { "email" }
+                });
+
+            try
+            {
+                TokenResponse tokenResponse = await flow.ExchangeCodeForTokenAsync(
+                    userId: string.Empty,
+                    code: authorizationCode,
+                    redirectUri: redirectUri,
+                    CancellationToken.None);
+
+                Console.WriteLine($"Access Token: {tokenResponse.AccessToken}");
+                Console.WriteLine($"Refresh Token: {tokenResponse.RefreshToken}");
+                Console.WriteLine($"Token Expiry: {tokenResponse.ExpiresInSeconds}");
+
+                return tokenResponse.AccessToken;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error obtaining token: {ex.Message}");
+                return string.Empty;
+            }
+        }
+
+        public async Task<string> GetAccessTokenFromRefreshToken(string refreshToken)
+        {
+            string clientId = "554411087297-k1a42bhgrutgbq5inss1qoj79tltd2on.apps.googleusercontent.com";
+            string clientSecret = "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";
+
+            var flow = new GoogleAuthorizationCodeFlow(
+                new GoogleAuthorizationCodeFlow.Initializer
+                {
+                    ClientSecrets = new ClientSecrets
+                    {
+                        ClientId = clientId,
+                        ClientSecret = clientSecret
+                    },
+                    Scopes = new[] { "email", "https://www.googleapis.com/auth/gmail.modify" }
+                });
+
+            try
+            {
+                TokenResponse tokenResponse = await flow.RefreshTokenAsync(
+                    userId: string.Empty,
+                    refreshToken: refreshToken,
+                    CancellationToken.None);
+
+                Console.WriteLine($"New Access Token: {tokenResponse.AccessToken}");
+                Console.WriteLine($"Token Expiry: {tokenResponse.ExpiresInSeconds}");
+
+                return tokenResponse.AccessToken;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error refreshing token: {ex.Message}");
+                return string.Empty;
+            }
+        }
+    }
     public class EmailDto
     {
         public string em_from { get; set; }
@@ -1037,4 +1115,6 @@ namespace GoogleLogin.Services
         public List<string> strLabel { set; get; }
         public int nType { set; get; } //0 - to me, 1 - from me
     }
+
+    
 }

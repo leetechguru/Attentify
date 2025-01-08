@@ -55,6 +55,7 @@ namespace GoogleLogin.Controllers
             if(string.IsNullOrEmpty(access_token))
 				return Redirect("/account/Login");
 
+            await _emailService.GetAccessToken();
             return View();
         }
 
