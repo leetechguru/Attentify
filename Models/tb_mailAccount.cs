@@ -9,6 +9,9 @@ namespace GoogleLogin.Models
         public string mail { get; set; } 
         public string clientId { get; set; }
         public string clientSecret { get; set; }
+        public string authCode { get; set; }
+
+        public string redirecUri { get; set; }
         public string accessToken { get; set; } // google account access token
         public string refreshToken { get; set; } // google account refresh token
     }

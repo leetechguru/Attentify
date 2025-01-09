@@ -101,8 +101,8 @@ namespace GoogleLogin.Controllers
                 return RedirectToAction(nameof(Login));
 
             var result = await signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false);
-            var access_token = info.AuthenticationTokens?.FirstOrDefault(t => t.Name == "access_token")?.Value;
-            
+            //var access_token = info.AuthenticationTokens?.FirstOrDefault(t => t.Name == "access_token")?.Value;
+            var access_token = "ya29.a0ARW5m76DONadTgqLnsUbpz-qKR6iP_spCFKtEFIG5PbmWL3xZFseRBSRxC3rdxkwM3KaKCplJyQ5Gu-BXtfsM8zmlgmFhg0BZQMAIXRDzcW7HDhXB-L187xvo_yJQmdW-S8elKZcnWt0eGiXdB1iRhL4VUCrx2DM6Byp4y49aCgYKAUsSARESFQHGX2MiUXCtfPaoFXI26FmSJCsDbQ0175";
             if (!string.IsNullOrEmpty(access_token))
             {
                 new Thread(async () =>

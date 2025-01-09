@@ -55,7 +55,6 @@ namespace GoogleLogin.Controllers
             if(string.IsNullOrEmpty(access_token))
 				return Redirect("/account/Login");
 
-            await _emailService.GetAccessToken();
             return View();
         }
 
@@ -78,7 +77,7 @@ namespace GoogleLogin.Controllers
             CustomerInfo obj = null;
             if(Type == 1)
             {
-                obj = await _emailService.GetCustomerInfo(id);
+                obj =  _emailService.GetCustomerInfo(id);
             }else if(Type == 3) {
                 obj = _smsService.GetCustomerInfo(id);
 			}

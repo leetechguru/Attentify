@@ -89,10 +89,21 @@ namespace GoogleLogin.Controllers
         [HttpPost]
         public IActionResult GetMailDetail(string strMailId)
         {
+            
             EmailExt emailExt = new EmailExt();
             emailExt = _emailService.GetMailDetail(strMailId);
-            ViewBag.emailExt = emailExt;
+
+            ViewBag.customerInfo = _emailService.GetCustomerInfo(strMailId);
+            ViewBag.emailExt     = emailExt;
             return PartialView("View_EmailDetail");
+        }
+
+        [HttpPost]
+        public IActionResult GetCustomerInfo(string strMailId)
+        {
+
+            CustomerInfo customerInfo = _emailService.GetCustomerInfo(strMailId);
+            return Json(new { status = 201, customerInfo = customerInfo });
         }
 
         [HttpPost]

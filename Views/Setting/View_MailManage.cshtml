@@ -90,6 +90,17 @@
 
         }
 
+        function handleUpdateClick(mailIdx) {
+            $.post('/setting/UpdateMail', { strMailIdx: mailIdx }, function (data) {
+                console.log(data.status);
+                if (data.status == 201) {
+                    loadMailList();
+                } else {
+                    console.log("Update failed");
+                }
+            }, 'json')
+        }
+
         function handleDeleteClick(mailIdx) {
             $.post('/setting/DeleteMail', { strMailIdx: mailIdx }, function (data) {
                 console.log(data.status);

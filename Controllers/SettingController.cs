@@ -18,6 +18,7 @@ namespace GoogleLogin.Controllers
         private readonly ILogger<HomeController> _logger;
         private SignInManager<AppUser> signInManager;
         private UserManager<AppUser> userManager;
+        private readonly EMailService _emailService;
 
         public SettingController(SignInManager<AppUser> signinMgr, IServiceScopeFactory serviceScopeFactory, UserManager<AppUser> userMgr, EMailService service, ShopifyService shopifyService, ModelService smsService, ILogger<HomeController> logger, IConfiguration _configuration, LLMService llmService)
         {
@@ -25,6 +26,7 @@ namespace GoogleLogin.Controllers
             _serviceScopeFactory = serviceScopeFactory;
             userManager = userMgr;
             _logger = logger;
+            _emailService = service;
         }
        
         [HttpGet]
@@ -74,6 +76,8 @@ namespace GoogleLogin.Controllers
                         clientSecret = strClientSecret,
                         accessToken = string.Empty,
                         refreshToken = string.Empty,
+                        authCode    = string.Empty,
+                        redirecUri = string.Empty,
                     };
 
                     _dbContext.TbMailAccount.Add(mailAccount);
@@ -83,6 +87,24 @@ namespace GoogleLogin.Controllers
             }
 
             return Json(new { status = -201 });
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateMail(string strMailIdx)
+        {
+            if (string.IsNullOrWhiteSpace(strMailIdx))
+            {
+                return Json(new { status = -201, message = "Update failed" });
+            }
+
+            int ret = await _emailService.GetAccessTokenFromMailIdx(strMailIdx);
+
+            if (ret == 1)
+            {
+                return Json(new { status = 201, message = "Update Success" });
+            }
+            return Json(new { status = -201, message = "Update failed" });
         }
 
         [HttpPost]

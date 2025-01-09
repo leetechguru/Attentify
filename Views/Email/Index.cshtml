@@ -13,12 +13,11 @@
                         <!-- Email Sidebar -->
                         <div class="col app-email-sidebar border-end flex-grow-0" id="app-email-sidebar">
                             <div class="btn-compost-wrapper d-grid">
-                                <button class="btn btn-primary btn-compose"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#emailComposeSidebar"
-                                        id="emailComposeSidebarLabel">
-                                    Compose
-                                </button>
+                                <select class="form-select" id="selected_email" aria-label="Default select example" onchange="handleEmailChange();">
+                                    <option selected value="All">All</option>
+                                    <option value="sherman@zahavas.com">sherman@zahavas.com</option>
+                                    <option value="lee.techguru@gmail.com">lee.techguru@gmail.com</option>
+                                </select>
                             </div>
                             <!-- Email Filters -->
                             <div class="email-filters pt-4 pb-2">
@@ -336,9 +335,9 @@
                 <div class="card mb-3">
                     <h5 class="card-header pb-2">Customer Profile</h5>
                     <div class="card-body">
-                        <p class="mb-1">Name : </p>
-                        <p class="mb-1">Phone: </p>
-                        <p class="mb-1">Email: </p>
+                        <p class="mb-1" id="customer_name">Name : </p>
+                        <p class="mb-1" id="customer_phone">Phone: </p>
+                        <p class="mb-1" id="customer_email">Email: </p>
                     </div>
 
                 </div>
@@ -359,7 +358,7 @@
     <input type="hidden" name="nPageIndex"        value="@(ViewBag.PageNo ?? 0)" />
     <input type="hidden" name="nEmailState"       value="@(ViewBag.Type ?? 0)" />
     <input type="hidden" name="nCntPerPage"          value="@(ViewBag.PageCnt ?? 20)" />
-    <input type="hidden" name="selectedEmail"     value="@(ViewBag.selectedEmail ?? "sherman@zahavas.com")" />
+    <input type="hidden" name="selectedEmail"     value="@(ViewBag.selectedEmail ?? "All")" />
 
 
     <!-- Email Page JS -->
@@ -412,6 +411,7 @@
                     $('#info_part').show();
                     email.init();
 
+                    loadCustomerInfo(strMailId);
                     loadOrderInfo(strMailId);
                 } catch (e) {
                     console.log(e);
@@ -433,11 +433,22 @@
             }, 'html');
         }
 
+        function loadCustomerInfo(strMailId) {
+            $.post('/email/GetCustomerInfo', { strMailId: strMailId }, function (data) {
+                if (data.status == 201) {
+                    $('#customer_name').html("Name :" + data.customerInfo.strName);
+                    $('#customer_phone').html("Phone :" + data.customerInfo.strPhone);
+                    $('#customer_email').html('Email : ' + data.customerInfo.strEmail);
+                }
+            }, 'json')
+        }
+
         function handleListClick(element) {
             const content = element.textContent;
             $('input[name="selectedEmail"]').val(content);
             $('input[name="nPageIndex"]').val(0);
             $('input[name="nEmailState"]').val(0);
+
             loadMailCntInfo();
             loadMailList();
         }
@@ -472,6 +483,8 @@
             $('input[name="nPageIndex"]').val(0);
             $('input[name="nEmailState"]').val(0);
             const strMail = $('input[name="selectedEmail"]').val();
+
+            handleBackClick();
             loadMailCntInfo();
             loadMailList();
         }
@@ -480,14 +493,28 @@
             $('input[name="nPageIndex"]').val(0);
             $('input[name="nEmailState"]').val(3);
             const strMail = $('input[name="selectedEmail"]').val();
+
+            handleBackClick();
             loadMailCntInfo();
             loadMailList();
         }
 
         function handleBackClick() {
-            $('#app-email-view').toggleClass("show");
-            $('#email_part').toggleClass("col-xl-7");
+            if ($('#app-email-view').hasClass("show")) {
+                $('#app-email-view').removeClass("show");
+            } 
+
+            if ($('#email_part').hasClass("col-xl-7")) {
+                $('#email_part').removeClass("col-xl-7");
+            } 
+
             $('#info_part').hide();
+        }
+
+        function handleEmailChange() {
+            $('input[name="selectedEmail"]').val($('#selected_email').val());
+            loadMailCntInfo();
+            loadMailList();
         }
     </script>
 }
