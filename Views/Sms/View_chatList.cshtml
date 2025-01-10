@@ -1,14 +1,11 @@
 ﻿@{
-    if (ViewBag.chatList.Count != 0)
-	{
-        <ul class="list-unstyled chat-contact-list py-2 mb-0" id="chat-list">
-            <li class="chat-contact-list-item chat-contact-list-item-title mt-0">
-                <h5 class="text-primary mb-0">Chats</h5>
-            </li>
-            <li class="chat-contact-list-item chat-list-item-0 d-none">
-                <h6 class="text-muted mb-0">No Chats Found</h6>
-            </li>
-
+    <ul class="list-unstyled chat-contact-list py-2 mb-0" id="chat-list">
+        <li class="chat-contact-list-item chat-contact-list-item-title mt-0">
+            <h5 class="text-primary mb-0">SMS</h5>
+        </li>
+        
+        @if (ViewBag.chatList.Count != 0)
+	    {
             @foreach (var item in ViewBag.chatList)
             {
                 <li class="chat-contact-list-item mb-1" onclick="handleChatList('@item.sm_from')">
@@ -22,6 +19,11 @@
                     </a>
                 </li>
             }
-        </ul>
-	}
+        } else
+        {
+            <li class="chat-contact-list-item chat-list-item-0">
+                <h6 class="text-muted mb-0">No SMS Found</h6>
+            </li>
+        }
+    </ul>
 }
