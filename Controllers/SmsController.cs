@@ -54,7 +54,18 @@ namespace GoogleLogin.Controllers
             if (string.IsNullOrEmpty(access_token))
                 return Redirect("/account/Login");
 
+            ViewBag.strToPhone = _phoneNumber;
+
             return View();
+        }
+
+        [HttpPost]
+        public IActionResult GetMessageList(string strToPhone, string strFromPhone)
+        {
+            var messageList = _modelService.GetMessageList(strToPhone, strFromPhone);
+            ViewBag.messageList  = messageList;
+
+            return PartialView("View_messageList");
         }
 
         [HttpPost]

@@ -1,4 +1,7 @@
-﻿using GoogleLogin.Models;
+﻿using Google.Apis.Auth;
+using Google.Apis.Auth.OAuth2.Flows;
+using GoogleLogin.Models;
+using Google.Apis.Auth.OAuth2;
 using GoogleLogin.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -8,6 +11,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
 
 using ShopifyService = GoogleLogin.Services.ShopifyService;
+using System.Web;
+using System;
+using System.Diagnostics;
+using System.Security.Policy;
+using Humanizer;
+using System.Runtime.InteropServices.JavaScript;
+using Twilio.TwiML.Messaging;
+using Microsoft.IdentityModel.Tokens;
 
 namespace GoogleLogin.Controllers
 {
@@ -19,14 +30,17 @@ namespace GoogleLogin.Controllers
         private SignInManager<AppUser> signInManager;
         private UserManager<AppUser> userManager;
         private readonly EMailService _emailService;
+        private readonly IConfiguration _configuration;
+        public static readonly string[] Scopes = {"email", "profile", "https://www.googleapis.com/auth/gmail.modify"};
 
-        public SettingController(SignInManager<AppUser> signinMgr, IServiceScopeFactory serviceScopeFactory, UserManager<AppUser> userMgr, EMailService service, ShopifyService shopifyService, ModelService smsService, ILogger<HomeController> logger, IConfiguration _configuration, LLMService llmService)
+        public SettingController(SignInManager<AppUser> signinMgr, IServiceScopeFactory serviceScopeFactory, UserManager<AppUser> userMgr, EMailService service, ShopifyService shopifyService, ModelService smsService, ILogger<HomeController> logger, IConfiguration configuration, LLMService llmService)
         {
             signInManager = signinMgr;
             _serviceScopeFactory = serviceScopeFactory;
             userManager = userMgr;
             _logger = logger;
             _emailService = service;
+            _configuration = configuration;
         }
        
         [HttpGet]
@@ -149,6 +163,102 @@ namespace GoogleLogin.Controllers
                 ViewBag.mailList = mailList;
                 return PartialView("View_MailList");
             }
+        }
+
+        [HttpPost]
+        public IActionResult RegisterNewMail()
+        {
+            Console.WriteLine(_configuration["clientId"]);
+            var flow = new GoogleAuthorizationCodeFlow(
+                new GoogleAuthorizationCodeFlow.Initializer
+                {
+                    ClientSecrets = new ClientSecrets
+                    {
+                        ClientId = _configuration["clientId"],
+                        ClientSecret = _configuration["clientSecret"]
+                    },
+                    Scopes = Scopes,
+                    Prompt = "select_account consent",
+                });
+
+            string redirectUri = "https://localhost:7150/setting/OAuth2Callback";
+            string authorizationUrl = flow.CreateAuthorizationCodeRequest(redirectUri).Build().ToString();
+            return Json( new { status = 201, authorizationUrl = authorizationUrl });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> OAuth2Callback(string code, string error)
+        {
+            Console.WriteLine(code);
+            if (!string.IsNullOrEmpty(error))
+            {
+                return BadRequest("Error during Google sign-in: " + error);
+            }
+
+            if (string.IsNullOrEmpty(code))
+            {
+                return BadRequest("No authorization code received.");
+            }
+
+            var flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
+            {
+                ClientSecrets = new Google.Apis.Auth.OAuth2.ClientSecrets
+                {
+                    ClientId = _configuration["clientId"],
+                    ClientSecret = _configuration["clientSecret"]
+                },
+                Scopes = Scopes
+            });
+
+            string redirectUri = "https://localhost:7150/setting/OAuth2Callback";
+
+            var tokenResponse = await flow.ExchangeCodeForTokenAsync(
+                userId: "user-id", // Can be any identifier for the user (e.g., a session ID)
+                code: HttpUtility.UrlDecode(code),
+                redirectUri: redirectUri,
+                taskCancellationToken: CancellationToken.None
+            );
+
+            Console.WriteLine(tokenResponse);
+            Console.WriteLine($"Access Token: {tokenResponse.AccessToken}");
+            Console.WriteLine($"Refresh Token: {tokenResponse.RefreshToken}");
+            Console.WriteLine($"Token Expiry: {tokenResponse.ExpiresInSeconds}");
+            
+            string strMailName = await _emailService.GetGmailNameAsync(tokenResponse.AccessToken);
+            Console.WriteLine(strMailName);
+
+            if ( strMailName.IsNullOrEmpty() ) 
+                return RedirectToAction("MailManage", "setting");
+
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
+                var _item = _dbContext.TbMailAccount
+                    .Where(item => item.mail.Contains(strMailName))
+                    .FirstOrDefault();
+
+                if (_item == null)
+                {
+                    _dbContext.Add(new TbMailAccount
+                    {
+                        mail = strMailName,
+                        clientId = "",
+                        clientSecret = "",
+                        accessToken = tokenResponse.AccessToken,
+                        refreshToken = tokenResponse.RefreshToken,
+                        authCode = "",
+                        redirecUri = "",
+                    });
+                }
+                else
+                {
+                    _item.accessToken = tokenResponse.AccessToken;
+                    _item.refreshToken = tokenResponse.RefreshToken;
+                }
+                _dbContext.SaveChanges();
+            }
+
+            return RedirectToAction("MailManage", "setting");
         }
 
         [HttpGet]

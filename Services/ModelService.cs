@@ -33,20 +33,7 @@ namespace GoogleLogin.Services
             _hubContext = hubContext;
         }
 
-        public async Task SaveSms(TbSms p)
-        {
-            if (p == null) return;
-            using (var scope = _serviceScopeFactory.CreateScope())  // Create a new scope
-            {
-                var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
-                TbSms _p = _dbContext.TbSmss.Where(e => e.sm_id == p.sm_id).FirstOrDefault();
-                if(_p == null )
-                {
-                    _dbContext.TbSmss.Add(p);
-                    await _dbContext.SaveChangesAsync();
-                }
-            }
-        }
+        
         public async Task<TbSms> GetSmsById(string strId)
         {
 			if (string.IsNullOrEmpty(strId)) return new TbSms();
@@ -160,28 +147,17 @@ namespace GoogleLogin.Services
             }
         }
 
-        /// <summary>
-        /// get whole sms request to Twilio Api
-        /// </summary>
-        /// <param name="strPhoneNumber"></param>
-        /// <returns></returns>
         public async Task GetMessages(string strPhoneNumber)
         {
-            //var pageSize = 50;  // Adjust the page size as needed
-            //var page = 0;       // Starting page
-
-            //var allMessages = new List<MessageResource>();
-            //var _page = await MessageResource.ReadAsync(
-            //    to: new Twilio.Types.PhoneNumber(strPhoneNumber),
-            //    limit: pageSize 
-            //);
-
             var messages = await MessageResource.ReadAsync(                
                 dateSentAfter: new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1, 0, 0, 0), limit: 500, client: _twilioClient);
-
+            Console.WriteLine(messages);
+            Console.WriteLine("***************PKH: Twillow update step 1*****************");
             foreach (var message in messages)
             {
+                Console.WriteLine("***************PKH: Twillow update step 1*****************");
                 if (message == null) continue;
+                Console.WriteLine("***************PKH: Twillow update step 2*****************");
                 TbSms p = new TbSms
                 {
                     sm_id = message.Sid,
@@ -193,19 +169,24 @@ namespace GoogleLogin.Services
                     sm_read = 0
                 };
                 await SaveSms(p);
+                Console.WriteLine("***************PKH: Twillow update step 3*****************");
             }            
         }
 
-        //public async Task SendSmsInfo(TbSms p)
-        //{
-        //    var objPacket = new
-        //    {
-        //        sms = p,
-        //        type = "sms"
-        //    };
-        //    string strJson = System.Text.Json.JsonSerializer.Serialize(objPacket);
-        //    await _hubContext.Clients.All.SendAsync("ReceiveMessage", "", strJson);
-        //}
+        public async Task SaveSms(TbSms p)
+        {
+            if (p == null) return;
+            using (var scope = _serviceScopeFactory.CreateScope())  // Create a new scope
+            {
+                var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
+                TbSms _p = _dbContext.TbSmss.Where(e => e.sm_id == p.sm_id).FirstOrDefault();
+                if (_p == null)
+                {
+                    _dbContext.TbSmss.Add(p);
+                    await _dbContext.SaveChangesAsync();
+                }
+            }
+        }
 
         private string DateTimeDiff(TimeSpan timeSpan)
         {
@@ -383,9 +364,9 @@ namespace GoogleLogin.Services
             string strJson = System.Text.Json.JsonSerializer.Serialize(objPacket);
             await _hubContext.Clients.All.SendAsync("ReceiveMessage", "", strJson);
         }
-        public async Task<List<EmailExt>> GetMessageList(string strPhone, string strMyPhone)
+        public List<TbSms> GetMessageList(string strPhone, string strMyPhone)
 		{
-			List<EmailExt> lstReturn = new List<EmailExt>();
+			List<TbSms> messageList = new List<TbSms>();
 			try
 			{
 				using (var scope = _serviceScopeFactory.CreateScope())
@@ -394,34 +375,20 @@ namespace GoogleLogin.Services
                     strPhone = NormalizePhoneNumber_(strPhone);
                     strMyPhone = NormalizePhoneNumber_(strMyPhone);
 
-					List<TbSms> lst = dbContext.TbSmss.Where(e => ((e.sm_from == strPhone && e.sm_to == strMyPhone) || (e.sm_to == strPhone && e.sm_from == strMyPhone))
-                                            && /*e.sm_state == 0 && */!string.IsNullOrEmpty(e.sm_body)).OrderBy(e => e.sm_date).ToList();
-
-					foreach (var email in lst)
-					{
-						var emailType = email.sm_to == strMyPhone ? 0 : 1;
-
-						lstReturn.Add(
-							new EmailExt
-							{
-								em_id = email.sm_id,
-								em_subject = "",
-								em_from = email.sm_from,
-								em_to = email.sm_to,
-								em_date = email.sm_date.Value,
-								em_body = email.sm_body,
-								strLabel = new List<string>(),
-								nType = emailType,
-							}
-						);
-					}
+                    messageList = dbContext.TbSmss
+                            .Where(e => (
+                                        (e.sm_from == strPhone && e.sm_to == strMyPhone) 
+                                        || (e.sm_to == strPhone && e.sm_from == strMyPhone))
+                                        && /*e.sm_state == 0 && */!string.IsNullOrEmpty(e.sm_body))
+                            .OrderBy(e => e.sm_date).ToList();
+                    return messageList;
 				}
 			}
 			catch (Exception ex)
 			{
 				Console.WriteLine(ex.StackTrace);
 			}
-			return lstReturn;
+			return messageList;
 		}
 
         public async Task<bool> ChangeState(List<string> lstIds, int em_state)

@@ -15,6 +15,7 @@ using MailKit.Net.Imap;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using MimeKit;
+using Newtonsoft.Json;
 using ShopifySharp;
 using ShopifySharp.GraphQL;
 using System.Data;
@@ -22,6 +23,7 @@ using System.Data.Entity;
 using System.Data.Entity.Infrastructure.Interception;
 using System.Drawing.Printing;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Mail;
 using System.Text;
 using System.Web;
@@ -1103,6 +1105,29 @@ namespace GoogleLogin.Services
                 return -1;
             }
         }
+
+        public async Task<string> GetGmailNameAsync(string accessToken)
+        {
+            string UserInfoEndpoint = "https://www.googleapis.com/oauth2/v3/userinfo";
+
+            using (var client = new HttpClient())
+            {
+                // Set the Authorization header with the access token
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+                // Make a GET request to the UserInfo endpoint
+                var response = await client.GetAsync(UserInfoEndpoint);
+                response.EnsureSuccessStatusCode(); // Throw if the status code is not success
+
+                var content = await response.Content.ReadAsStringAsync();
+
+                // Parse the response JSON
+                var userInfo = JsonConvert.DeserializeObject<GoogleUserInfo>(content) ?? null;
+
+                if (userInfo != null) return userInfo.Email;
+                else return string.Empty;
+            }
+        }
     }
     public class EmailDto
     {
@@ -1212,5 +1237,15 @@ namespace GoogleLogin.Services
         public int nType { set; get; } //0 - to me, 1 - from me
     }
 
-    
+    public class GoogleUserInfo
+    {
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
+        [JsonProperty("email")]
+        public string Email { get; set; }
+
+        [JsonProperty("picture")]
+        public string Picture { get; set; }
+    }
 }

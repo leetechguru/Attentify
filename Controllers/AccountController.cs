@@ -3,11 +3,9 @@ using GoogleLogin.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.SqlServer.Query.Internal;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using ShopifyService = GoogleLogin.Services.ShopifyService;
-using Google.Apis.Gmail.v1;
 
 namespace GoogleLogin.Controllers
 {
@@ -101,8 +99,8 @@ namespace GoogleLogin.Controllers
                 return RedirectToAction(nameof(Login));
 
             var result = await signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false);
-            //var access_token = info.AuthenticationTokens?.FirstOrDefault(t => t.Name == "access_token")?.Value;
-            var access_token = "ya29.a0ARW5m76DONadTgqLnsUbpz-qKR6iP_spCFKtEFIG5PbmWL3xZFseRBSRxC3rdxkwM3KaKCplJyQ5Gu-BXtfsM8zmlgmFhg0BZQMAIXRDzcW7HDhXB-L187xvo_yJQmdW-S8elKZcnWt0eGiXdB1iRhL4VUCrx2DM6Byp4y49aCgYKAUsSARESFQHGX2MiUXCtfPaoFXI26FmSJCsDbQ0175";
+            var access_token = info.AuthenticationTokens?.FirstOrDefault(t => t.Name == "access_token")?.Value;
+
             if (!string.IsNullOrEmpty(access_token))
             {
                 new Thread(async () =>
@@ -111,14 +109,6 @@ namespace GoogleLogin.Controllers
                     while (true)
                     {
                         int nResponse = await _emailService.UpdateMailDatabase(access_token, info.Principal.FindFirst(ClaimTypes.Email)?.Value ?? "", nCnt);
-                        //_emailService.SubscribeToPushNotifications(access_token);
-                        if (nResponse == 1) {
-                            Console.WriteLine("**************PKH: TEST updated mail list to database ***************");
-                        }
-                        else
-                        {
-                            Console.WriteLine("**************PKH: TEST no update mail list to database ***************");
-                        }
                         Thread.Sleep(1000 * 10);
                     }
                 }).Start();
@@ -153,8 +143,8 @@ namespace GoogleLogin.Controllers
                         Console.WriteLine("in account/googleResponse thread" + ex.ToString());
                     }
                 }).Start();
+
                 HttpContext.Session.SetString("AccessToken", access_token);
-                
             }
 
             if (result.Succeeded)

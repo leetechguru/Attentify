@@ -112,14 +112,23 @@
             }, 'json')
         }
 
-        function handleOpenModal() {
-            initModal();
+        function handleOpenModal() { 
+
+            $.post('/setting/RegisterNewMail', {  }, function (data) {
+                if (data.status == 201) {
+                    window.location.href = data.authorizationUrl;
+                } else {
+                    console.log("Delete failed");
+                }
+            }, 'json')
+
+            /*initModal();
             $('#modalCenter').toggleClass("show");
             if ($('#modalCenter').css('display') === 'none') {
                 $('#modalCenter').css('display', 'block');
             } else {
                 $('#modalCenter').css('display', 'none');
-            }
+            }*/
         }
 
         function initModal() {

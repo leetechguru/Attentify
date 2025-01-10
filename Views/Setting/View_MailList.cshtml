@@ -6,12 +6,6 @@
                 <thead>
                     <tr>
                         <th>Mail Name</th>
-                        <th>Client Id</th>
-                        <th>Client Secret</th>
-                        <th>Redirect Uri</th>
-                        <th>Auth Code</th>
-                        <th>Access Token</th>
-                        <th>Refresh Token</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -23,12 +17,6 @@
                             <td>
                                 <span class="fw-medium">@item.mail</span>
                             </td>
-                            <td>@(item.clientId != null && item.clientId.Length > 15 ? item.clientId.Substring(0, 15) + "..." : item.clientId)</td>
-                            <td>@(item.clientSecret != null && item.clientSecret.Length > 15 ? item.clientSecret.Substring(0, 15) + "..." : item.clientSecret)</td>
-                            <td>@item.redirecUri</td>
-                            <td>@(item.authCode != null && item.authCode.Length > 15 ? item.authCode.Substring(0, 15) + "..." : item.authCode)</td>
-                            <td>@(item.accessToken != null && item.accessToken.Length > 15 ? item.accessToken.Substring(0, 15) + "..." : item.accessToken)</td>
-                            <td>@(item.refreshToken != null && item.refreshToken.Length > 15 ? item.refreshToken.Substring(0, 15) + "..." : item.refreshToken)</td>
                             <td><span class="badge bg-label-primary me-1">Active</span></td>
                             <td>
                                 <div class="dropdown">
