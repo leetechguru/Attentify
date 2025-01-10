@@ -33,7 +33,73 @@ namespace GoogleLogin.Services
             _hubContext = hubContext;
         }
 
-        
+        public List<TbSms> GetChatList(string strUserPhone)
+        {
+            try
+            {
+                using (var scope = _serviceScopeFactory.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
+                    string strPhone = NormalizePhoneNumber_(strUserPhone);
+                    var rawEmails = dbContext.TbSmss.Where(e => e.sm_to == strPhone).ToList();
+
+                    var lstFrom = rawEmails
+                        .GroupBy(e => e.sm_from)
+                        .Select(g => new EmailDto
+                        {
+                            em_from = g.Key,
+                            em_date = g.Max(e => e.sm_date)
+                        })
+                        .OrderByDescending(e => e.em_date)
+                        .ToList();
+
+                    List<TbSms> lstResult = new List<TbSms>();
+                    foreach (var item in lstFrom)
+                    {
+                        var result = dbContext.TbSmss.Where(e => e.sm_from == item.em_from && e.sm_date == item.em_date).FirstOrDefault();
+                        if (result == null) continue;
+                        lstResult.Add(result);
+                    }
+                    return lstResult;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.StackTrace);
+            }
+            return new List<TbSms>();
+        }
+
+        public List<TbSms> GetChatHistory( string strFromPhone, string strToPhone )
+        {
+            strFromPhone = strFromPhone.Contains("+") ? strFromPhone : "+" + strFromPhone;
+            strToPhone   = strFromPhone.Contains("+") ? strToPhone   : "+" + strToPhone;
+            
+            try
+            {
+                using (var scope = _serviceScopeFactory.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
+                    strToPhone   = NormalizePhoneNumber_(strToPhone);
+                    strFromPhone = NormalizePhoneNumber_(strFromPhone);
+
+                    List<TbSms> lst = dbContext
+                        .TbSmss.Where(e => ((e.sm_from == strToPhone && e.sm_to == strFromPhone) 
+                                    || (e.sm_to == strToPhone && e.sm_from == strFromPhone))
+                                    && !string.IsNullOrEmpty(e.sm_body))
+                        .OrderBy(e => e.sm_date)
+                        .ToList();
+
+                    return lst;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.StackTrace);
+                return new List<TbSms>();
+            }
+        }
+
         public async Task<TbSms> GetSmsById(string strId)
         {
 			if (string.IsNullOrEmpty(strId)) return new TbSms();
@@ -269,44 +335,6 @@ namespace GoogleLogin.Services
             return 0;
         }
 
-        public List<TbSms> GetSMSListPerUser(string myPhone, int nPageIndex, int nPerPage, int nType = 1)
-        {
-            try
-            {
-                using (var scope = _serviceScopeFactory.CreateScope())
-                {
-                    var dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
-                    string strPhone = NormalizePhoneNumber_(myPhone);
-                    var rawEmails = dbContext.TbSmss.Where(e => e.sm_to == strPhone).ToList();
-                    
-                    var lstFrom = rawEmails
-                        .GroupBy(e => e.sm_from)
-                        .Select(g => new EmailDto
-                        {
-                            em_from = g.Key,
-                            em_date = g.Max(e => e.sm_date)
-                        })
-                        .OrderByDescending(e => e.em_date)
-                        .Skip(nPageIndex * nPerPage)
-                        .Take(nPerPage).ToList();
-
-                    List<TbSms> lstResult = new List<TbSms>();
-                    foreach (var item in lstFrom)
-                    {
-                        var result = dbContext.TbSmss.Where(e => e.sm_from == item.em_from && e.sm_date == item.em_date).FirstOrDefault();
-                        if (result == null) continue;
-                        lstResult.Add(result);
-                    }
-                    return lstResult;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.StackTrace);
-            }
-            return new List<TbSms>();
-        }
-
         public async Task SendSmsCountInfo(string strMyPhone)
         {
             using (var scope = _serviceScopeFactory.CreateScope())  // Create a new scope
@@ -364,32 +392,6 @@ namespace GoogleLogin.Services
             string strJson = System.Text.Json.JsonSerializer.Serialize(objPacket);
             await _hubContext.Clients.All.SendAsync("ReceiveMessage", "", strJson);
         }
-        public List<TbSms> GetMessageList(string strPhone, string strMyPhone)
-		{
-			List<TbSms> messageList = new List<TbSms>();
-			try
-			{
-				using (var scope = _serviceScopeFactory.CreateScope())
-				{
-					var dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
-                    strPhone = NormalizePhoneNumber_(strPhone);
-                    strMyPhone = NormalizePhoneNumber_(strMyPhone);
-
-                    messageList = dbContext.TbSmss
-                            .Where(e => (
-                                        (e.sm_from == strPhone && e.sm_to == strMyPhone) 
-                                        || (e.sm_to == strPhone && e.sm_from == strMyPhone))
-                                        && /*e.sm_state == 0 && */!string.IsNullOrEmpty(e.sm_body))
-                            .OrderBy(e => e.sm_date).ToList();
-                    return messageList;
-				}
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine(ex.StackTrace);
-			}
-			return messageList;
-		}
 
         public async Task<bool> ChangeState(List<string> lstIds, int em_state)
         {

@@ -55,17 +55,26 @@ namespace GoogleLogin.Controllers
                 return Redirect("/account/Login");
 
             ViewBag.strToPhone = _phoneNumber;
-
             return View();
         }
 
         [HttpPost]
-        public IActionResult GetMessageList(string strToPhone, string strFromPhone)
+        public IActionResult GetChatList(string strToPhone)
         {
-            var messageList = _modelService.GetMessageList(strToPhone, strFromPhone);
-            ViewBag.messageList  = messageList;
+            var chatList      = _modelService.GetChatList(strToPhone);
+            ViewBag.chatList = chatList;
 
-            return PartialView("View_messageList");
+            return PartialView("View_chatList");
+        }
+
+        [HttpPost]
+        public IActionResult GetChatHistory(string strFromPhone, string strToPhone)
+        {
+            var chatHistory = _modelService.GetChatHistory(strFromPhone, strToPhone);
+            ViewBag.strMyPhone  = strToPhone;
+            ViewBag.chatHistory = chatHistory;
+
+            return PartialView("View_chatHistory");
         }
 
         [HttpPost]

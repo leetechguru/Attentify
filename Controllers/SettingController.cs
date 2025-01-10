@@ -219,11 +219,6 @@ namespace GoogleLogin.Controllers
                 taskCancellationToken: CancellationToken.None
             );
 
-            Console.WriteLine(tokenResponse);
-            Console.WriteLine($"Access Token: {tokenResponse.AccessToken}");
-            Console.WriteLine($"Refresh Token: {tokenResponse.RefreshToken}");
-            Console.WriteLine($"Token Expiry: {tokenResponse.ExpiresInSeconds}");
-            
             string strMailName = await _emailService.GetGmailNameAsync(tokenResponse.AccessToken);
             Console.WriteLine(strMailName);
 
