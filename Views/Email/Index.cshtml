@@ -16,7 +16,7 @@
                                 <select class="form-select" id="selected_email" aria-label="Default select example" onchange="handleEmailChange();">
                                     @foreach(var item in ViewBag.mailAccountList)
                                     {
-                                        <option value="@item.mail">sherman@zahavas.com</option>
+                                        <option value="@item.mail">@item.mail</option>
                                     }
                                 </select>
                             </div>
