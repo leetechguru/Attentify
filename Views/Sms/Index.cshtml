@@ -276,6 +276,7 @@
     </div>
 
     <input type="hidden" name="strToPhone" value="@(ViewBag.strToPhone ?? "")" />
+    <input type="hidden" name="strFromPhone" value = "@(ViewBag.strFromPhone ?? "")" />
 
     <!-- Chat Page JS -->
     <script src="~/assets/js/app-chat.js"></script>
@@ -339,9 +340,22 @@
         }
 
         function handleChatList(strFromPhone) {
+            $('#strFromPhone').val(strFromPhone);
             let strToPhone = $('input[name="strToPhone"]').val();
             $('#selected_phone_number').html(strFromPhone);
             loadChatHistory(strFromPhone, strToPhone);
+        }
+
+        function handleSendClick() {
+            let strToPhone = $('input[name="strFromPhone"]').val();
+            let strFromPhone = $('input[name="strToPhone"]').val();
+
+            $.post('/sms/sendChat', { strToPhone: strToPhone, strFromPhone: strFromPhone, strMsg: strMsg }, function (resp) {
+                if (resp.status == 1) {
+                    location.href = `/home/conversation?id=${id}&Type=${Type}`;
+                }
+                $(this).prop('disabled', false);
+            }, 'json')
         }
     </script>
 }

@@ -14,9 +14,10 @@
                         <div class="col app-email-sidebar border-end flex-grow-0" id="app-email-sidebar">
                             <div class="btn-compost-wrapper d-grid">
                                 <select class="form-select" id="selected_email" aria-label="Default select example" onchange="handleEmailChange();">
-                                    <option selected value="All">All</option>
-                                    <option value="sherman@zahavas.com">sherman@zahavas.com</option>
-                                    <option value="lee.techguru@gmail.com">lee.techguru@gmail.com</option>
+                                    @foreach(var item in ViewBag.mailAccountList)
+                                    {
+                                        <option value="@item.mail">sherman@zahavas.com</option>
+                                    }
                                 </select>
                             </div>
                             <!-- Email Filters -->
@@ -28,14 +29,14 @@
                                             <i class="ti ti-mail"></i>
                                             <span class="align-middle ms-2">Inbox</span>
                                         </a>
-                                        <div class="badge bg-label-primary rounded-pill" id="inbox_cnt">21</div>
+                                        <div class="badge bg-label-primary rounded-pill" id="inbox_cnt">0</div>
                                     </li>
                                     <li class="d-flex justify-content-between align-items-center mb-1" data-target="archieved">
                                         <a href="javascript:void(0);" onclick="handleArchieveClick();" class="d-flex flex-wrap align-items-center">
                                             <i class="ti ti-alert-octagon"></i>
                                             <span class="align-middle ms-2">Archieved</span>
                                         </a>
-                                        <div class="badge bg-label-warning rounded-pill" id="archieved_cnt">4</div>
+                                        <div class="badge bg-label-warning rounded-pill" id="archieved_cnt">0</div>
                                     </li>
                                 </ul>
                             </div>
@@ -143,7 +144,7 @@
                                         </div>
                                         <div class="d-flex align-items-center">
                                             <span class="btn btn-icon btn-text-secondary rounded-pill me-1">
-                                                <i class="ti ti-refresh ti-md scaleX-n1-rtl cursor-pointer email-refresh"></i>
+                                                <i class="ti ti-refresh ti-md scaleX-n1-rtl cursor-pointer email-refresh" onclick="handleRefreshClick();"></i>
                                             </span>
                                             <div class="dropdown">
                                                 <button class="btn btn-icon btn-text-secondary rounded-pill p-0"
@@ -357,9 +358,8 @@
 
     <input type="hidden" name="nPageIndex"        value="@(ViewBag.PageNo ?? 0)" />
     <input type="hidden" name="nEmailState"       value="@(ViewBag.Type ?? 0)" />
-    <input type="hidden" name="nCntPerPage"          value="@(ViewBag.PageCnt ?? 20)" />
-    <input type="hidden" name="selectedEmail"     value="@(ViewBag.selectedEmail ?? "All")" />
-
+    <input type="hidden" name="nCntPerPage"       value="@(ViewBag.PageCnt ?? 20)" />
+    <input type="hidden" name="selectedEmail"     value="@(ViewBag.mailAccountList.Count == 0 ? "" : ViewBag.mailAccountList[0].mail)" />
 
     <!-- Email Page JS -->
     <script src="~/assets/js/app-email.js"></script>
@@ -367,6 +367,7 @@
     <script type="text/javascript">
         $(document).ready(function() {
             $('#info_part').hide();
+
             loadMailCntInfo();
             loadMailList();
         });
@@ -383,6 +384,17 @@
         }
 
         function loadMailList () {
+            $.blockUI({
+                message: '<div class="spinner-border text-white" role="status"></div>',
+                css: {
+                    backgroundColor: 'transparent',
+                    border: '0'
+                },
+                overlayCSS: {
+                    opacity: 0.5
+                }
+            });
+
             let strEmail    = $('input[name="selectedEmail"]').val();
             let nPageIndex  = $('input[name="nPageIndex"]').val();
             let nEmailState = $('input[name="nEmailState"]').val();
@@ -394,7 +406,9 @@
                 } catch (e) {
                     console.log(e);
                 } finally {
+                    $.unblockUI();
                 }
+                $.unblockUI();
             }, 'html');
         }
 
@@ -421,6 +435,17 @@
         }
 
         function loadOrderInfo(strMailId) {
+            $.blockUI({
+                message: '<div class="spinner-border text-white" role="status"></div>',
+                css: {
+                    backgroundColor: 'transparent',
+                    border: '0'
+                },
+                overlayCSS: {
+                    opacity: 0.5
+                }
+            });
+
             $.post('/email/GetOrderInfo', { strMailId: strMailId }, function (data) {
                 try {
                     $('#fake_order_detail').hide();
@@ -429,6 +454,7 @@
                 } catch (e) {
                     console.log(e);
                 } finally {
+                    $.unblockUI();
                 }
             }, 'html');
         }
@@ -448,7 +474,7 @@
             $('input[name="selectedEmail"]').val(content);
             $('input[name="nPageIndex"]').val(0);
             $('input[name="nEmailState"]').val(0);
-
+           
             loadMailCntInfo();
             loadMailList();
         }
@@ -482,8 +508,6 @@
         function handleInboxClick() {
             $('input[name="nPageIndex"]').val(0);
             $('input[name="nEmailState"]').val(0);
-            const strMail = $('input[name="selectedEmail"]').val();
-
             handleBackClick();
             loadMailCntInfo();
             loadMailList();
@@ -492,7 +516,15 @@
         function handleArchieveClick() {
             $('input[name="nPageIndex"]').val(0);
             $('input[name="nEmailState"]').val(3);
-            const strMail = $('input[name="selectedEmail"]').val();
+
+            handleBackClick();
+            loadMailCntInfo();
+            loadMailList();
+        }
+
+        function handleRefreshClick() {
+            $('input[name="nPageIndex"]').val(0);
+            $('input[name="nEmailState"]').val(0);
 
             handleBackClick();
             loadMailCntInfo();
@@ -513,6 +545,8 @@
 
         function handleEmailChange() {
             $('input[name="selectedEmail"]').val($('#selected_email').val());
+
+            handleBackClick();
             loadMailCntInfo();
             loadMailList();
         }

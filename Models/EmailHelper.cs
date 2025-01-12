@@ -34,7 +34,7 @@ namespace GoogleLogin.Models
                 client.Send(mailMessage);
                 return true;
             }
-            catch (Exception ex)
+            catch 
             {
                 // log exception
             }
@@ -61,7 +61,7 @@ namespace GoogleLogin.Models
                 client.Send(mailMessage);
                 return true;
             }
-            catch (Exception ex)
+            catch 
             {
                 // log exception
             }
@@ -88,7 +88,7 @@ namespace GoogleLogin.Models
                 client.Send(mailMessage);
                 return true;
             }
-            catch (Exception ex)
+            catch 
             {
                 // log exception
             }

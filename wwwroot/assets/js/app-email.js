@@ -25,7 +25,6 @@ var email = {
                 emailListDelete = document.querySelector('.email-list-delete'),
                 emailListRead = document.querySelector('.email-list-read'),
                 emailListEmpty = document.querySelector('.email-list-empty'),
-                refreshEmails = document.querySelector('.email-refresh'),
                 emailViewContainer = document.getElementById('app-email-view'),
                 emailFilterFolderLists = [].slice.call(document.querySelectorAll('.email-filter-folders li')),
                 emailListItemActions = [].slice.call(document.querySelectorAll('.email-list-item-actions li'));
@@ -255,37 +254,6 @@ var email = {
                     });
                     selectAllEmails.indeterminate = false;
                     selectAllEmails.checked = false;
-                });
-            }
-
-            // Refresh Mails
-
-            if (refreshEmails && emailList) {
-                let emailListJq = $('.email-list'),
-                    emailListInstance = new PerfectScrollbar(emailList, {
-                        wheelPropagation: false,
-                        suppressScrollX: true
-                    });
-                // ? Using jquery vars due to BlockUI jQuery dependency
-                refreshEmails.addEventListener('click', e => {
-                    emailListJq.block({
-                        message: '<div class="spinner-border text-primary" role="status"></div>',
-                        timeout: 1000,
-                        css: {
-                            backgroundColor: 'transparent',
-                            border: '0'
-                        },
-                        overlayCSS: {
-                            backgroundColor: '#000',
-                            opacity: 0.1
-                        },
-                        onBlock: function () {
-                            emailListInstance.settings.suppressScrollY = true;
-                        },
-                        onUnblock: function () {
-                            emailListInstance.settings.suppressScrollY = false;
-                        }
-                    });
                 });
             }
 

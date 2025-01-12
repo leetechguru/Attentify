@@ -29,18 +29,18 @@ namespace GoogleLogin.Controllers
 
         public ShopifyController(UserManager<AppUser> userMgr, ShopifyService service, EMailService emailService, IConfiguration configuration, ILogger<ShopifyController> logger)
         {
-            _clientId = configuration["Shopify:clientId"];
+            _clientId     = configuration["Shopify:clientId"];
             _clientSecret = configuration["Shopify:ApiSecret"];
-            _domain = configuration["Domain"];
+            _domain       = configuration["Domain"];
 #if DEBUG
-            _clientId = configuration["shopify_test:clientId"];
+            _clientId     = configuration["shopify_test:clientId"];
             _clientSecret = configuration["shopify_test:ApiSecret"];
-            _domain = configuration["Domain"];
+            _domain       = configuration["Domain"];
 #endif
-            _userManager = userMgr;
-            _service = service;
+            _userManager  = userMgr;
+            _service      = service;
             _emailService = emailService;
-            _logger = logger;
+            _logger       = logger;
         }
 
         [HttpGet("shopify/auth")]
@@ -133,7 +133,7 @@ namespace GoogleLogin.Controllers
         }
 
         [HttpGet("shopify/install")]
-        public async Task<IActionResult> Install(string host, string hmac, string shop, string state)
+        public IActionResult Install(string host, string hmac, string shop, string state)
         {
             if (!VerifyHmac(hmac, Request.Query, _clientSecret))
             {

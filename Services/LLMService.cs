@@ -197,7 +197,6 @@ namespace GoogleLogin.Services
 				}
                 return strResult;
 			}
-			return "";
 		}
     }
 

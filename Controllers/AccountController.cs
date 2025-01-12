@@ -12,22 +12,33 @@ namespace GoogleLogin.Controllers
     [Authorize]
     public class AccountController : Controller
     {
-        private UserManager<AppUser> userManager;
-        private SignInManager<AppUser> signInManager;
-        private readonly EMailService _emailService;
-        private readonly ShopifyService _shopifyService;
-        private readonly AppIdentityDbContext _dbContext;
+        private UserManager<AppUser>            _userManager;
+        private SignInManager<AppUser>          _signInManager;
+        private readonly EMailService           _emailService;
+        private readonly EMailTokenService      _emailTokenService;
+        private readonly ShopifyService         _shopifyService; 
+        private readonly AppIdentityDbContext   _dbContext;
         private readonly ModelService _modelService;
         private readonly string _phoneNumber;
-        public AccountController(UserManager<AppUser> userMgr, SignInManager<AppUser> signinMgr, EMailService context, AppIdentityDbContext dbContext, ShopifyService shopifyService, ModelService modelService, IConfiguration configuration)
+
+        public AccountController(
+            UserManager<AppUser>        userMgr, 
+            SignInManager<AppUser>      signinMgr, 
+            EMailService                emailService, 
+            EMailTokenService           emailTokenSerivce,
+            AppIdentityDbContext        dbContext, 
+            ShopifyService              shopifyService, 
+            ModelService                modelService, 
+            IConfiguration configuration)
         {
-            userManager = userMgr;
-            signInManager = signinMgr;
-            _emailService = context;
-            _dbContext = dbContext;
-            _shopifyService = shopifyService;
-            _modelService = modelService;
-            _phoneNumber = configuration["Twilio:PhoneNumber"];
+            _userManager        =   userMgr;
+            _signInManager      =   signinMgr;
+            _emailService       =   emailService;
+            _emailTokenService  =   emailTokenSerivce;
+            _dbContext          =   dbContext;
+            _shopifyService     =   shopifyService;
+            _modelService       =   modelService;
+            _phoneNumber        =   configuration["Twilio:PhoneNumber"] ?? "";
         }
 
         [AllowAnonymous]
@@ -45,11 +56,11 @@ namespace GoogleLogin.Controllers
         {
             if (ModelState.IsValid)
             {
-                AppUser appUser = await userManager.FindByEmailAsync(login.Email);
+                AppUser appUser = await _userManager.FindByEmailAsync(login.Email);
                 if (appUser != null)
                 {
-                    await signInManager.SignOutAsync();
-                    Microsoft.AspNetCore.Identity.SignInResult result = await signInManager.PasswordSignInAsync(appUser, login.Password, login.Remember, false);
+                    await _signInManager.SignOutAsync();
+                    Microsoft.AspNetCore.Identity.SignInResult result = await _signInManager.PasswordSignInAsync(appUser, login.Password, login.Remember, false);
                     if (result.Succeeded)
                         return Redirect(login.ReturnUrl ?? "/");
 
@@ -58,7 +69,7 @@ namespace GoogleLogin.Controllers
                         return RedirectToAction("LoginTwoStep", new { appUser.Email, login.ReturnUrl });
                     }
 
-                    bool emailStatus = await userManager.IsEmailConfirmedAsync(appUser);
+                    bool emailStatus = await _userManager.IsEmailConfirmedAsync(appUser);
                     if (emailStatus == false)
                     {
                         ModelState.AddModelError(nameof(login.Email), "Email is unconfirmed, please confirm it first");
@@ -74,7 +85,7 @@ namespace GoogleLogin.Controllers
 
         public async Task<IActionResult> Logout()
         {
-            await signInManager.SignOutAsync();
+            await _signInManager.SignOutAsync();
             return RedirectToAction("Login", "Account");
         }
 
@@ -87,41 +98,45 @@ namespace GoogleLogin.Controllers
         public IActionResult GoogleLogin()
         {
             string redirectUrl = Url.Action("GoogleResponse", "Account");
-            var properties = signInManager.ConfigureExternalAuthenticationProperties("Google", redirectUrl);
+            var properties = _signInManager.ConfigureExternalAuthenticationProperties("Google", redirectUrl);
             return new ChallengeResult("Google", properties);
         }
 
         [AllowAnonymous]
         public async Task<IActionResult> GoogleResponse()
         {
-            ExternalLoginInfo info = await signInManager.GetExternalLoginInfoAsync();
+            ExternalLoginInfo info = await _signInManager.GetExternalLoginInfoAsync();
+            
             if (info == null)
                 return RedirectToAction(nameof(Login));
 
-            var result = await signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false);
+            var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false);
             var access_token = info.AuthenticationTokens?.FirstOrDefault(t => t.Name == "access_token")?.Value;
 
             if (!string.IsNullOrEmpty(access_token))
             {
-                new Thread(async () =>
+                new Thread(() =>
                 {
-                    int nCnt = 500;
                     while (true)
                     {
-                        int nResponse = await _emailService.UpdateMailDatabase(access_token, info.Principal.FindFirst(ClaimTypes.Email)?.Value ?? "", nCnt);
-                        Thread.Sleep(1000 * 10);
+                        List<TbMailAccount> mailAccountList = _emailTokenService.GetMailAccountList(_userManager.GetUserId(HttpContext.User) ?? "");
+                        foreach (var item in mailAccountList)
+                        {
+                            _emailTokenService.RefreshTokenAync(item.mail, item.userId);
+                        }
+
+                        Thread.Sleep(TimeSpan.FromHours(1));
                     }
                 }).Start();
 
-                new Thread(async () => {
-                    await _shopifyService.OrderRequest();
-                }).Start();
+                _emailService.UpdateMailDatabaseAsync(access_token, info.Principal.FindFirst(ClaimTypes.Email)?.Value ?? "", 500);
+                _shopifyService.OrderRequest();
 
                 new Thread(async () => {
                     await _shopifyService.CustomersRequest();
                 }).Start();
 
-                new Thread(async () =>
+                /*new Thread(async () =>
                 {
                     try
                     {
@@ -137,14 +152,18 @@ namespace GoogleLogin.Controllers
                         }
 
                         await _modelService.GetMessages(strPhone);
-                        await _modelService.SendSmsCountInfo(strPhone);
+                        await _modelService.SendSmsCountInfo(strPhone); 
                     }catch(Exception ex)
                     {
                         Console.WriteLine("in account/googleResponse thread" + ex.ToString());
                     }
-                }).Start();
+                }).Start();*/
 
                 HttpContext.Session.SetString("AccessToken", access_token);
+
+                var request = HttpContext.Request;
+                var hostUrl = $"{request.Scheme}://{request.Host}{request.PathBase}";
+                HttpContext.Session.SetString("HostUrl", hostUrl);
             }
 
             if (result.Succeeded)
@@ -157,13 +176,13 @@ namespace GoogleLogin.Controllers
                     UserName = info.Principal.FindFirst(ClaimTypes.Name)?.Value
                 };
 
-                IdentityResult identResult = await userManager.CreateAsync(user);
+                IdentityResult identResult = await _userManager.CreateAsync(user);
                 if (identResult.Succeeded)
                 {
-                    identResult = await userManager.AddLoginAsync(user, info);
+                    identResult = await _userManager.AddLoginAsync(user, info);
                     if (identResult.Succeeded)
                     {
-                        await signInManager.SignInAsync(user, false);
+                        await _signInManager.SignInAsync(user, false);
                         return Redirect("/home/index");
                     }
                 }
@@ -184,11 +203,11 @@ namespace GoogleLogin.Controllers
             if (!ModelState.IsValid)
                 return View(email);
 
-            var user = await userManager.FindByEmailAsync(email);
+            var user = await _userManager.FindByEmailAsync(email);
             if (user == null)
                 return RedirectToAction(nameof(ForgotPasswordConfirmation));
 
-            var token = await userManager.GeneratePasswordResetTokenAsync(user);
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             var link = Url.Action("ResetPassword", "Account", new { token, email = user.Email }, Request.Scheme);
 
             EmailHelper emailHelper = new EmailHelper();
@@ -223,11 +242,11 @@ namespace GoogleLogin.Controllers
             if (!ModelState.IsValid)
                 return View(resetPassword);
 
-            var user = await userManager.FindByEmailAsync(resetPassword.Email);
+            var user = await _userManager.FindByEmailAsync(resetPassword.Email);
             if (user == null)
                 RedirectToAction("ResetPasswordConfirmation");
 
-            var resetPassResult = await userManager.ResetPasswordAsync(user, resetPassword.Token, resetPassword.Password);
+            var resetPassResult = await _userManager.ResetPasswordAsync(user, resetPassword.Token, resetPassword.Password);
             if (!resetPassResult.Succeeded)
             {
                 foreach (var error in resetPassResult.Errors)

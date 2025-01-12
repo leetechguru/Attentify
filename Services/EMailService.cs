@@ -75,11 +75,10 @@ namespace GoogleLogin.Services
             return _service;
         }
 
-        public int UpdateOneMail(Google.Apis.Gmail.v1.Data.Message mailMessage)
+        public int  UpdateOneMail(Google.Apis.Gmail.v1.Data.Message mailMessage)
         {
             if (mailMessage.LabelIds == null)
             {
-                Console.WriteLine("************PKH: Message Empty****************");
                 return 0; 
             }
             
@@ -169,11 +168,12 @@ namespace GoogleLogin.Services
             return 1;
         }
 
-        public async Task<int> UpdateMailDatabase(string accessToken, string strUser, int nCnt = 10)
+        public async void UpdateMailDatabaseAsync(string accessToken, string strUser, int nCnt = 10)
         {
             Global.access_token = accessToken;
 
             GmailService service = MakeGmailService(accessToken);
+            if (service == null) return;
             var request = service.Users.Messages.List("me");
 
             request.MaxResults = nCnt;
@@ -198,12 +198,11 @@ namespace GoogleLogin.Services
                                     var fullMessage = await messageRequest.ExecuteAsync();
 
                                     UpdateOneMail(fullMessage);
-                                    return 1;
                                 }
                                 catch
                                 {
                                     Console.WriteLine("****************PKH: Get One Message from server failed! ********************");
-                                    return 0;
+                                    return ;
                                 }
                             }
                         }
@@ -212,9 +211,11 @@ namespace GoogleLogin.Services
             }
             catch {
                 Console.WriteLine("****************PKH: Get Message Lists from server failed! ********************");
-                return 0;
+                return ;
             }
-            return 1;
+
+            Console.WriteLine("*************PKH: Update Local Mail database success!**************************");
+            return ;
         }
 
         private byte[] FromBase64ForUrlString(string base64Url)
@@ -649,7 +650,6 @@ namespace GoogleLogin.Services
             }
             return customerInfo;
         }
-
         private string GetEmailBody(string strBody)
         {            
             return @"
@@ -937,72 +937,6 @@ namespace GoogleLogin.Services
             }            
         }
 
-        public async Task<int> GetAccessAndRefreshTokenFromMailIdx(string strMailIdx)
-        {
-            string clientId             = string.Empty;
-            string clientSecret         = string.Empty;
-            string authCode             = string.Empty;
-            string redirectUri          = string.Empty;
-
-            using (var scope = _serviceScopeFactory.CreateScope())
-            {
-                var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
-                var _item = _dbContext.TbMailAccount
-                    .Where(item => item.id == Convert.ToInt64(strMailIdx))
-                    .FirstOrDefault();
-
-                if (_item != null)
-                {
-                    clientId = _item.clientId;
-                    clientSecret = _item.clientSecret;
-                    authCode = HttpUtility.UrlDecode(_item.authCode);
-                    redirectUri = _item.redirecUri;
-
-                    if (string.IsNullOrEmpty(clientId)) return -2;
-                    if (string.IsNullOrEmpty(clientSecret)) return -3;
-                    if (string.IsNullOrEmpty(authCode)) return -4;
-                    if (string.IsNullOrEmpty(redirectUri)) return -5;
-
-                    var flow = new GoogleAuthorizationCodeFlow(
-                        new GoogleAuthorizationCodeFlow.Initializer
-                        {
-                            ClientSecrets = new ClientSecrets
-                            {
-                                ClientId = clientId,
-                                ClientSecret = clientSecret
-                            },
-                            Scopes = new[] { "https://www.googleapis.com/auth/gmail.modify" }
-                        });
-
-                    try
-                    {
-                        TokenResponse tokenResponse = await flow.ExchangeCodeForTokenAsync(
-                            userId: string.Empty,
-                            code: authCode,
-                            redirectUri: redirectUri,
-                            CancellationToken.None);
-
-                        Console.WriteLine($"Access Token: {tokenResponse.AccessToken}");
-                        Console.WriteLine($"Refresh Token: {tokenResponse.RefreshToken}");
-                        Console.WriteLine($"Token Expiry: {tokenResponse.ExpiresInSeconds}");
-                        _item.accessToken = tokenResponse.AccessToken;
-                        _item.refreshToken = tokenResponse.RefreshToken;
-
-                        _dbContext.SaveChanges();
-
-                        return 1;
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Error obtaining token: {ex.Message}");
-                        return -6;
-                    }
-                }
-
-                return -7;
-            }
-        }
-
         public async Task<string> GetAccessToken()
         {
             string clientId = "554411087297-k1a42bhgrutgbq5inss1qoj79tltd2on.apps.googleusercontent.com";
@@ -1044,90 +978,7 @@ namespace GoogleLogin.Services
             }
         }
 
-        public async Task<int> GetAccessTokenFromMailIdx(string strMailIdx)
-        {
-            string clientId = string.Empty;
-            string clientSecret = string.Empty;
-            string refreshToken = string.Empty;
-            string redirectUri = string.Empty;
-
-            using (var scope = _serviceScopeFactory.CreateScope())
-            {
-                var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
-                var _item = _dbContext.TbMailAccount
-                    .Where(item => item.id == Convert.ToInt16(strMailIdx))
-                    .FirstOrDefault();
-
-                if (_item != null)
-                {
-                    clientId = _item.clientId;
-                    clientSecret = _item.clientSecret;
-                    redirectUri = _item.redirecUri;
-                    refreshToken = _item.refreshToken;
-
-                    if (string.IsNullOrEmpty(clientId)) return -1;
-                    if (string.IsNullOrEmpty(clientSecret)) return -1;
-                    if (string.IsNullOrEmpty(redirectUri)) return -1;
-                    if (string.IsNullOrEmpty(refreshToken)) return -1;
-
-                    var flow = new GoogleAuthorizationCodeFlow(
-                        new GoogleAuthorizationCodeFlow.Initializer
-                        {
-                            ClientSecrets = new ClientSecrets
-                            {
-                                ClientId = clientId,
-                                ClientSecret = clientSecret
-                            },
-                            Scopes = new[] {"https://www.googleapis.com/auth/gmail.modify" }
-                        });
-
-                    try
-                    {
-                        TokenResponse tokenResponse = await flow.RefreshTokenAsync(
-                            userId: string.Empty,
-                            refreshToken: refreshToken,
-                            CancellationToken.None);
-
-                        Console.WriteLine($"New Access Token: {tokenResponse.AccessToken}");
-                        Console.WriteLine($"Token Expiry: {tokenResponse.ExpiresInSeconds}");
-
-                        _item.accessToken = tokenResponse.AccessToken;
-                        _dbContext.SaveChanges();
-
-                        return 1;
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Error refreshing token: {ex.Message}");
-                        return -1;
-                    }
-                }
-                return -1;
-            }
-        }
-
-        public async Task<string> GetGmailNameAsync(string accessToken)
-        {
-            string UserInfoEndpoint = "https://www.googleapis.com/oauth2/v3/userinfo";
-
-            using (var client = new HttpClient())
-            {
-                // Set the Authorization header with the access token
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-
-                // Make a GET request to the UserInfo endpoint
-                var response = await client.GetAsync(UserInfoEndpoint);
-                response.EnsureSuccessStatusCode(); // Throw if the status code is not success
-
-                var content = await response.Content.ReadAsStringAsync();
-
-                // Parse the response JSON
-                var userInfo = JsonConvert.DeserializeObject<GoogleUserInfo>(content) ?? null;
-
-                if (userInfo != null) return userInfo.Email;
-                else return string.Empty;
-            }
-        }
+        
     }
     public class EmailDto
     {

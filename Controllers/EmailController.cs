@@ -1,41 +1,57 @@
-﻿using GoogleLogin.Models;
-using GoogleLogin.Services;
+﻿using Google.Apis.Auth.OAuth2.Flows;
+using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
-using Google.Cloud.PubSub.V1;
+using System.Web;
 using ShopifyService = GoogleLogin.Services.ShopifyService;
-using Newtonsoft.Json;
-using Org.BouncyCastle.Asn1;
-using Microsoft.AspNetCore.Connections;
-using Google.Api;
-using ShopifySharp;
+using GoogleLogin.Models;
+using GoogleLogin.Services;
+using WebSocketSharp;
 
 namespace GoogleLogin.Controllers
 {
     [Authorize]
     public class EmailController : Controller
     {
-        private readonly ILogger<EmailController> _logger;
-        private SignInManager<AppUser> signInManager;
-        private Microsoft.AspNetCore.Identity.UserManager<AppUser> userManager;
-        private readonly EMailService _emailService;
-        private readonly ShopifyService _shopifyService;
-        private readonly ModelService _smsService;
-        private readonly LLMService _llmService;
-        private const int nCntPerPage = 20;
-        private readonly string _phoneNumber;
+        private readonly ILogger<EmailController>   _logger;
+        private SignInManager<AppUser>              _signInManager;
+        private UserManager<AppUser>                _userManager;
+        private readonly EMailService               _emailService;
+        private readonly EMailTokenService          _emailTokenService;
+        private readonly ShopifyService             _shopifyService;
+        private readonly ModelService               _smsService;
+        private readonly LLMService                 _llmService;
+        private readonly IConfiguration             _configuration;
+        private readonly IServiceScopeFactory       _serviceScopeFactory;
+        private readonly string                     _phoneNumber;
+        public static readonly string[]             Scopes = { "email", "profile", "https://www.googleapis.com/auth/gmail.modify" };
+        private const int           nCntPerPage = 20;
 
-        public EmailController(SignInManager<AppUser> signinMgr, Microsoft.AspNetCore.Identity.UserManager<AppUser> userMgr, EMailService service, ShopifyService shopifyService, ModelService smsService, ILogger<EmailController> logger, IConfiguration _configuration, LLMService llmService)
+        public EmailController(
+            SignInManager<AppUser>  signinMgr, 
+            IServiceScopeFactory    serviceScopeFactory,
+            UserManager<AppUser>    userMgr, 
+            EMailService            service, 
+            EMailTokenService       emailTokenService,
+            ShopifyService          shopifyService, 
+            ModelService            smsService, 
+            ILogger<EmailController> logger, 
+            IConfiguration          configuration, 
+            LLMService              llmService)
         {
-            signInManager = signinMgr;
-            userManager = userMgr;
-            _emailService = service;
-            _shopifyService = shopifyService;
-            _logger = logger;
-            _smsService = smsService;
+            _signInManager   = signinMgr;
+            _serviceScopeFactory = serviceScopeFactory;
+            _userManager     = userMgr;
+            _emailService    = service;
+            _emailTokenService = emailTokenService;
+            _shopifyService  = shopifyService;
+            _logger          = logger;
+            _smsService      = smsService;
+            _configuration   = configuration;
+
             _phoneNumber = _configuration["Twilio:PhoneNumber"];
             _llmService = llmService;
         }
@@ -43,7 +59,7 @@ namespace GoogleLogin.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            AppUser? user = await userManager.GetUserAsync(HttpContext.User);
+            AppUser? user = await _userManager.GetUserAsync(HttpContext.User);
             if (user == null)
             {
 #if DEBUG
@@ -57,12 +73,19 @@ namespace GoogleLogin.Controllers
             if (string.IsNullOrEmpty(access_token))
                 return Redirect("/account/Login");
 
+            ViewBag.mailAccountList = _emailTokenService.GetMailAccountList(_userManager.GetUserId(HttpContext.User) ?? "");
             return View();
         }
 
         [HttpPost]
         public IActionResult GetMailList(string strEmail, int nPageIndex = 0, int nEmailState = 0)
         {
+            if (strEmail != "All")
+            {
+                string accessToken = _emailTokenService.GetAccessTokenFromMailName(strEmail);
+                _emailService.UpdateMailDatabaseAsync(accessToken, strEmail, 10);
+            }
+
             int nMailCnt = _emailService.GetMailCnt(strEmail, nEmailState);
             var emailList = _emailService.GetMailList(strEmail, nPageIndex, nCntPerPage, nEmailState);
 
@@ -72,8 +95,8 @@ namespace GoogleLogin.Controllers
                 emailExtList.Add(new TbEmailsExt(email));
             }
 
-            ViewBag.Emails = emailExtList;
-            ViewBag.nMailTotalCnt = nMailCnt;
+            ViewBag.Emails          = emailExtList;
+            ViewBag.nMailTotalCnt   = nMailCnt;
 
             return PartialView("View_EmailList");
         }
@@ -90,8 +113,7 @@ namespace GoogleLogin.Controllers
         public IActionResult GetMailDetail(string strMailId)
         {
             
-            EmailExt emailExt = new EmailExt();
-            emailExt = _emailService.GetMailDetail(strMailId);
+            EmailExt emailExt = _emailService.GetMailDetail(strMailId);
 
             ViewBag.customerInfo = _emailService.GetCustomerInfo(strMailId);
             ViewBag.emailExt     = emailExt;
@@ -111,7 +133,7 @@ namespace GoogleLogin.Controllers
         {
             try
             {
-                var user = await userManager.GetUserAsync(User);
+                var user = await _userManager.GetUserAsync(User);
 
                 int status = 0;
                 string strRespond = string.Empty;

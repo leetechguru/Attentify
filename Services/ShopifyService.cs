@@ -171,45 +171,19 @@ namespace GoogleLogin.Services
 			}
 		}
 
-		public async Task<bool> RefundOrder(string nOrderId)
-        {
-            var service = new OrderService("https://your-shop-name.myshopify.com", "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");
-
-            try
-            {
-                //await service.CancelAsync(nOrderId);
-                //await service.CancelAsync(nOrderId, new OrderCancelOptions
-                //{
-                //    Restock = true,
-                //    Reason = "customer",
-                //    SendCancellationReceipt = true
-                //});
-
-                Console.WriteLine($"Order {nOrderId} canceled successfully!");
-                _logger.LogInformation($"Order {nOrderId} canceled successfully!");
-                return true;    
-            }
-            catch (ShopifyException ex)
-            {
-                Console.WriteLine($"Error canceling order: {ex.Message}");
-                _logger.LogError(ex, ex.Message);
-                return false;
-            }
-        }
-
 		public async Task<bool> RefundOrder(long nOrderId)
 		{
 			var service = new OrderService("https://your-shop-name.myshopify.com", "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");
 
 			try
 			{
-				//await service.CancelAsync(nOrderId);
-				//await service.CancelAsync(nOrderId, new OrderCancelOptions
-				//{
-				//    Restock = true,
-				//    Reason = "customer",
-				//    SendCancellationReceipt = true
-				//});
+				await service.CancelAsync(nOrderId);
+				await service.CancelAsync(nOrderId, new OrderCancelOptions
+				{
+				    Restock = true,
+				    Reason = "customer",
+				    SendCancellationReceipt = true
+				});
 
 				Console.WriteLine($"Order {nOrderId} canceled successfully!");
 				_logger.LogInformation($"Order {nOrderId} canceled successfully!");
@@ -269,7 +243,7 @@ namespace GoogleLogin.Services
             }
         }
 
-        public async Task OrderRequest()
+        public async void OrderRequest()
         {
             using (var scope = _serviceScopeFactory.CreateScope())  // Create a new scope
             {

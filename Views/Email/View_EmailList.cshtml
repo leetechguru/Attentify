@@ -3,7 +3,7 @@
 	{
         @foreach (var item in ViewBag.Emails)
         {
-            <li class="email-list-item @(item.em_read == 1 ? "email-marked-read" : "") d-flex align-items-center"
+            <li class="email-list-item pt-0 pb-0  min-h-2 @(item.em_read == 1 ? "email-marked-read" : "") d-flex align-items-center"
                 data-starred="true"
                 data-bs-toggle="sidebar"
                 data-target="#app-email-view">

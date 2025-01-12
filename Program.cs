@@ -53,6 +53,7 @@ builder.Services.AddAuthentication()
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<EMailService>();
+builder.Services.AddScoped<EMailTokenService>();
 builder.Services.AddScoped<ModelService>();
 builder.Services.AddScoped<LLMService>();
 builder.Services.AddScoped<ShopifyService>();
