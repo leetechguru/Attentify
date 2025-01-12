@@ -171,45 +171,19 @@ namespace GoogleLogin.Services
 			}
 		}
 
-		public async Task<bool> RefundOrder(string nOrderId)
-        {
-            var service = new OrderService("https://your-shop-name.myshopify.com", "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");
-
-            try
-            {
-                //await service.CancelAsync(nOrderId);
-                //await service.CancelAsync(nOrderId, new OrderCancelOptions
-                //{
-                //    Restock = true,
-                //    Reason = "customer",
-                //    SendCancellationReceipt = true
-                //});
-
-                Console.WriteLine($"Order {nOrderId} canceled successfully!");
-                _logger.LogInformation($"Order {nOrderId} canceled successfully!");
-                return true;    
-            }
-            catch (ShopifyException ex)
-            {
-                Console.WriteLine($"Error canceling order: {ex.Message}");
-                _logger.LogError(ex, ex.Message);
-                return false;
-            }
-        }
-
 		public async Task<bool> RefundOrder(long nOrderId)
 		{
 			var service = new OrderService("https://your-shop-name.myshopify.com", "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");
 
 			try
 			{
-				//await service.CancelAsync(nOrderId);
-				//await service.CancelAsync(nOrderId, new OrderCancelOptions
-				//{
-				//    Restock = true,
-				//    Reason = "customer",
-				//    SendCancellationReceipt = true
-				//});
+				await service.CancelAsync(nOrderId);
+				await service.CancelAsync(nOrderId, new OrderCancelOptions
+				{
+				    Restock = true,
+				    Reason = "customer",
+				    SendCancellationReceipt = true
+				});
 
 				Console.WriteLine($"Order {nOrderId} canceled successfully!");
 				_logger.LogInformation($"Order {nOrderId} canceled successfully!");
@@ -269,7 +243,7 @@ namespace GoogleLogin.Services
             }
         }
 
-        public async Task OrderRequest()
+        public async void OrderRequest()
         {
             using (var scope = _serviceScopeFactory.CreateScope())  // Create a new scope
             {
@@ -1053,22 +1027,23 @@ namespace GoogleLogin.Services
             }
         }
     
-        public async Task<TbOrder> GetOrderInfo(string strOrderNo)
+        public TbOrder GetOrderInfo(string strOrderId)
         {
             using (var scope = _serviceScopeFactory.CreateScope())  // Create a new scope
             {
-                string strOrderNum = AddPrefixIfMissing(strOrderNo);
+                string strOrderNum = AddPrefixIfMissing(strOrderId);
+                Console.WriteLine(strOrderNum);
                 var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
-                return await _dbContext.TbOrders.Where(e => e.or_name == strOrderNum).FirstOrDefaultAsync();
+                return _dbContext.TbOrders.Where(e => e.or_name == strOrderNum).FirstOrDefault();
             }
         }
 
-		public async Task<TbOrder> GetOrderInfo(long nOrderId)
+		public TbOrder GetOrderInfo(long nOrderId)
 		{
 			using (var scope = _serviceScopeFactory.CreateScope())  // Create a new scope
 			{				
 				var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
-				return await _dbContext.TbOrders.Where(e => e.or_id == nOrderId).FirstOrDefaultAsync();
+                return _dbContext.TbOrders.Where(e => e.or_id == nOrderId).FirstOrDefault();
 			}
 		}
 

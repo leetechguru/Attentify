@@ -136,6 +136,35 @@ namespace GoogleLogin.Migrations
                     b.ToTable("TbEmails");
                 });
 
+            modelBuilder.Entity("GoogleLogin.Models.TbMailAccount", b =>
+                {
+                    b.Property<long>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("id"));
+
+                    b.Property<string>("accessToken")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("mail")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("refreshToken")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("userId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("id");
+
+                    b.ToTable("TbMailAccount");
+                });
+
             modelBuilder.Entity("GoogleLogin.Models.TbOrder", b =>
                 {
                     b.Property<long>("od_idx")

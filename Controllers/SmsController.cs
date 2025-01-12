@@ -45,29 +45,36 @@ namespace GoogleLogin.Controllers
             {
 #if DEBUG
                 user = new AppUser();
-                user.PhoneNumber = _phoneNumber;                
+                user.Email = "sherman@zahavas.com";
 #else
-                return RedirectToAction("Login");
+                return Redirect("/account/Login");
 #endif
             }
-			string? myPhone = _phoneNumber;
-			if (user != null && !string.IsNullOrEmpty(user.PhoneNumber))
-				myPhone = user.PhoneNumber;
+            string access_token = HttpContext.Session.GetString("AccessToken");
+            if (string.IsNullOrEmpty(access_token))
+                return Redirect("/account/Login");
 
-			List<string> lstPhone = await _modelService.GetPhoneList(myPhone);
-            if (string.IsNullOrEmpty(phone))
-            {
-                phone = lstPhone.FirstOrDefault();
-            }
-
-
-            ViewBag.lstPhone = lstPhone;
-            ViewBag.phone = phone;
-            ViewBag.User = user;
-            ViewBag.scripts = new List<string>(){ "/js/sweetalert2.all.js", "/js/sms.js" };
-            ViewBag.styles = new List<string>() { "/css/sweetalert2.css", "/css/sms.css" };
-
+            ViewBag.strToPhone = _phoneNumber;
             return View();
+        }
+
+        [HttpPost]
+        public IActionResult GetChatList(string strToPhone)
+        {
+            var chatList      = _modelService.GetChatList(strToPhone);
+            ViewBag.chatList = chatList;
+
+            return PartialView("View_chatList");
+        }
+
+        [HttpPost]
+        public IActionResult GetChatHistory(string strFromPhone, string strToPhone)
+        {
+            var chatHistory = _modelService.GetChatHistory(strFromPhone, strToPhone);
+            ViewBag.strMyPhone  = strToPhone;
+            ViewBag.chatHistory = chatHistory;
+
+            return PartialView("View_chatHistory");
         }
 
         [HttpPost]
@@ -173,7 +180,7 @@ namespace GoogleLogin.Controllers
                     string strOrderId = jsonObj["order_id"].ToString();
                     if (!string.IsNullOrEmpty(strOrderId))
                     {                        
-                        TbOrder p = await _shopifyService.GetOrderInfo(strOrderId);
+                        TbOrder p = _shopifyService.GetOrderInfo(strOrderId);
                         if (p == null)
                         {                            
                             p = _shopifyService.GetOrderInfoByPhone(phone);

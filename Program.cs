@@ -4,9 +4,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using GoogleLogin.Services;
-using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.DependencyInjection;
-using Google.Api;
 using Twilio.Clients;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -43,33 +40,23 @@ builder.Services.AddAuthentication()
     .AddCookie()
     .AddGoogle(opts =>
     {
-#if DEBUG
-        //opts.ClientId = "849361092514-782nq1ipi5irv59rjj00src6ar9scco5.apps.googleusercontent.com";//for me(test)        
-        //opts.ClientSecret = "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";  //for me(test)
-        opts.ClientId = "554411087297-k1a42bhgrutgbq5inss1qoj79tltd2on.apps.googleusercontent.com";//"903521853687-3gprhtno2qglf85ji87r01su2es6omno.apps.googleusercontent.com"; //for client                       
-        opts.ClientSecret = "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";//"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";  //for me(test)   
-#else
-        opts.ClientId = "554411087297-k1a42bhgrutgbq5inss1qoj79tltd2on.apps.googleusercontent.com";//"903521853687-3gprhtno2qglf85ji87r01su2es6omno.apps.googleusercontent.com"; //for client                       
-        opts.ClientSecret = "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";//"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";  //for client                           
-#endif
+        opts.ClientId     = builder.Configuration["clientId"] ?? "";
+        opts.ClientSecret = builder.Configuration["clientSecret"] ?? "";
         opts.SignInScheme = IdentityConstants.ExternalScheme;
         opts.Scope.Add("email");
-        opts.Scope.Add("https://www.googleapis.com/auth/gmail.readonly");
-        opts.Scope.Add("https://www.googleapis.com/auth/gmail.modify");
-        opts.Scope.Add("https://www.googleapis.com/auth/gmail.send");
-        opts.Scope.Add("https://www.googleapis.com/auth/pubsub");
         opts.Scope.Add("profile");
+        opts.Scope.Add("https://www.googleapis.com/auth/gmail.modify");
+        opts.Scope.Add("https://www.googleapis.com/auth/pubsub");
         opts.SaveTokens = true;
     });
 
-
 builder.Services.AddControllersWithViews();
-
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<EMailService>();
+builder.Services.AddScoped<EMailTokenService>();
 builder.Services.AddScoped<ModelService>();
 builder.Services.AddScoped<LLMService>();
-builder.Services.AddScoped<GoogleLogin.Services.ShopifyService>();
+builder.Services.AddScoped<ShopifyService>();
 
 builder.Services.AddSingleton(new TwilioRestClient(
             builder.Configuration["Twilio:AccountSid"],
@@ -86,13 +73,6 @@ builder.Services.AddSignalR();
 var app = builder.Build();
 var loggerFactory = app.Services.GetService<ILoggerFactory>();
 loggerFactory.AddFile(builder.Configuration["Logging:LogFilePath"]?.ToString());
-
-//using (var scope = app.Services.CreateScope())
-//{
-//    var gmailWatchService = scope.ServiceProvider.GetRequiredService<GMailWatchService>();
-//    var topicName = "projects/YOUR_PROJECT_ID/topics/YOUR_TOPIC_NAME";
-//    var response = gmailWatchService.StartWatch("me", topicName);    
-//}
 
 if (!app.Environment.IsDevelopment())
 {
