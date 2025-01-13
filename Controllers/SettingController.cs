@@ -139,6 +139,29 @@ namespace GoogleLogin.Controllers
         }
 
         [HttpGet]
+        public IActionResult ShopifyManage()
+        {
+            string access_token = HttpContext.Session.GetString("AccessToken") ?? string.Empty;
+            if (string.IsNullOrEmpty(access_token))
+                return Redirect("/account/Login");
+
+            return View("View_ShopifyManage");
+        }
+
+        [HttpPost]
+        public IActionResult GetShopifyList()
+        {
+            using (var scope = _serviceScopeFactory.CreateScope())  // Create a new scope
+            {
+                var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
+                List<TbShopifyToken> shopifyList = _dbContext.TbTokens.ToList();
+
+                ViewBag.shopifyList = shopifyList;
+                return PartialView("View_shopifyList");
+            }
+        }
+
+        [HttpGet]
         public IActionResult UserManage()
         {
             string access_token = HttpContext.Session.GetString("AccessToken") ?? string.Empty;

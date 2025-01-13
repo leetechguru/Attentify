@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using ShopifySharp;
 using ShopifySharp.GraphQL;
+using System.Security.AccessControl;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -18,59 +19,35 @@ namespace GoogleLogin.Controllers
 {
 	public class ShopifyController : Controller
 	{
-		private readonly string _clientId;
-		private readonly string _clientSecret;
-		private readonly string _domain;
-        private Microsoft.AspNetCore.Identity.UserManager<AppUser> _userManager;
-		private ShopifyService _service;
-        private EMailService _emailService;
-        private readonly ILogger<ShopifyController> _logger;
+		private readonly string                             _clientId;
+		private readonly string                             _clientSecret;
+		private readonly string                             _domain;
+        private readonly UserManager<AppUser>               _userManager;
+		private readonly ShopifyService                     _shopifyService;
+        private readonly EMailService                       _emailService;
+        private readonly ILogger<ShopifyController>         _logger;
         private const int PerPageCnt = 10;
 
-        public ShopifyController(UserManager<AppUser> userMgr, ShopifyService service, EMailService emailService, IConfiguration configuration, ILogger<ShopifyController> logger)
+        public ShopifyController(
+            UserManager<AppUser>        userMgr, 
+            ShopifyService              shopifyService, 
+            EMailService                emailService,
+            IConfiguration              configuration, 
+            ILogger<ShopifyController>  logger)
         {
-            _clientId     = configuration["Shopify:clientId"];
-            _clientSecret = configuration["Shopify:ApiSecret"];
-            _domain       = configuration["Domain"];
+            _clientId               = configuration["Shopify:clientId"]  ?? "";
+            _clientSecret           = configuration["Shopify:ApiSecret"] ?? "";
+            _domain                 = configuration["Domain"] ?? "";
 #if DEBUG
-            _clientId     = configuration["shopify_test:clientId"];
-            _clientSecret = configuration["shopify_test:ApiSecret"];
-            _domain       = configuration["Domain"];
+            _clientId               = configuration["shopify_test:clientId"] ?? "";
+            _clientSecret           = configuration["shopify_test:ApiSecret"] ?? "";
+            _domain                 = configuration["Domain"] ?? "";
 #endif
-            _userManager  = userMgr;
-            _service      = service;
-            _emailService = emailService;
-            _logger       = logger;
+            _userManager            = userMgr;
+            _shopifyService         = shopifyService;
+            _emailService           = emailService;
+            _logger                 = logger;
         }
-
-        [HttpGet("shopify/auth")]
-		public IActionResult Authenticate(string shop)
-		{
-			ShopifyAuthHelper pHelper = new ShopifyAuthHelper(_clientId, _clientSecret);
-			if(string.IsNullOrEmpty(shop))
-			{
-				shop = "punkcaseca.myshopify.com";
-			}
-			var authUrl = pHelper.BuildAuthorizationUrl(shop);
-			return Redirect(authUrl);			
-		}
-		
-		[HttpGet("shopify/callback")]
-		public async Task<IActionResult> Callback(string shop, string code, string hmac)
-		{
-			var authHelper = new ShopifyAuthHelper(_clientId, _clientSecret);
-			var accessToken = await authHelper.ExchangeCodeForAccessToken(shop, code);
-
-            AppUser? user = await _userManager.GetUserAsync(HttpContext.User);
-            string strEmail = "";
-            if (user != null)
-            {
-                strEmail = user.Email;
-            }
-			await _service.SaveAccessToken(strEmail, shop, accessToken);
-            await _service.RegisterHookEntry(shop, accessToken);
-            return View("~/Views/shopify/install.cshtml");
-		}
 
 		[HttpGet]
 		public async Task<IActionResult> Orders(string store, int nPageNo = 0)
@@ -88,9 +65,7 @@ namespace GoogleLogin.Controllers
             }
 
             ViewBag.scripts = new List<string>(){"/js/orders.js"};
-            
             ViewBag.Store = store;
-
             return View();
         }
 
@@ -113,23 +88,56 @@ namespace GoogleLogin.Controllers
             {
                 nPageNo = 1;
             }
-            int nRecCnt = await _service.GetOrdersPerPageCnt(store, nPageNo, PerPageCnt);
+            int nRecCnt = await _shopifyService.GetOrdersPerPageCnt(store, nPageNo, PerPageCnt);
             int nPageCnt = nRecCnt / PerPageCnt + 1;
             if (nPageNo >= nPageCnt)
             {
                 nPageNo = nPageCnt;
             }
 
-            List<TbOrder> lstOrders = await _service.GetOrders(store, nPageNo, PerPageCnt);
+            List<TbOrder> lstOrders = await _shopifyService.GetOrders(store, nPageNo, PerPageCnt);
 
-            ViewBag.orders = lstOrders;
-            ViewBag.PageNo = nPageNo;
-            ViewBag.AllCnt = nRecCnt;
-            ViewBag.PageCnt = nPageCnt;
-            ViewBag.PagePerCnt = PerPageCnt;
-            ViewBag.Store = store;
+            ViewBag.orders      = lstOrders;
+            ViewBag.PageNo      = nPageNo;
+            ViewBag.AllCnt      = nRecCnt;
+            ViewBag.PageCnt     = nPageCnt;
+            ViewBag.PagePerCnt  = PerPageCnt;
+            ViewBag.Store       = store;
 
             return PartialView("Order");
+        }
+
+        [HttpPost("shopify/auth")]
+        public IActionResult Authenticate(string shop)
+        {
+            ShopifyAuthHelper pHelper = new ShopifyAuthHelper(_clientId, _clientSecret);
+            if (string.IsNullOrEmpty(shop))
+            {
+                shop = "punkcaseca.myshopify.com";
+            }
+            //var authUrl = pHelper.BuildAuthorizationUrl(shop, $"https://{_domain}/shopify/install");
+            var authUrl = "https://admin.shopify.com/oauth/install_custom_app?client_id=80dc7ad1a7ce6a47857f7f85479d3c23&no_redirect=true&signature=eyJleHBpcmVzX2F0IjoxNzM3MzkxNTI2LCJwZXJtYW5lbnRfZG9tYWluIjoicHVua2Nhc2UubXlzaG9waWZ5LmNvbSIsImNsaWVudF9pZCI6IjgwZGM3YWQxYTdjZTZhNDc4NTdmN2Y4NTQ3OWQzYzIzIiwicHVycG9zZSI6ImN1c3RvbV9hcHAiLCJtZXJjaGFudF9vcmdhbml6YXRpb25faWQiOjEwNjkzN30%3D--0d6519ffa58c4afd91448f237ac16cf458eb37f8";
+            return Json(new { status = 201, authorizationUrl = authUrl });
+        }
+
+        [HttpGet("shopify/callback")]
+        public async Task<IActionResult> Callback(string shop, string code, string hmac)
+        {
+            var authHelper = new ShopifyAuthHelper(_clientId, _clientSecret);
+            var accessToken = await authHelper.ExchangeCodeForAccessToken(shop, code);
+
+            AppUser? user = await _userManager.GetUserAsync(HttpContext.User);
+            string strEmail = "";
+            if (user != null)
+            {
+                strEmail = user.Email;
+            }
+            Console.WriteLine(accessToken);
+            Console.WriteLine(strEmail);
+            Console.WriteLine(shop);
+            await _shopifyService.SaveAccessToken(strEmail, shop, accessToken);
+            await _shopifyService.RegisterHookEntry(shop, accessToken);
+            return RedirectToAction("shopifymanage", "setting");
         }
 
         [HttpGet("shopify/install")]
@@ -200,13 +208,13 @@ namespace GoogleLogin.Controllers
 
         public async Task<IActionResult> RefreshOrder(string strStore)
         {
-            string strToken = await _service.GetAccessTokenByStore(strStore);
+            string strToken = await _shopifyService.GetAccessTokenByStore(strStore);
             if(string.IsNullOrEmpty(strToken))
             {
                 return await Order(strStore);
             }
 
-            await _service.OrderRequest(strStore, strToken);
+            await _shopifyService.OrderRequest(strStore, strToken);
             return await Order(strStore);
         }
 
@@ -231,7 +239,7 @@ namespace GoogleLogin.Controllers
 
                 Console.WriteLine($"Webhook received: {requestBody}");
                 _logger.LogInformation($"Webhook create request : {requestBody}");
-                await _service.SaveNewOrder(requestBody);
+                await _shopifyService.SaveNewOrder(requestBody);
                 return Ok();
             }
             catch (Exception ex)
@@ -262,7 +270,7 @@ namespace GoogleLogin.Controllers
 
                 Console.WriteLine($"Webhook received: {requestBody}");
                 _logger.LogInformation($"Webhook cancelled request : {requestBody}");
-                await _service.SaveNewOrder(requestBody);
+                await _shopifyService.SaveNewOrder(requestBody);
                 return Ok();
             }
             catch (Exception ex)
