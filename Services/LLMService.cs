@@ -13,26 +13,33 @@ namespace GoogleLogin.Services
 {
     public class LLMService
     {
-        ILogger<LLMService> logger;
-        public LLMService(ILogger<LLMService> _logger)
+        private readonly ILogger<LLMService>    _logger;
+        private readonly IConfiguration         _configuration;
+        private static   AnthropicClient?       _llmServer;
+        private string                          _strQuery;
+        public LLMService(
+            ILogger<LLMService> logger,
+            IConfiguration      configuration)
         {
-            this.logger = _logger;
+            _logger         =    logger;
+            _configuration  =    configuration;
+            _llmServer      =    new AnthropicClient(_configuration["AnthropicAPIKey"]);
+            _strQuery = $"The following text is an order, cancellation, or refund email encoded in Base64 from a Shopify customer. " +
+                    $"Please check if the order ID field exists and is correct. If the email is correct, then output the necessary string formatted as JSON. " +
+                    $"The JSON string should include order_id, type (either cancel or refund), status (1 if correct, otherwise 0), and msg " +
+                    $"(a message requesting the order ID if the email is incorrect; if the email is correct, msg should be null). I need only the JSON output: ";
         }
 
         public async Task<string> GetResponseLLM(string strBody)
         {
+            if (_llmServer == null) return string.Empty;
             try
             {
-                var client = new AnthropicClient("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"); // for client
-                string strTxt = $"The following text is an order, cancellation, or refund email encoded in Base64 from a Shopify customer. " +
-                    $"Please check if the order ID field exists and is correct. If the email is correct, then output the necessary string formatted as JSON. " +
-                    $"The JSON string should include order_id, type (either cancel or refund), status (1 if correct, otherwise 0), and msg " +
-                    $"(a message requesting the order ID if the email is incorrect; if the email is correct, msg should be null). I need only the JSON output: {strBody}";
+                string strText = _strQuery + strBody;
 
                 var messages = new List<Message>()
                 {
-                    //new Message(RoleType.User, $"This is a Gmail body string encoded in Base64. Please provide just the reply content. I don't need your words like 'Based on the decoded email content, here is the key reply content extracted:' It's indeed unncessary. {strBody}") 
-                    new Message(RoleType.User, strTxt)
+                    new Message(RoleType.User, strText)
                 };
 
                 var parameters = new MessageParameters()
@@ -43,22 +50,19 @@ namespace GoogleLogin.Services
                     Stream = false,
                     Temperature = 1.0m,
                 };
-                var finalResult = await client.Messages.GetClaudeMessageAsync(parameters);
-                logger.LogInformation($"LLMService/GetResponseLLM {strBody}");
-                logger.LogInformation($"LLMService: ${finalResult.Message}");
-                Console.WriteLine(finalResult.Message.ToString());
+                var finalResult = await _llmServer.Messages.GetClaudeMessageAsync(parameters);
                 return finalResult.Message.ToString();
             }
             catch (Exception ex)
             {
-                logger.LogError("llmservice/getresponseasync: " + ex.ToString());
                 Console.WriteLine("llmservice/getresponseasync" + ex.ToString());
             }
-            return "";
+            return string.Empty;
         }
 
-        public static async Task<string> GetResponseAsync(string strBody, string strUserName, EMailService _emailService = null)
+        public async Task<string> GetResponseAsync(string strBody, string strUserName, EMailService _emailService = null)
         {
+            if (_llmServer == null) return string.Empty;
             try
             {
                 string strOcrText = await ExtractTextOcr(_emailService, strBody);
@@ -67,15 +71,10 @@ namespace GoogleLogin.Services
                     strBody = $"{strBody}\n{strOcrText}";
                 }
 
-				var client = new AnthropicClient("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"); // for client
-                string strTxt = $"The following text is an order, cancellation, or refund email encoded in Base64 from a Shopify customer. " +
-                    $"Please check if the order ID field exists and is correct. If the email is correct, then output the necessary string formatted as JSON. " +
-                    $"The JSON string should include order_id, type (either cancel or refund), status (1 if correct, otherwise 0), and msg " +
-                    $"(a message requesting the order ID if the email is incorrect; if the email is correct, msg should be null). I need only the JSON output: {strBody}";
+                string strTxt = _strQuery + strBody;
                     
                 var messages = new List<Message>()
                 {
-                    //new Message(RoleType.User, $"This is a Gmail body string encoded in Base64. Please provide just the reply content. I don't need your words like 'Based on the decoded email content, here is the key reply content extracted:' It's indeed unncessary. {strBody}") 
                     new Message(RoleType.User, strTxt) 
                 };
             
@@ -87,31 +86,27 @@ namespace GoogleLogin.Services
                     Stream = false,
                     Temperature = 1.0m,
                 };
-                var finalResult = await client.Messages.GetClaudeMessageAsync(parameters);
-            
-                Console.WriteLine(finalResult.Message.ToString());
+                var finalResult = await _llmServer.Messages.GetClaudeMessageAsync(parameters);
+
                 return finalResult.Message.ToString();
             }catch(Exception ex)
             {
                 Console.WriteLine("llmservice/getresponseasync" + ex.ToString());
             }
-            return "";
+            return string.Empty;
         }
 
-        public static async Task<string> GetResponseAsyncOnlyText(string strBody)
+        public async Task<string> GetResponseAsyncOnlyText(string strBody)
         {
+            if (_llmServer == null) return string.Empty;
+
             try
             {
-                var client = new AnthropicClient("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"); // for client
-                string strTxt = $"The following text is an order, cancellation, or refund email encoded in Base64 from a Shopify customer. " +
-                    $"Please check if the order ID field exists and is correct. If the email is correct, then output the necessary string formatted as JSON. " +
-                    $"The JSON string should include order_id, type (either cancel or refund), status (1 if correct, otherwise 0), and msg " +
-                    $"(a message requesting the order ID if the email is incorrect; if the email is correct, msg should be null). I need only the JSON output: {strBody}";
+                string strText = _strQuery + strBody;
 
                 var messages = new List<Message>()
-                {
-                    //new Message(RoleType.User, $"This is a Gmail body string encoded in Base64. Please provide just the reply content. I don't need your words like 'Based on the decoded email content, here is the key reply content extracted:' It's indeed unncessary. {strBody}") 
-                    new Message(RoleType.User, strTxt)
+                { 
+                    new Message(RoleType.User, strText)
                 };
 
                 var parameters = new MessageParameters()
@@ -122,27 +117,22 @@ namespace GoogleLogin.Services
                     Stream = false,
                     Temperature = 1.0m,
                 };
-                var finalResult = await client.Messages.GetClaudeMessageAsync(parameters);
-
-                Console.WriteLine(finalResult.Message.ToString());
+                var finalResult = await _llmServer.Messages.GetClaudeMessageAsync(parameters);
                 return finalResult.Message.ToString();
             }
             catch (Exception ex)
             {
                 Console.WriteLine("llmservice/getresponseasync" + ex.ToString());
             }
-            return "";
+            return string.Empty;
         }
 
-        public static async Task<string> GetResponseAsync(string strBody)
+        public async Task<string> GetResponseAsync(string strBody)
         {
+            if (_llmServer == null) return string.Empty;
             try
             {
-                var client = new AnthropicClient("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"); // for client
-                string strTxt = $"The following text is an order, cancellation, or refund SMS from a Shopify customer. " +
-                    $"Please check if the order ID field exists and is correct. If the SMS is correct, then output the necessary string formatted as JSON. " +
-                    $"The JSON string should include order_id, type (either cancel or refund), status (1 if correct, otherwise 0), and msg " +
-                    $"(a message requesting the order ID if the SMS is incorrect; if the SMS is correct, msg should be null). I need only the JSON output: {strBody}";
+                string strTxt = _strQuery + strBody;
                
                 var messages = new List<Message>()
                 {                    
@@ -157,7 +147,7 @@ namespace GoogleLogin.Services
                     Stream = false,
                     Temperature = 1.0m,
                 };
-                var finalResult = await client.Messages.GetClaudeMessageAsync(parameters);
+                var finalResult = await _llmServer.Messages.GetClaudeMessageAsync(parameters);
                 
                 Console.WriteLine(finalResult.Message.ToString());
                 return finalResult.Message.ToString();
@@ -166,11 +156,10 @@ namespace GoogleLogin.Services
             {
                 Console.WriteLine(ex.ToString());
             }
-            return "";
+            return string.Empty;
         }
 
-
-        private static async Task<string> ExtractTextOcr(EMailService emailservice, string strBody)
+        private async Task<string> ExtractTextOcr(EMailService emailservice, string strBody)
         {
             string _strBody = emailservice.GetMailBodyAsHtml(strBody);
 			var imgMatch = Regex.Match(_strBody, @"<img[^>]*src=""data:image\/[a-zA-Z]+;base64,([^""]+)""");
