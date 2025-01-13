@@ -3,3 +3,4 @@ Logs/
 bin/
 obj/
 googlelogin.sin
+appsettings.json
