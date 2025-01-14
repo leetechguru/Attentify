@@ -27,14 +27,17 @@ namespace GoogleLogin.Services
         private readonly ILogger<ShopifyService> _logger;
         //private readonly DataWebsocket _dataWebsocket;
 		private readonly IHubContext<DataWebsocket> _hubContext;
-		public ShopifyService(IServiceScopeFactory serviceScopeFactory, IConfiguration configuration, ILogger<ShopifyService> logger, IHubContext<DataWebsocket> dataWebsocket)
+		public ShopifyService(
+            IServiceScopeFactory serviceScopeFactory, 
+            IConfiguration configuration, 
+            ILogger<ShopifyService> logger, 
+            IHubContext<DataWebsocket> dataWebsocket)
         {
-            _serviceScopeFactory = serviceScopeFactory;
-            _logger = logger;
-
-            _domain = configuration["Domain"];
-            _apiVersion = configuration["ApiVersion"];
-			_hubContext = dataWebsocket;
+            _serviceScopeFactory    = serviceScopeFactory;
+            _logger                 = logger;
+            _domain                 = configuration["Domain"];
+            _apiVersion             = configuration["ApiVersion"];
+			_hubContext  = dataWebsocket;
         }
 
         public async Task<bool> CancelOrder(string strOrderNum)
@@ -207,7 +210,7 @@ namespace GoogleLogin.Services
             return input; // Return the original string if it already starts with '#'
         }
 
-        public async Task SaveAccessToken(string strUser, string strShop, string strToken)
+        public async Task SaveAccessToken(string strUsreId, string strShop, string strToken)
         {
             using (var scope = _serviceScopeFactory.CreateScope())  // Create a new scope
             {
@@ -215,13 +218,17 @@ namespace GoogleLogin.Services
 
                 try
                 {
-                    var _one = await _dbContext.TbTokens.Where(e => e.ShopDomain == strShop).FirstOrDefaultAsync();
+                    var _one = 
+                        await _dbContext
+                        .TbTokens
+                        .Where(e => e.ShopDomain == strShop && e.UserId == strUsreId)
+                        .FirstOrDefaultAsync();
                     if (_one == null)
                     {
                         _dbContext.Add(new TbShopifyToken
                         {
-                            UserId = strUser,
-                            ShopDomain = strShop,
+                            UserId      = strUsreId,
+                            ShopDomain  = strShop,
                             AccessToken = strToken,
                             DateCreated = DateTime.Now,
                             DateUpdated = DateTime.Now,

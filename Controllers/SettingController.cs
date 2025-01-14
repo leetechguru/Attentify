@@ -154,10 +154,44 @@ namespace GoogleLogin.Controllers
             using (var scope = _serviceScopeFactory.CreateScope())  // Create a new scope
             {
                 var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
-                List<TbShopifyToken> shopifyList = _dbContext.TbTokens.ToList();
+                string strUserId = _userManager.GetUserId(HttpContext.User) ?? "";
+                List<TbShopifyToken> shopifyList = 
+                    _dbContext.TbTokens.Where(e => e.UserId == strUserId)
+                                .ToList();
 
                 ViewBag.shopifyList = shopifyList;
                 return PartialView("View_shopifyList");
+            }
+        }
+
+        [HttpPost]
+        public IActionResult DeleteShopify(string strShopifyIdx)
+        {
+            if (string.IsNullOrWhiteSpace(strShopifyIdx))
+            {
+                return Json(new { status = -201, message = "Invalid shopify index" });
+            }
+
+            using (var scope = _serviceScopeFactory.CreateScope())  // Create a new scope
+            {
+                var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
+
+                if (!int.TryParse(strShopifyIdx, out int shopifyIdx))
+                {
+                    return Json(new { status = -201, message = "Shopify index must be a valid number" });
+                }
+
+                var pShopify = _dbContext.TbTokens.FirstOrDefault(e => e.idx == shopifyIdx);
+
+                if (pShopify == null)
+                {
+                    return Json(new { status = -201, message = "Record not found" });
+                }
+
+                _dbContext.TbTokens.Remove(pShopify);
+                _dbContext.SaveChanges();
+
+                return Json(new { status = 201, message = "Record deleted successfully" });
             }
         }
 

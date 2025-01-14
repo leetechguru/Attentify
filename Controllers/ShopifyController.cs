@@ -126,16 +126,9 @@ namespace GoogleLogin.Controllers
             var authHelper = new ShopifyAuthHelper(_clientId, _clientSecret);
             var accessToken = await authHelper.ExchangeCodeForAccessToken(shop, code);
 
-            AppUser? user = await _userManager.GetUserAsync(HttpContext.User);
-            string strEmail = "";
-            if (user != null)
-            {
-                strEmail = user.Email;
-            }
-            Console.WriteLine(accessToken);
-            Console.WriteLine(strEmail);
-            Console.WriteLine(shop);
-            await _shopifyService.SaveAccessToken(strEmail, shop, accessToken);
+            string userId = _userManager.GetUserId(HttpContext.User) ?? "";
+          
+            await _shopifyService.SaveAccessToken(userId, shop, accessToken);
             await _shopifyService.RegisterHookEntry(shop, accessToken);
             return RedirectToAction("shopifymanage", "setting");
         }
