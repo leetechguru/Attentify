@@ -413,11 +413,15 @@
         }
 
         function loadMailDetail(strMailId) {
+            window.location.href = "detail?id=" + strMailId;
+        }
+
+        function loadMailDetail1(strMailId) {
             $('#fake_order_detail').show();
             $('#fake_order_detail_content').html("Processing...");
             $('#real_order_detail').hide();
 
-            $.post('/email/GetMailDetail', { strMailId: strMailId}, function (data) {
+            $.post('/email/GetMailDetail', { strMailId: strMailId }, function (data) {
                 try {
                     $('#app-email-view').html(data);
                     $('#app-email-view').toggleClass("show");

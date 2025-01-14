@@ -510,6 +510,7 @@ namespace GoogleLogin.Services
                                         or_customer_name = or_customer_name,
                                         or_phone = or_phone,
                                     };
+
                                     TbOrder _pOrigin = await _dbContext.TbOrders.Where(e => e.or_id == pOrder.or_id).FirstOrDefaultAsync();
                                     if (_pOrigin == null)
                                     {

@@ -10,6 +10,7 @@ using ShopifyService = GoogleLogin.Services.ShopifyService;
 using GoogleLogin.Models;
 using GoogleLogin.Services;
 using WebSocketSharp;
+using Microsoft.CodeAnalysis.Elfie.Serialization;
 
 namespace GoogleLogin.Controllers
 {
@@ -69,12 +70,66 @@ namespace GoogleLogin.Controllers
                 return Redirect("/account/Login");
 #endif
             }
-            string access_token = HttpContext.Session.GetString("AccessToken");
+            string access_token = HttpContext.Session.GetString("AccessToken") ?? string.Empty;
             if (string.IsNullOrEmpty(access_token))
                 return Redirect("/account/Login");
 
             ViewBag.mailAccountList = _emailTokenService.GetMailAccountList(_userManager.GetUserId(HttpContext.User) ?? "");
             return View();
+        }
+
+        [HttpGet("email/detail")]
+        public async Task<IActionResult> EmailDetail(string id)
+        {
+            if (id == string.Empty) return BadRequest("Mail Id must be required!");
+            AppUser? user = await _userManager.GetUserAsync(HttpContext.User);
+            if (user == null)
+            {
+#if DEBUG
+                user = new AppUser();
+                user.Email = "sherman@zahavas.com";
+#else
+                return Redirect("/account/Login");
+#endif
+            }
+
+            string access_token = HttpContext.Session.GetString("AccessToken") ?? string.Empty;
+            if (string.IsNullOrEmpty(access_token))
+                return Redirect("/account/Login");
+
+            EmailExt emailExt       = _emailService.GetMailDetail(id);
+            ViewBag.customerInfo    = _emailService.GetCustomerInfo(id);
+            ViewBag.emailExt        = emailExt;
+
+            int status = 0;
+            string strRespond = string.Empty;
+
+            string strMailEncodeBody = _emailService.GetMailEncodeBody(id);
+            if (strMailEncodeBody != "")
+            {
+                strRespond = await _llmService.GetResponseLLM(strMailEncodeBody);
+                if (strRespond != string.Empty)
+                {
+                    JObject jsonObj = JObject.Parse(strRespond);
+                    status = Convert.ToInt32((jsonObj["status"] ?? '0').ToString());
+
+                    if (status == 1)
+                    {
+                        string strType = (jsonObj["type"] ?? "").ToString();
+                        string strOrderName = (jsonObj["order_id"] ?? "").ToString();
+
+                        TbOrder tbOrder = _shopifyService.GetOrderInfo(strOrderName);
+
+                        if (tbOrder != null)
+                        {
+                            string orderDetail = await _shopifyService.GetOrderInfoRequest(tbOrder.or_id);
+                            ViewBag.orderDetail = orderDetail;
+                        }
+                    }
+                }
+            }
+
+            return View("View_EmailDetail");
         }
 
         [HttpPost]
@@ -107,17 +162,6 @@ namespace GoogleLogin.Controllers
             int nInboxCnt = _emailService.GetMailCnt(strEmail, 0);
             int nArchievedCnt = _emailService.GetMailCnt(strEmail, 3);
             return Json(new { status = 200, nInboxCnt = nInboxCnt, nArchievedCnt = nArchievedCnt, nCntPerPage = nCntPerPage });
-        }
-
-        [HttpPost]
-        public IActionResult GetMailDetail(string strMailId)
-        {
-            
-            EmailExt emailExt = _emailService.GetMailDetail(strMailId);
-
-            ViewBag.customerInfo = _emailService.GetCustomerInfo(strMailId);
-            ViewBag.emailExt     = emailExt;
-            return PartialView("View_EmailDetail");
         }
 
         [HttpPost]
