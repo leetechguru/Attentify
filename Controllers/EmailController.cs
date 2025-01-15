@@ -129,6 +129,7 @@ namespace GoogleLogin.Controllers
                                 var jsonCustomer = jsonOrder.GetProperty("customer");
                                 var jsonAddress = jsonCustomer.GetProperty("default_address");
 
+                                ViewBag.orderId = jsonOrder.GetProperty("id");
                                 ViewBag.orderName = jsonOrder.GetProperty("name");
                                 ViewBag.financial_status = jsonOrder.GetProperty("financial_status");
                                 ViewBag.fulfillment_status = jsonOrder.GetProperty("fulfillment_status");

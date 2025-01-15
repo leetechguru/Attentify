@@ -67,8 +67,8 @@
                                 @if (orderCustomerInfo != null)
                                 {
                                     <div class="">
-                                        <button type="button" class="btn btn-primary waves-effect waves-light">Refund</button>
-                                        <button type="button" class="btn btn-dark waves-effect waves-light">Cancel</button>
+                                        <button type="button" class="btn btn-primary waves-effect waves-light" onclick="handleRefundClick('@ViewBag.orderId')">Refund</button>
+                                        <button type="button" class="btn btn-dark waves-effect waves-light" onclick="handleCancelClick('@ViewBag.orderId');">Cancel</button>
                                     </div>
                                     
                                 } 
@@ -154,6 +154,108 @@
         <script type="text/javascript">
             $(document).ready(function () {
             });
+
+            function handleRefundClick(orderId) {
+                const swalWithBootstrapButtons = Swal.mixin({
+                    customClass: {
+                        confirmButton: "btn btn-success",
+                        cancelButton: "btn btn-danger"
+                    },
+                    buttonsStyling: false
+                })
+                swalWithBootstrapButtons.fire({
+                    title: "Question",
+                    text: "Should you process the refund request?",
+                    icon: "question",
+                    showCancelButton: true,
+                    confirmButtonText: "Yes, I'll do it!",
+                    cancelButtonText: "No, I won't!",
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const Toast = Swal.mixin({
+                            toast: true,
+                            position: "top-end",
+                            showConfirmButton: false,
+                            timer: 3000,
+                            timerProgressBar: true,
+                            didOpen: (toast) => {
+                                toast.onmouseenter = Swal.stopTimer;
+                                toast.onmouseleave = Swal.resumeTimer;
+                            },
+                            didClose: () => {
+                                let pageNo = $('input[name="pageNo"]').val();
+                                if (pageNo == undefined) pageNo = 0;
+                                renderMessage(pageNo);
+                            }
+                        });
+                        $.post('/home/requestShopify', { orderId: orderId, type: 3, em_idx: 0 }, function (resp) {
+                            if (resp.status == 1) {
+                                Toast.fire({
+                                    icon: "success",
+                                    title: "The refund request was successful."
+                                });
+                            } else {
+                                Toast.fire({
+                                    icon: "error",
+                                    title: "The refund request failed."
+                                });
+                            }
+                        }, 'json');
+                    }
+                });
+            }
+
+            function handleCancelClick (orderId) {
+                const swalWithBootstrapButtons = Swal.mixin({
+                    customClass: {
+                        confirmButton: "btn btn-success",
+                        cancelButton: "btn btn-danger"
+                    },
+                    buttonsStyling: false
+                })
+                swalWithBootstrapButtons.fire({
+                    title: "Question",
+                    text: "Should you process the cancellation request?",
+                    icon: "question",
+                    showCancelButton: true,
+                    confirmButtonText: "Yes, I'll do it!",
+                    cancelButtonText: "No, I won't!",
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const Toast = Swal.mixin({
+                            toast: true,
+                            position: "top-end",
+                            showConfirmButton: false,
+                            timer: 3000,
+                            timerProgressBar: true,
+                            didOpen: (toast) => {
+                                toast.onmouseenter = Swal.stopTimer;
+                                toast.onmouseleave = Swal.resumeTimer;
+                            },
+                            didClose: () => {
+                                let pageNo = $('input[name="pageNo"]').val();
+                                if (pageNo == undefined) pageNo = 0;
+                                renderMessage(pageNo);
+                            }
+                        });
+                        $.post('/home/requestShopify', { orderId: orderId, type: 2, em_idx: 0 }, function (resp) {
+                            if (resp.status == 1) {
+                                Toast.fire({
+                                    icon: "success",
+                                    title: "The cacellation request was successful."
+                                });
+                            } else {
+                                Toast.fire({
+                                    icon: "error",
+                                    title: "The cacellation request failed."
+                                });
+                            }
+                        }, 'json');
+                    }
+                });
+            }
         </script>
     }
     
