@@ -20,17 +20,21 @@ namespace GoogleLogin.Services
 {
     public class ModelService
     {
-        private readonly IServiceScopeFactory _serviceScopeFactory;
-        private readonly ILogger<ModelService> _logger;
-        private readonly TwilioRestClient _twilioClient;
-        private readonly IHubContext<DataWebsocket> _hubContext;
+        private readonly IServiceScopeFactory           _serviceScopeFactory;
+        private readonly ILogger<ModelService>          _logger;
+        private readonly TwilioRestClient               _twilioClient;
+        private readonly IHubContext<DataWebsocket>     _hubContext;
 
-        public ModelService(TwilioRestClient twilioClient, IServiceScopeFactory serviceScopeFactory, ILogger<ModelService> logger, IHubContext<DataWebsocket> hubContext)
+        public ModelService(
+            TwilioRestClient            twilioClient, 
+            IServiceScopeFactory        serviceScopeFactory, 
+            ILogger<ModelService>       logger, 
+            IHubContext<DataWebsocket>  hubContext)
         {
-            _twilioClient = twilioClient;
-            _serviceScopeFactory = serviceScopeFactory;
-            _logger = logger;
-            _hubContext = hubContext;
+            _twilioClient           =   twilioClient;
+            _serviceScopeFactory    =   serviceScopeFactory;
+            _logger                 =   logger;
+            _hubContext             =   hubContext;
         }
 
         public List<TbSms> GetChatList(string strUserPhone)
@@ -108,7 +112,11 @@ namespace GoogleLogin.Services
 			{
 				var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
 
-				TbSms sms = _dbContext.TbSmss.Where(e => e.sm_id == strId && e.sm_date != null).OrderBy(e => e.sm_date).FirstOrDefault();
+				TbSms sms = _dbContext
+                    .TbSmss
+                    .Where(e => e.sm_id == strId && e.sm_date != null)
+                    .OrderBy(e => e.sm_date)
+                    .FirstOrDefault();
                 if (sms == null) return null;
                 sms.sm_read = 1;
 				await _dbContext.SaveChangesAsync();
@@ -169,11 +177,7 @@ namespace GoogleLogin.Services
             }
             //return null;
         }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="strPhoneNumber"></param>
-        /// <returns></returns>
+
         public async Task<string> GetLastSms(string strPhoneNumber, string strMyPhone)
         {
             using (var scope = _serviceScopeFactory.CreateScope())  // Create a new scope
@@ -195,19 +199,14 @@ namespace GoogleLogin.Services
             }
         }
 
-        /// <summary>
-        /// get whole phonenumber list not including me.
-        /// </summary>
-        /// <param name="strMyPhone"></param>
-        /// <returns></returns>
         public async Task<List<string>> GetPhoneList(string strMyPhone)
         {
             using (var scope = _serviceScopeFactory.CreateScope())  // Create a new scope
             {
                 var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
-                List<string> lstFrom = await _dbContext.TbSmss.OrderByDescending(e => e.sm_date).Select(e => e.sm_from).ToListAsync();
-                List<string> lstTo = await _dbContext.TbSmss.OrderByDescending(e => e.sm_date).Select(e => e.sm_to).ToListAsync();
-                List<string> lstResult = lstFrom.Union(lstTo).ToList();
+                List<string> lstFrom    = await _dbContext.TbSmss.OrderByDescending(e => e.sm_date).Select(e => e.sm_from).ToListAsync();
+                List<string> lstTo      = await _dbContext.TbSmss.OrderByDescending(e => e.sm_date).Select(e => e.sm_to).ToListAsync();
+                List<string> lstResult  = lstFrom.Union(lstTo).ToList();
                 lstResult.RemoveAll(item => NormalizePhoneNumber_(item) == NormalizePhoneNumber_(strMyPhone));
                 return lstResult;
             }

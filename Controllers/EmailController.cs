@@ -11,6 +11,7 @@ using GoogleLogin.Models;
 using GoogleLogin.Services;
 using WebSocketSharp;
 using Microsoft.CodeAnalysis.Elfie.Serialization;
+using System.Text.Json;
 
 namespace GoogleLogin.Controllers
 {
@@ -43,18 +44,17 @@ namespace GoogleLogin.Controllers
             IConfiguration          configuration, 
             LLMService              llmService)
         {
-            _signInManager   = signinMgr;
-            _serviceScopeFactory = serviceScopeFactory;
-            _userManager     = userMgr;
-            _emailService    = service;
-            _emailTokenService = emailTokenService;
-            _shopifyService  = shopifyService;
-            _logger          = logger;
-            _smsService      = smsService;
-            _configuration   = configuration;
-
-            _phoneNumber = _configuration["Twilio:PhoneNumber"];
-            _llmService = llmService;
+            _signInManager          = signinMgr;
+            _serviceScopeFactory    = serviceScopeFactory;
+            _userManager            = userMgr;
+            _emailService           = service;
+            _emailTokenService      = emailTokenService;
+            _shopifyService         = shopifyService;
+            _logger                 = logger;
+            _smsService             = smsService;
+            _configuration          = configuration;
+            _phoneNumber            = _configuration["Twilio:PhoneNumber"] ?? "";
+            _llmService             = llmService;
         }
 
         [HttpGet]
@@ -103,32 +103,70 @@ namespace GoogleLogin.Controllers
 
             int status = 0;
             string strRespond = string.Empty;
-
             string strMailEncodeBody = _emailService.GetMailEncodeBody(id);
             if (strMailEncodeBody != "")
             {
                 strRespond = await _llmService.GetResponseLLM(strMailEncodeBody);
+
                 if (strRespond != string.Empty)
                 {
                     JObject jsonObj = JObject.Parse(strRespond);
                     status = Convert.ToInt32((jsonObj["status"] ?? '0').ToString());
-
+                    
                     if (status == 1)
                     {
-                        string strType = (jsonObj["type"] ?? "").ToString();
                         string strOrderName = (jsonObj["order_id"] ?? "").ToString();
 
                         TbOrder tbOrder = _shopifyService.GetOrderInfo(strOrderName);
 
                         if (tbOrder != null)
                         {
-                            string orderDetail = await _shopifyService.GetOrderInfoRequest(tbOrder.or_id);
-                            ViewBag.orderDetail = orderDetail;
+                            try
+                            {
+                                string orderDetail = await _shopifyService.GetOrderInfoRequest(tbOrder.or_id);
+
+                                var jsonOrder = JsonDocument.Parse(orderDetail).RootElement.GetProperty("order");
+                                var jsonCustomer = jsonOrder.GetProperty("customer");
+                                var jsonAddress = jsonCustomer.GetProperty("default_address");
+
+                                ViewBag.orderName = jsonOrder.GetProperty("name");
+                                ViewBag.financial_status = jsonOrder.GetProperty("financial_status");
+                                ViewBag.fulfillment_status = jsonOrder.GetProperty("fulfillment_status");
+                                ViewBag.closed_at = jsonOrder.GetProperty("closed_at");
+                                ViewBag.lineName = jsonOrder.GetProperty("line_items")[0].GetProperty("name");
+                                ViewBag.deliveryMethod = jsonOrder.GetProperty("shipping_lines")[0].GetProperty("code");
+                                ViewBag.sku = jsonOrder.GetProperty("fulfillments")[0].GetProperty("line_items")[0].GetProperty("sku");
+                                ViewBag.total_line_items_price = jsonOrder.GetProperty("total_line_items_price");
+                                ViewBag.total_shipping_price_amount =
+                                                jsonOrder.GetProperty("total_shipping_price_set")
+                                                        .GetProperty("shop_money")
+                                                        .GetProperty("amount");
+                                ViewBag.current_total_price = jsonOrder.GetProperty("current_total_price");
+                                ViewBag.current_total_discounts = jsonOrder.GetProperty("current_total_discounts");
+
+                                Customer orderCustomerInfo = new Customer
+                                {
+                                    FirstName = jsonCustomer.GetProperty("first_name").ToString(),
+                                    LastName = jsonCustomer.GetProperty("last_name").ToString(),
+                                    Email = jsonCustomer.GetProperty("email").ToString(),
+                                    Phone = jsonCustomer.GetProperty("phone").ToString(),
+                                    shippingAddress = jsonAddress.GetProperty("name").ToString()
+                                                    + jsonAddress.GetProperty("address1").ToString()
+                                                    + jsonAddress.GetProperty("city").ToString()
+                                                    + jsonAddress.GetProperty("zip").ToString()
+                                };
+
+                                ViewBag.orderCustomerInfo = orderCustomerInfo;
+                            } catch
+                            {
+                                Console.WriteLine("*****************PKH: failed getting order data from server***************");
+                            }
+                            
                         }
                     }
                 }
             }
-
+           
             return View("View_EmailDetail");
         }
 
@@ -215,6 +253,25 @@ namespace GoogleLogin.Controllers
             }
             ViewBag.status = -201;
             return PartialView("View_OrderDetail");
+        }
+    }
+
+    public class Customer
+    {
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Email { get; set; }
+        public string Phone { get; set; }
+        public string shippingAddress { get; set; }
+        public string BillingAddress { get; set; }
+        public Customer()
+        {
+            FirstName = "";
+            LastName = "";
+            Email = "";
+            Phone = "";
+            shippingAddress = "";
+            BillingAddress = "";
         }
     }
 }

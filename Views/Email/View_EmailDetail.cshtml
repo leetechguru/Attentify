@@ -5,7 +5,7 @@
 
 @try{
     var item = ViewBag.emailExt;
-    var orderDetail = ViewBag.orderDetail ?? null;
+    var orderCustomerInfo = ViewBag.orderCustomerInfo ?? null;
     {
         <div class="flex-grow-1 container-p-y container-fluid">
             <div class="row">
@@ -64,7 +64,7 @@
                         <div class="row g-6">
                             <div class="card-header d-flex justify-content-between align-items-center pb-0 mt-0">
                                 <h5 class="card-header ps-4">Order Detail</h5>
-                                @if ( orderDetail != null)
+                                @if (orderCustomerInfo != null)
                                 {
                                     <div class="">
                                         <button type="button" class="btn btn-primary waves-effect waves-light">Refund</button>
@@ -73,21 +73,22 @@
                                     
                                 } 
                             </div>
-                            @if (orderDetail != null)
+                            @if (orderCustomerInfo != null)
                             {
                                 <div class="col-7 mt-0">
                                     <div class="card shadow-none bg-transparent border border-secondary ms-6 mb-2">
                                         <div class="card-body">
-                                            <h5 class="card-title mb-1">#CA40226 paid Unfulfilled</h5>
-                                            <h8 class="card-subtitle mb-1 ">January 7, 2025 at 2:00:49 PM</h8>
+                                            <h5 class="card-title mb-1">@ViewBag.orderName @ViewBag.financial_status @ViewBag.fulfillment_status</h5>
+                                            <h8 class="card-subtitle mb-1 ">@ViewBag.closed_at</h8>
                                             <h6 class="mb-1">Delivery Method</h6>
-                                            <p>First Class Shipping</p>
+                                            <p>@ViewBag.deliveryMethod</p>
                                             <h6>
-                                                iPhone 16 Waterproof IP68 Case, Punkcase [Pink] [StudStar Series] [Slim Fit] [Dirtproof] - Pink.
+                                                @ViewBag.lineName
                                             </h6>
-                                            <p>SKU: PUNK-i16-STUD-G532</p>
+                                            <p>SKU: @ViewBag.sku</p>
                                             <div class="row">
-                                                <p class="col">$43.98</p> <p class="col">$43.98 × 1</p>
+                                                <p class="col">$@ViewBag.total_line_items_price</p>
+                                                <p class="col">$@ViewBag.total_line_items_price × 1</p>
                                             </div>
 
                                         </div>
@@ -97,22 +98,27 @@
                                             <div class="row">
                                                 <p class="col">Subtotal</p>
                                                 <p class="col">1item</p>
-                                                <p class="col">$43.98</p>
+                                                <p class="col">$@ViewBag.total_line_items_price</p>
+                                            </div>
+                                            <div class="row">
+                                                <p class="col">Discount</p>
+                                                <p class="col"></p>
+                                                <p class="col">-$@ViewBag.current_total_discounts</p>
                                             </div>
                                             <div class="row">
                                                 <p class="col">Shipping</p>
-                                                <p class="col">First Class Shipping</p>
-                                                <p class="col">$1.99</p>
+                                                <p class="col">@ViewBag.deliveryMethod</p>
+                                                <p class="col">$@ViewBag.total_shipping_price_amount</p>
                                             </div>
                                             <div class="row">
                                                 <p class="col">Total</p>
                                                 <p class="col"></p>
-                                                <p class="col">$45.97</p>
+                                                <p class="col">$@ViewBag.current_total_price</p>
                                             </div>
                                             <div class="row">
-                                                <p class="col">Paid</p>
+                                                <p class="col">@ViewBag.financial_status</p>
                                                 <p class="col"></p>
-                                                <p class="col">$45.97</p>
+                                                <p class="col">$@ViewBag.current_total_price</p>
                                             </div>
                                         </div>
                                     </div>
@@ -121,15 +127,12 @@
                                     <div class="card shadow-none bg-transparent border border-secondary me-2 mb-2">
                                         <div class="card-body">
                                             <h5>Customer</h5>
-                                            <p>AuraRempel</p>
+                                            <p>@ViewBag.orderCustomerInfo.FirstName @ViewBag.orderCustomerInfo.LastName</p>
                                             <h5>Contact Information</h5>
-                                            <p>aura.905@hotmail.com</p>
-                                            <p>No phone number</p>
+                                            <p>@ViewBag.orderCustomerInfo.Email</p>
+                                            <p>@ViewBag.orderCustomerInfo.Phone</p>
                                             <h5>Shipping Address</h5>
-                                            <p>Aura Rempel</p>
-                                            <p>487 caithness st E</p>
-                                            <p>Caledonia ON N3W 1E3</p>
-                                            <p>Canada</p>
+                                            <p>@ViewBag.orderCustomerInfo.shippingAddress</p>
                                             <h5>Billing Address</h5>
                                             <p>Same as shipping address</p>
                                         </div>

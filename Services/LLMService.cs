@@ -37,7 +37,6 @@ namespace GoogleLogin.Services
             {
                 string strText = _strQuery + strBody;
 
-                Console.WriteLine(RoleType.User);
                 var messages = new List<Message>()
                 {
                     new Message(RoleType.User, strText)
