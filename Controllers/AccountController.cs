@@ -167,7 +167,7 @@ namespace GoogleLogin.Controllers
             }
 
             if (result.Succeeded)
-                return Redirect("/home/index");
+                return Redirect("/email/index");
             else
             {
                 AppUser user = new AppUser
