@@ -184,13 +184,10 @@
                                 toast.onmouseleave = Swal.resumeTimer;
                             },
                             didClose: () => {
-                                let pageNo = $('input[name="pageNo"]').val();
-                                if (pageNo == undefined) pageNo = 0;
-                                renderMessage(pageNo);
                             }
                         });
-                        $.post('/home/requestShopify', { orderId: orderId, type: 3, em_idx: 0 }, function (resp) {
-                            if (resp.status == 1) {
+                        $.post('/email/requestShopify', { orderId: orderId, type: 3, em_idx: 0 }, function (resp) {
+                            if (resp.status == 201) {
                                 Toast.fire({
                                     icon: "success",
                                     title: "The refund request was successful."
@@ -235,13 +232,10 @@
                                 toast.onmouseleave = Swal.resumeTimer;
                             },
                             didClose: () => {
-                                let pageNo = $('input[name="pageNo"]').val();
-                                if (pageNo == undefined) pageNo = 0;
-                                renderMessage(pageNo);
                             }
                         });
-                        $.post('/home/requestShopify', { orderId: orderId, type: 2, em_idx: 0 }, function (resp) {
-                            if (resp.status == 1) {
+                        $.post('/email/requestShopify', { orderId: orderId, type: 2, em_idx: 0 }, function (resp) {
+                            if (resp.status == 201) {
                                 Toast.fire({
                                     icon: "success",
                                     title: "The cacellation request was successful."

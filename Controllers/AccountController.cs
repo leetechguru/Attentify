@@ -136,12 +136,12 @@ namespace GoogleLogin.Controllers
                     await _shopifyService.CustomersRequest();
                 }).Start();
 
-                /*new Thread(async () =>
+                new Thread(async () =>
                 {
                     try
                     {
-                        var user = await userManager.GetUserAsync(User);
-                        string strPhone = _phoneNumber;
+                        var     user        = await _userManager.GetUserAsync(User);
+                        string  strPhone    = _phoneNumber;
                         if (user != null && string.IsNullOrEmpty(user.PhoneNumber))
                         {
                             user.PhoneNumber = strPhone;
@@ -157,7 +157,7 @@ namespace GoogleLogin.Controllers
                     {
                         Console.WriteLine("in account/googleResponse thread" + ex.ToString());
                     }
-                }).Start();*/
+                }).Start();
 
                 HttpContext.Session.SetString("AccessToken", access_token);
 

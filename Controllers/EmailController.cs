@@ -12,6 +12,7 @@ using GoogleLogin.Services;
 using WebSocketSharp;
 using Microsoft.CodeAnalysis.Elfie.Serialization;
 using System.Text.Json;
+using System.Linq.Expressions;
 
 namespace GoogleLogin.Controllers
 {
@@ -254,6 +255,51 @@ namespace GoogleLogin.Controllers
             }
             ViewBag.status = -201;
             return PartialView("View_OrderDetail");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> requestShopify(long orderId, int type, long em_idx)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            try
+            {
+                if (type ==2)
+                {
+                    bool isResult = true;//await _shopifyService.CancelOrder(orderId);
+
+                    TbOrder p = await _shopifyService.OrderRequest(orderId);
+
+                    if (isResult)
+                    {
+                        if (em_idx != 0)
+                        {
+                            await _emailService.ChangeState(em_idx, 3);
+                        }
+
+                        
+                    }
+
+                    return Json(new { status = isResult? 201: -201, order = p });
+                } else if (type == 3)
+                {
+                    bool isResult = true;// await _shopifyService.RefundOrder(orderId);
+                    if (isResult)
+                    {
+                        if(em_idx !=0)
+                        {
+                            await _emailService.ChangeState(em_idx, 2);
+                        }
+                    }
+
+                    TbOrder p = _shopifyService.GetOrderInfo(orderId);
+                    string orderDetail = await _shopifyService.GetOrderInfoRequest(p.or_id);
+                    return Json(new { status = isResult ? 201 : -201, order = p, orderDetail = orderDetail });
+                }
+            } catch ( Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return Json(new { status = 0 });
         }
     }
 
