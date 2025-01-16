@@ -22,22 +22,19 @@ namespace GoogleLogin.Controllers
         public static readonly string[]             Scopes = {"email", "profile", "https://www.googleapis.com/auth/gmail.modify"};
 
         public SettingController(
-            SignInManager<AppUser> signinMgr, 
-            IServiceScopeFactory serviceScopeFactory, 
-            UserManager<AppUser> userMgr, 
-            EMailService service, 
-            ShopifyService shopifyService, 
-            ModelService smsService, 
-            ILogger<HomeController> logger,
-            IConfiguration configuration, 
-            LLMService llmService)
+            SignInManager<AppUser>      signinMgr,
+            UserManager<AppUser>        userMgr,
+            IServiceScopeFactory        serviceScopeFactory, 
+            EMailService                service, 
+            ILogger<HomeController>     logger,
+            IConfiguration              configuration)
         {
-            _serviceScopeFactory = serviceScopeFactory;
-            _signInManager = signinMgr;
-            _userManager = userMgr;
-            _logger = logger;
-            _emailService = service;
-            _configuration = configuration;
+            _serviceScopeFactory    = serviceScopeFactory;
+            _signInManager          = signinMgr;
+            _userManager            = userMgr;
+            _logger                 = logger;
+            _emailService           = service;
+            _configuration          = configuration;
         }
        
         [HttpGet]

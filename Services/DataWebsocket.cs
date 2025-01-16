@@ -7,18 +7,21 @@ namespace GoogleLogin.Services
 {
 	public class DataWebsocket : Hub
 	{
-        private readonly EMailService _emailService;
-        //private readonly ShopifyService _shopifyService;
-        private readonly UserManager<AppUser> _userManager;
-        private readonly ModelService _smsService;
-        private readonly string _phoneNumber;
-        public DataWebsocket(EMailService eMailService, ShopifyService shopifyService, UserManager<AppUser> userManager, ModelService smsService, IConfiguration _configuration)
+        private readonly EMailService           _emailService;
+        private readonly UserManager<AppUser>   _userManager;
+        private readonly SmsService             _smsService;
+        private readonly string                 _phoneNumber;
+        public DataWebsocket(
+            EMailService eMailService, 
+            ShopifyService shopifyService, 
+            UserManager<AppUser> userManager,
+            SmsService smsService, 
+            IConfiguration _configuration)
         {
             _emailService = eMailService;
-            //_shopifyService = shopifyService;
             _userManager = userManager;
             _smsService = smsService;
-            _phoneNumber = _configuration["Twilio:PhoneNumber"];
+            _phoneNumber = _configuration["Twilio:PhoneNumber"] ?? "";
         }
 
         public async Task SendMessage(string user, string message)

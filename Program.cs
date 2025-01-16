@@ -54,7 +54,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<EMailService>();
 builder.Services.AddScoped<EMailTokenService>();
-builder.Services.AddScoped<ModelService>();
+builder.Services.AddScoped<SmsService>();
 builder.Services.AddScoped<LLMService>();
 builder.Services.AddScoped<ShopifyService>();
 
@@ -65,8 +65,8 @@ builder.Services.AddSingleton(new TwilioRestClient(
 
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(30);    
-    options.Cookie.IsEssential = true;
+    options.IdleTimeout         = TimeSpan.FromMinutes(30);    
+    options.Cookie.IsEssential  = true;
 });
 builder.Services.AddSignalR(); 
 
@@ -82,15 +82,11 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.UseWebSockets();
 app.UseSession();
-
 app.MapHub<DataWebsocket>("/ws");
 
 app.MapControllerRoute(

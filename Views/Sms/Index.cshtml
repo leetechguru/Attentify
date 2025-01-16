@@ -302,7 +302,7 @@
         function loadChatList() {
             let strToPhone = $('input[name="strToPhone"]').val();
 
-            $.post('/sms/GetChatList', { strToPhone }, function (data) {
+            $.post('/sms/GetSmsList', { strToPhone }, function (data) {
                 try {
                     $('#chat_list').html(data);
                     initChatList();
@@ -314,7 +314,7 @@
         }
 
         function loadChatHistory( strFromPhone, strToPhone ) {
-            $.post('/sms/GetChatHistory', { strFromPhone: strFromPhone, strToPhone: strToPhone }, function (data) {
+            $.post('/sms/GetSmsHistory', { strFromPhone: strFromPhone, strToPhone: strToPhone }, function (data) {
                 try {
                     $('#chat_history').html(data);
                 } catch (e) {

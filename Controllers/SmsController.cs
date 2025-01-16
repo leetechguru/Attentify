@@ -1,20 +1,9 @@
-﻿using Google.Apis.Gmail.v1;
-using Google.Cloud.PubSub.V1;
-using GoogleLogin.Models;
+﻿using GoogleLogin.Models;
 using GoogleLogin.Services;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using MimeKit;
 using Newtonsoft.Json.Linq;
-using ShopifySharp;
-using System.Collections.Generic;
 using System.Data;
-using System.Numerics;
-using System.Reflection.PortableExecutable;
-using Twilio.Clients;
-using Twilio.Rest.Api.V2010.Account;
-using Twilio.TwiML;
 
 namespace GoogleLogin.Controllers
 {
@@ -25,23 +14,23 @@ namespace GoogleLogin.Controllers
         
         private readonly UserManager<AppUser>                   _userManager;
         private readonly ILogger<SmsController>                 _logger;
-        private readonly ModelService                           _modelService;
+        private readonly SmsService                             _smsService;
         private readonly LLMService                             _llmService;
         private readonly string                                 _phoneNumber;
-        private readonly GoogleLogin.Services.ShopifyService    _shopifyService;
+        private readonly ShopifyService    _shopifyService;
         public SmsController(
             UserManager<AppUser>                userManager,
             LLMService                          llmService,
-            ModelService                        modelService,
+            SmsService                          smsService,
             ILogger<SmsController>              logger, 
             IConfiguration                      configuration,
-            GoogleLogin.Services.ShopifyService shopifyService)
+            ShopifyService shopifyService)
         {            
             _userManager    =   userManager;
-            _llmService     = llmService;
+            _llmService     =   llmService;
             _logger         =   logger;
             _phoneNumber    =   configuration["Twilio:PhoneNumber"] ?? "";
-            _modelService   =   modelService;
+            _smsService     =   smsService;
             _shopifyService =   shopifyService;
         }
 
@@ -67,22 +56,22 @@ namespace GoogleLogin.Controllers
         }
 
         [HttpPost]
-        public IActionResult GetChatList(string strToPhone)
+        public IActionResult GetSmsList(string strToPhone)
         {
-            var chatList      = _modelService.GetChatList(strToPhone);
-            ViewBag.chatList = chatList;
+            var smsList      = _smsService.GetSmsList(strToPhone);
+            ViewBag.smsList = smsList;
 
-            return PartialView("View_chatList");
+            return PartialView("View_smsList");
         }
 
         [HttpPost]
-        public IActionResult GetChatHistory(string strFromPhone, string strToPhone)
+        public IActionResult GetSmsHistory(string strFromPhone, string strToPhone)
         {
-            var chatHistory = _modelService.GetChatHistory(strFromPhone, strToPhone);
-            ViewBag.strMyPhone  = strToPhone;
-            ViewBag.chatHistory = chatHistory;
+            var smsHistory     = _smsService.GetSmsHistory(strFromPhone, strToPhone);
+            ViewBag.strMyPhone = strToPhone;
+            ViewBag.smsHistory = smsHistory;
 
-            return PartialView("View_chatHistory");
+            return PartialView("View_smsHistory");
         }
 
         [HttpPost]
@@ -95,9 +84,9 @@ namespace GoogleLogin.Controllers
 
 			ViewBag.phone = phoneNumber;            
             ViewBag.myPhoneNumber = myPhone;
-            ViewBag.smsList = await _modelService.GetSms(myPhone, phoneNumber);
+            ViewBag.smsList = await _smsService.GetSms(myPhone, phoneNumber);
 
-            await _modelService.SendSmsCountInfo(myPhone);
+            await _smsService.SendSmsCountInfo(myPhone);
             return PartialView("Sms");
             //return Ok(new { phoneNumber });
         }
@@ -111,7 +100,7 @@ namespace GoogleLogin.Controllers
             if (user != null && !string.IsNullOrEmpty(user.PhoneNumber))
                 myPhone = user.PhoneNumber;
 
-			string strBody = await _modelService.GetLastSms(phone, myPhone);
+			string strBody = await _smsService.GetLastSms(phone, myPhone);
             if (string.IsNullOrWhiteSpace(strBody))
             {
                 return Json(new { status = 0 });
@@ -145,7 +134,7 @@ namespace GoogleLogin.Controllers
 			if (user != null && !string.IsNullOrEmpty(user.PhoneNumber))
 				myPhone = user.PhoneNumber;
 
-            await _modelService.SendSms(sms, phone, myPhone);
+            await _smsService.SendSms(sms, phone, myPhone);
             return await InitializeSms(phone);
         }
 
@@ -159,7 +148,7 @@ namespace GoogleLogin.Controllers
 				if (user != null && !string.IsNullOrEmpty(user.PhoneNumber))
 					myPhone = user.PhoneNumber;
 
-				string strBody = await _modelService.GetLastSms(phone, myPhone);
+				string strBody = await _smsService.GetLastSms(phone, myPhone);
                 if (string.IsNullOrWhiteSpace(strBody))
                 {
                     return Json(new { status = -1, data = new { rephase = new { msg = "There is no request in the message." } } });
@@ -209,12 +198,7 @@ namespace GoogleLogin.Controllers
                 return Json(new { status = 0 });
             }
         }
-        /// <summary>
-        /// SMS Twilio webhook endpoint
-        /// </summary>
-        /// <param name="from"></param>
-        /// <param name="body"></param>
-        /// <returns></returns>
+
         [HttpPost("/smsreceive")]
         public async Task<IActionResult> ReceiveSms([FromForm] string from, [FromForm] string body, [FromForm] string messageSid)
         {
@@ -236,11 +220,11 @@ namespace GoogleLogin.Controllers
                 sm_date = DateTime.Now,
                 sm_read = 0
             };
-            await _modelService.SaveSms(p);
+            await _smsService.SaveSms(p);
 
-            await _modelService.SendSmsCountInfo(myPhone);
+            await _smsService.SendSmsCountInfo(myPhone);
             Thread.Sleep(10);
-            await _modelService.SendNewSmsInfo(p);
+            await _smsService.SendNewSmsInfo(p);
             return NoContent();            
         }
     }    

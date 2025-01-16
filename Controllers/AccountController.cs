@@ -18,7 +18,7 @@ namespace GoogleLogin.Controllers
         private readonly EMailTokenService      _emailTokenService;
         private readonly ShopifyService         _shopifyService; 
         private readonly AppIdentityDbContext   _dbContext;
-        private readonly ModelService _modelService;
+        private readonly SmsService             _smsService;
         private readonly string _phoneNumber;
 
         public AccountController(
@@ -27,8 +27,8 @@ namespace GoogleLogin.Controllers
             EMailService                emailService, 
             EMailTokenService           emailTokenSerivce,
             AppIdentityDbContext        dbContext, 
-            ShopifyService              shopifyService, 
-            ModelService                modelService, 
+            ShopifyService              shopifyService,
+            SmsService                  smsService, 
             IConfiguration configuration)
         {
             _userManager        =   userMgr;
@@ -37,7 +37,7 @@ namespace GoogleLogin.Controllers
             _emailTokenService  =   emailTokenSerivce;
             _dbContext          =   dbContext;
             _shopifyService     =   shopifyService;
-            _modelService       =   modelService;
+            _smsService       =   smsService;
             _phoneNumber        =   configuration["Twilio:PhoneNumber"] ?? "";
         }
 
@@ -56,7 +56,7 @@ namespace GoogleLogin.Controllers
         {
             if (ModelState.IsValid)
             {
-                AppUser appUser = await _userManager.FindByEmailAsync(login.Email);
+                AppUser? appUser = await _userManager.FindByEmailAsync(login.Email);
                 if (appUser != null)
                 {
                     await _signInManager.SignOutAsync();
@@ -151,8 +151,8 @@ namespace GoogleLogin.Controllers
                             strPhone = _phoneNumber;
                         }
 
-                        await _modelService.GetMessages(strPhone);
-                        await _modelService.SendSmsCountInfo(strPhone); 
+                        await _smsService.GetMessages(strPhone);
+                        await _smsService.SendSmsCountInfo(strPhone); 
                     }catch(Exception ex)
                     {
                         Console.WriteLine("in account/googleResponse thread" + ex.ToString());

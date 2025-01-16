@@ -1,34 +1,25 @@
-﻿using Google.Type;
-using GoogleLogin.Controllers;
-using GoogleLogin.Models;
+﻿using GoogleLogin.Models;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
-using Org.BouncyCastle.Asn1.X509;
-using ShopifySharp.GraphQL;
 using System.Data.Entity;
-using System.Diagnostics.CodeAnalysis;
-using System.Reflection.Metadata;
-using Twilio;
 using Twilio.Clients;
 using Twilio.Rest.Api.V2010.Account;
-using Twilio.Types;
 using DateTime = System.DateTime;
 using PhoneNumber = Twilio.Types.PhoneNumber;
 
 namespace GoogleLogin.Services
 {
-    public class ModelService
+    public class SmsService
     {
         private readonly IServiceScopeFactory           _serviceScopeFactory;
-        private readonly ILogger<ModelService>          _logger;
+        private readonly ILogger<SmsService>            _logger;
         private readonly TwilioRestClient               _twilioClient;
         private readonly IHubContext<DataWebsocket>     _hubContext;
 
-        public ModelService(
+        public SmsService(
             TwilioRestClient            twilioClient, 
             IServiceScopeFactory        serviceScopeFactory, 
-            ILogger<ModelService>       logger, 
+            ILogger<SmsService>         logger, 
             IHubContext<DataWebsocket>  hubContext)
         {
             _twilioClient           =   twilioClient;
@@ -37,7 +28,7 @@ namespace GoogleLogin.Services
             _hubContext             =   hubContext;
         }
 
-        public List<TbSms> GetChatList(string strUserPhone)
+        public List<TbSms> GetSmsList(string strUserPhone)
         {
             try
             {
@@ -74,7 +65,7 @@ namespace GoogleLogin.Services
             return new List<TbSms>();
         }
 
-        public List<TbSms> GetChatHistory( string strFromPhone, string strToPhone )
+        public List<TbSms> GetSmsHistory( string strFromPhone, string strToPhone )
         {
             strFromPhone = strFromPhone.Contains("+") ? strFromPhone : "+" + strFromPhone;
             strToPhone   = strFromPhone.Contains("+") ? strToPhone   : "+" + strToPhone;
@@ -201,11 +192,18 @@ namespace GoogleLogin.Services
 
         public async Task<List<string>> GetPhoneList(string strMyPhone)
         {
-            using (var scope = _serviceScopeFactory.CreateScope())  // Create a new scope
+            using (var scope = _serviceScopeFactory.CreateScope()) 
             {
                 var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
-                List<string> lstFrom    = await _dbContext.TbSmss.OrderByDescending(e => e.sm_date).Select(e => e.sm_from).ToListAsync();
-                List<string> lstTo      = await _dbContext.TbSmss.OrderByDescending(e => e.sm_date).Select(e => e.sm_to).ToListAsync();
+                List<string> lstFrom    = await _dbContext
+                                                .TbSmss
+                                                .OrderByDescending(e => e.sm_date)
+                                                .Select(e => e.sm_from)
+                                                .ToListAsync();
+                List<string> lstTo      = await _dbContext
+                                                .TbSmss.OrderByDescending(e => e.sm_date)
+                                                .Select(e => e.sm_to)
+                                                .ToListAsync();
                 List<string> lstResult  = lstFrom.Union(lstTo).ToList();
                 lstResult.RemoveAll(item => NormalizePhoneNumber_(item) == NormalizePhoneNumber_(strMyPhone));
                 return lstResult;

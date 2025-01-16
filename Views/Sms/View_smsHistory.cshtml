@@ -1,7 +1,7 @@
 ﻿@{
-    if (ViewBag.chatHistory.Count != 0)
+    if (ViewBag.smsHistory.Count != 0)
 	{            
-        @foreach(var item in ViewBag.chatHistory) {
+        @foreach(var item in ViewBag.smsHistory) {
 
             <li class="chat-message @(item.sm_to == ViewBag.strMyPhone ?  "" : "chat-message-right")" style="margin-bottom: 1rem !important;">
                 <div class="d-flex overflow-hidden">

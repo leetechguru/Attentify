@@ -20,7 +20,7 @@ namespace GoogleLogin.Controllers
         private readonly EMailService               _emailService;
         private readonly EMailTokenService          _emailTokenService;
         private readonly ShopifyService             _shopifyService;
-        private readonly ModelService               _smsService;
+        private readonly SmsService                 _smsService;
         private readonly LLMService                 _llmService;
         private readonly IConfiguration             _configuration;
         private readonly IServiceScopeFactory       _serviceScopeFactory;
@@ -33,8 +33,8 @@ namespace GoogleLogin.Controllers
             UserManager<AppUser>        userMgr,
             EMailService                emailService, 
             EMailTokenService           emailTokenService,
-            ShopifyService              shopifyService, 
-            ModelService                smsService, 
+            ShopifyService              shopifyService,
+            SmsService                  smsService, 
             ILogger<HomeController>     logger, 
             IConfiguration              configuration, 
             IServiceScopeFactory        serviceScopeFactory,

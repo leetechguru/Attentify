@@ -4,9 +4,9 @@
             <h5 class="text-primary mb-0">SMS</h5>
         </li>
         
-        @if (ViewBag.chatList.Count != 0)
+        @if (ViewBag.smsList.Count != 0)
 	    {
-            @foreach (var item in ViewBag.chatList)
+            @foreach (var item in ViewBag.smsList)
             {
                 <li class="chat-contact-list-item mb-1" onclick="handleChatList('@item.sm_from')">
                     <a class="d-flex align-items-center">
