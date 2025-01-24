@@ -97,7 +97,7 @@ namespace GoogleLogin.Controllers
         [AllowAnonymous]
         public IActionResult GoogleLogin()
         {
-            string redirectUrl = Url.Action("GoogleResponse", "Account");
+            string? redirectUrl = Url.Action("GoogleResponse", "Account");
             var properties = _signInManager.ConfigureExternalAuthenticationProperties("Google", redirectUrl);
             return new ChallengeResult("Google", properties);
         }
@@ -105,7 +105,7 @@ namespace GoogleLogin.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GoogleResponse()
         {
-            ExternalLoginInfo info = await _signInManager.GetExternalLoginInfoAsync();
+            ExternalLoginInfo? info = await _signInManager.GetExternalLoginInfoAsync();
             
             if (info == null)
                 return RedirectToAction(nameof(Login));
@@ -167,12 +167,12 @@ namespace GoogleLogin.Controllers
             }
 
             if (result.Succeeded)
-                return Redirect("/email/index");
+                return Redirect("/home/index");
             else
             {
                 AppUser user = new AppUser
                 {
-                    Email = info.Principal.FindFirst(ClaimTypes.Email)?.Value,
+                    Email    = info.Principal.FindFirst(ClaimTypes.Email)?.Value,
                     UserName = info.Principal.FindFirst(ClaimTypes.Name)?.Value
                 };
 

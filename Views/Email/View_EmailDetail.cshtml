@@ -4,52 +4,43 @@
 }
 
 @try{
-    var item = ViewBag.emailExt;
     var orderCustomerInfo = ViewBag.orderCustomerInfo ?? null;
     {
         <div class="flex-grow-1 container-p-y container-fluid">
             <div class="row">
                 <div class="col-7">
-                    <div class="card email-card" style="display: block;">
+
+                    <div class="card pb-5">
                         <div class="card-header  d-flex justify-content-between align-items-center pb-0 ps-2">
                             <div class="d-flex align-items-center overflow-hidden">
                                 <span class="ms-sm-2 me-4"><i class="ti ti-chevron-left ti-md cursor-pointer" data-bs-toggle="sidebar" data-target="#app-email-view" onclick="window.history.back();"></i></span>
-                                <h6 class="text-truncate mb-0 me-2 fw-normal">@item.em_subject</h6>
+                                <h6 class="text-truncate mb-0 me-2 fw-normal">@ViewBag.emailExt.em_from</h6>
                             </div>
-                        </div>
-                        <div class="card-header d-flex justify-content-between align-items-center flex-wrap border-bottom pt-2">
-                            <div class="d-flex align-items-center mb-sm-0 mb-3">
-                                <div class="flex-grow-1 ms-1">
-                                    <h6 class="m-0 fw-normal">@item.em_from</h6>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-center">
-                                <p class="mb-0 me-4 text-muted">@item.em_date</p>
-                                <div class="dropdown">
-                                    <button class="btn btn-icon btn-text-secondary rounded-pill p-0 waves-effect waves-light" type="button" id="dropdownEmailOne" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        <i class="ti ti-dots-vertical ti-md"></i>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownEmailOne">
-                                        <a class="dropdown-item scroll-to-reply waves-effect" href="javascript:void(0)">
-                                            <i class="ti ti-corner-up-left me-1"></i>
-                                            <span class="align-middle">Reply</span>
-                                        </a>
-                                        <a class="dropdown-item waves-effect" href="javascript:void(0)">
-                                            <i class="ti ti-corner-up-right me-1"></i>
-                                            <span class="align-middle">Forward</span>
-                                        </a>
-                                        <a class="dropdown-item waves-effect" href="javascript:void(0)">
-                                            <i class="ti ti-alert-octagon me-1"></i>
-                                            <span class="align-middle">Report</span>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-body pt-5">
-                            <iframe srcdoc="@item.em_body" style="border: none; width: 100%; height: 500px"></iframe>
                         </div>
                     </div>
+                    @for (int i = 0; i < ViewBag.emailList.Count - 1; i++)
+                    {
+                        <div class="card email-card mt-2">
+                            <div class="card-header d-flex justify-content-between flex-wrap border-bottom p-3" onclick="$('#@ViewBag.emailList[i].em_id').toggle('d-none');">
+                                <h6 class="mb-0">@ViewBag.emailList[i].em_subject</h6>
+                                <p class="text-muted mb-0 pt-1">@ViewBag.emailList[i].em_date</p>
+                            </div>
+                            <div class="card-body pt-5" style ="display : none;" id= "@ViewBag.emailList[i].em_id">
+                                <iframe srcdoc="@ViewBag.emailList[i].em_body" style="border: none; width: 100%; height: 500px"></iframe>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="card email-card mt-2">
+                        <div class="card-header d-flex justify-content-between flex-wrap border-bottom p-3">
+                            <h6 class="mb-0">@ViewBag.emailExt.em_subject</h6>
+                            <p class="text-muted mb-0 pt-1">@ViewBag.emailExt.em_date</p>
+                        </div>
+                        <div class="card-body pt-5">
+                            <iframe srcdoc="@ViewBag.emailExt.em_body" style="border: none; width: 100%; height: 500px"></iframe>
+                        </div>
+                    </div>
+
                 </div>
                 <div class="col-5">
                     <div class="card mb-3">

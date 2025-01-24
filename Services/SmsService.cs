@@ -95,20 +95,23 @@ namespace GoogleLogin.Services
             }
         }
 
-        public async Task<TbSms> GetSmsById(string strId)
+        public async Task<TbSms?> GetSmsById(string strId)
         {
+            TbSms? sms;
+
 			if (string.IsNullOrEmpty(strId)) return new TbSms();
 			
 			using (var scope = _serviceScopeFactory.CreateScope())  // Create a new scope
 			{
 				var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
 
-				TbSms sms = _dbContext
+				sms = _dbContext
                     .TbSmss
                     .Where(e => e.sm_id == strId && e.sm_date != null)
                     .OrderBy(e => e.sm_date)
-                    .FirstOrDefault();
-                if (sms == null) return null;
+                    .FirstOrDefault() ?? null;
+                if (sms == null) 
+                    return null;
                 sms.sm_read = 1;
 				await _dbContext.SaveChangesAsync();
 				return sms;

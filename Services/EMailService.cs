@@ -346,18 +346,27 @@ namespace GoogleLogin.Services
 
         public int GetMailCnt(string strEmail, int nEmailState = 0)
         {
+            List<TbEmail> emailList = new List<TbEmail>();
+
             try
             {
                 using (var scope = _serviceScopeFactory.CreateScope())
                 {
                     var dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
 
-                    List<TbEmail> emailList = new List<TbEmail>();
-                    emailList = dbContext.TbEmails
+                    var rawEmails = dbContext.TbEmails
                         .Where(e => e.em_state == nEmailState && (strEmail == "All" ? true : e.em_to.Contains(strEmail)))
                         .ToList();
 
-                    return emailList.Count;
+                    var cnt = rawEmails
+                        .GroupBy(e => e.em_from)
+                        .Select(g => new EmailDto
+                        {
+                            em_from = g.Key,
+                            em_date = g.Max(e => e.em_date)
+                        }).Count();
+
+                    return cnt;
                 }
             }
             catch
@@ -376,11 +385,27 @@ namespace GoogleLogin.Services
                 using (var scope = _serviceScopeFactory.CreateScope())
                 {
                     var dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
-                    emailList = dbContext.TbEmails
-                            .Where(e => e.em_state == nEmailState && (strEmail == "All" ? true : e.em_to.Contains(strEmail)))
+                    var rawEmails = dbContext.TbEmails
+                        .Where(e => e.em_state == nEmailState && (strEmail == "All" ? true : e.em_to.Contains(strEmail)))
+                        .ToList();
+
+                    var lstFrom = rawEmails
+                            .GroupBy(e => e.em_from)
+                            .Select(g => new EmailDto
+                            {
+                                em_from = g.Key,
+                                em_date = g.Max(e=>e.em_date)
+                            })
                             .OrderByDescending(e => e.em_date)
                             .Skip(nPageIndex * nCntPerPage)
                             .Take(nCntPerPage).ToList();
+
+                    foreach (var item in lstFrom)
+                    {
+                        var result = dbContext.TbEmails.Where(e => e.em_from == item.em_from && e.em_date == item.em_date).FirstOrDefault();
+                        if (result == null) continue;
+                        emailList.Add(result);
+                    }
 
                     return emailList;
                 }
@@ -744,6 +769,50 @@ namespace GoogleLogin.Services
                 Console.WriteLine("*************PKH: failed getting the email detail from the database*********************");
             }
             return emailExt;
+        }
+
+        public List<EmailExt> GetMailDetailList(string strFromMail, string strToMail)
+        {
+            List<EmailExt> lstReturn = new List<EmailExt>();
+            try
+            {
+                using (var scope = _serviceScopeFactory.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
+
+                    List<TbEmail> lst = dbContext.TbEmails.Where(e => ((e.em_from.Contains(strFromMail) && e.em_to.Contains(strToMail)) || (e.em_to.Contains(strFromMail) && e.em_from.Contains(strToMail))) && /*e.em_state == 0 && */!string.IsNullOrEmpty(e.em_body)).OrderBy(e => e.em_date).ToList();
+                    if ( lst.Count > 3 )
+                    {
+                        lst = lst.Skip(Math.Max(0, (lst.Count - 3))).ToList();
+                    }
+
+                    foreach (var email in lst)
+                    {
+                        var emailType = email.em_to.Contains(strToMail) ? 0 : 1;
+
+                        string body = GetMailBodyAsHtml(email.em_body);
+                        body = $"{body} <style>::-webkit-scrollbar {{\r\n    width: 7px;\r\n    height: 7px;\r\n}}\r\n\r\n::-webkit-scrollbar-button {{\r\n    display: none;\r\n}}\r\n\r\n::-webkit-scrollbar-track-piece {{\r\n    background: rgba(161,164,167,0.38) !important;\r\n}}\r\n\r\n::-webkit-scrollbar-thumb {{\r\n    height: 20px;\r\n    background-color: #a1a4a7;\r\n    border-radius: 4px;\r\n}}\r\n\r\n::-webkit-scrollbar-corner {{\r\n    background-color: #A1A4A7;\r\n}}\r\n\r\n::-webkit-resizer {{\r\n    background-color: #344055;\r\n}}</style>";
+                        lstReturn.Add(
+                            new EmailExt
+                            {
+                                em_id       = email.em_id,
+                                em_subject  = email.em_subject,
+                                em_from     = email.em_from,
+                                em_to       = email.em_to,
+                                em_date     = email.em_date.Value,
+                                em_body     = body,
+                                strLabel    = new List<string>(),
+                                nType       = emailType,
+                            }
+                        );
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.StackTrace);
+            }
+            return lstReturn;
         }
 
         public string GetMailEncodeBody(string strMailId)

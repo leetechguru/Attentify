@@ -13,6 +13,7 @@ using WebSocketSharp;
 using Microsoft.CodeAnalysis.Elfie.Serialization;
 using System.Text.Json;
 using System.Linq.Expressions;
+using MailKit;
 
 namespace GoogleLogin.Controllers
 {
@@ -99,12 +100,22 @@ namespace GoogleLogin.Controllers
                 return Redirect("/account/Login");
 
             EmailExt emailExt       = _emailService.GetMailDetail(id);
+            List<EmailExt> listResult = new List<EmailExt>();
+            listResult = _emailService.GetMailDetailList(emailExt.em_from, emailExt.em_to);
+
             ViewBag.customerInfo    = _emailService.GetCustomerInfo(id);
             ViewBag.emailExt        = emailExt;
+            ViewBag.emailList       = listResult;
 
             int status = 0;
             string strRespond = string.Empty;
             string strMailEncodeBody = _emailService.GetMailEncodeBody(id);
+
+            foreach (var item in listResult)
+            {
+                strMailEncodeBody += _emailService.GetMailEncodeBody(item.em_id);
+            }
+            //strMailEncodeBody = "";
             if (strMailEncodeBody != "")
             {
                 strRespond = await _llmService.GetResponseLLM(strMailEncodeBody);
@@ -199,7 +210,7 @@ namespace GoogleLogin.Controllers
         [HttpPost]
         public IActionResult GetMailCntInfo(string strEmail)
         {
-            int nInboxCnt = _emailService.GetMailCnt(strEmail, 0);
+            int nInboxCnt     = _emailService.GetMailCnt(strEmail, 0);
             int nArchievedCnt = _emailService.GetMailCnt(strEmail, 3);
             return Json(new { status = 200, nInboxCnt = nInboxCnt, nArchievedCnt = nArchievedCnt, nCntPerPage = nCntPerPage });
         }

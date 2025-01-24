@@ -6,7 +6,7 @@
 
 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
     <div class="app-brand demo">
-        <a href="/email/index" class="app-brand-link">
+        <a href="/home/index" class="app-brand-link">
             <span class="app-brand-logo demo">
                 <svg width="32" height="22" viewBox="0 0 32 22" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path fill-rule="evenodd"
@@ -42,6 +42,12 @@
 
     <ul class="menu-inner py-1">
         <!-- Page -->
+        <li class="menu-item @(currentController == "Home" ? "active" : "")">
+            <a href="/home/index" class="menu-link">
+                <i class="menu-icon tf-icons ti ti-smart-home"></i>
+                <div data-i18n="Home">Home</div>
+            </a>
+        </li>
         <li class="menu-item @(currentController == "Email" ? "active" : "")">
             <a href="/email/index" class="menu-link">
                 <i class="menu-icon tf-icons ti ti-mail"></i>
