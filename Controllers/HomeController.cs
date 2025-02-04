@@ -8,6 +8,7 @@ using ShopifyService = GoogleLogin.Services.ShopifyService;
 using Google.Apis.Auth.OAuth2.Flows;
 using System.Web;
 using WebSocketSharp;
+using System.Security.Claims;
 
 namespace GoogleLogin.Controllers
 {
@@ -57,18 +58,9 @@ namespace GoogleLogin.Controllers
         public async Task<IActionResult> Index()
         {
             AppUser? user = await _userManager.GetUserAsync(HttpContext.User);
-            if (user == null)
-            {
-#if DEBUG
-                user = new AppUser();
-                user.Email = "sherman@zahavas.com";
-#else
-                return Redirect("/account/Login");
-#endif
-            }
-            string access_token = HttpContext.Session.GetString("AccessToken");
-            if(string.IsNullOrEmpty(access_token))
-				return Redirect("/account/Login");
+            Console.WriteLine("called home page");
+            Console.WriteLine(HttpContext.User.FindFirst(ClaimTypes.Email));
+            Console.WriteLine(user);
 
             return View();
         }

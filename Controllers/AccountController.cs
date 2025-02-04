@@ -1,5 +1,6 @@
 ﻿using GoogleLogin.Models;
 using GoogleLogin.Services;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -44,42 +45,94 @@ namespace GoogleLogin.Controllers
         [AllowAnonymous]
         public IActionResult Login(string returnUrl)
         {
-            Login login = new Login();
-            login.ReturnUrl = returnUrl;
-            return View(login);
+            return View();
         }
 
         [HttpPost]
         [AllowAnonymous]
-        public async Task<IActionResult> Login(string strUserName, string strPassword)
+        public async Task<IActionResult> Login(LoginViewModel model)
+        {
+            await _signInManager.SignOutAsync();
+            Console.WriteLine("-----------------------1");
+            if (!ModelState.IsValid)
+            {
+                Console.WriteLine("-----------------------2");
+                return Json(new { status = -201, redirectUrl = "/Account/Login" });
+            }
+            Console.WriteLine("-----------------------3");
+            var user = await _userManager.FindByEmailAsync(model.Email);
+
+            if (user == null)
+            {
+                Console.WriteLine("-----------------------4");
+                return Json(new { status = -201, redicretUrl = "/Account/Login" });
+            }
+
+            Console.WriteLine("-----------------------5");
+
+            var result = await _signInManager.PasswordSignInAsync(user, model.Password, model.RememberMe, false);
+
+            Console.WriteLine("-----------------------6");
+            if (result.Succeeded)
+            {
+                return Json(new { status = 201, redirectUrl = "/home/index" });
+            }
+
+            if (result.RequiresTwoFactor)
+            {
+                return Json(new { status = 201, redirectUrl = "/home/index" });
+            }
+
+            bool emailStatus = await _userManager.IsEmailConfirmedAsync(user);
+            if (emailStatus == false)
+            {
+                return Json(new { status = 201, redirectUrl = "/home/index" });
+            }
+
+            if (result.IsLockedOut)
+                return Json(new { status = 201, redirectUrl = "/home/index" });
+            
+            return Json(new { status = -201, redicretUrl = "/Account/Login" });
+        }
+
+        //
+        //GET: /Account/Register
+        [AllowAnonymous]
+        public ActionResult Register()
+        {
+            Console.WriteLine("Register");
+            return View("Register");
+        }
+
+        //
+        // POST: /Account/Register
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<ActionResult> Register(RegisterViewModel model)
         {
             if (ModelState.IsValid)
             {
-                AppUser? appUser = await _userManager.FindByEmailAsync(strUserName);
-                if (appUser != null)
+                var user = new AppUser { UserName = model.Email, Email = model.Email };
+                Console.WriteLine(user.Email);
+                Console.WriteLine(model.Password);
+                var result = await _userManager.CreateAsync(user, model.Password);
+                Console.WriteLine(result.Succeeded);
+                if (result.Succeeded)
                 {
-                    await _signInManager.SignOutAsync();
-                    Microsoft.AspNetCore.Identity.SignInResult result = await _signInManager.PasswordSignInAsync(appUser, strPassword, true, false);
-                    if (result.Succeeded)
-                        return Json(new { status = 201, redirectUrl = "/home/index" });
+                    await _signInManager.SignInAsync(user, isPersistent: false);
 
-                    if (result.RequiresTwoFactor)
-                    {
-                        return Json(new { status = 201, redirectUrl = "/home/index" });
-                    }
+                    // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=320771
+                    // Send an email with this link
+                    // string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
+                    // var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
+                    // await UserManager.SendEmailAsync(user.Id, "Confirm your account", "Please confirm your account by clicking <a href=\"" + callbackUrl + "\">here</a>");
 
-                    bool emailStatus = await _userManager.IsEmailConfirmedAsync(appUser);
-                    if (emailStatus == false)
-                    {
-                        return Json(new { status = 201, redirectUrl = "//index" });
-                    }
-
-                    if (result.IsLockedOut)
-                        return Json(new { status = 201, redirectUrl = "/home/index" });
+                    return Json(new { status = 201, redirectUrl = "/home/index" });
                 }
-                
             }
-            return Json(new { status = -201, redirectUrl = "/Account/Login" });
+
+            // If we got this far, something failed, redisplay form
+            return Json(new { status = -201, redirectUrl = "/home/index" });
         }
 
         public async Task<IActionResult> Logout()
