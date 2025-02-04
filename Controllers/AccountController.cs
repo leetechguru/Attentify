@@ -51,36 +51,35 @@ namespace GoogleLogin.Controllers
 
         [HttpPost]
         [AllowAnonymous]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(Login login)
+        public async Task<IActionResult> Login(string strUserName, string strPassword)
         {
             if (ModelState.IsValid)
             {
-                AppUser? appUser = await _userManager.FindByEmailAsync(login.Email);
+                AppUser? appUser = await _userManager.FindByEmailAsync(strUserName);
                 if (appUser != null)
                 {
                     await _signInManager.SignOutAsync();
-                    Microsoft.AspNetCore.Identity.SignInResult result = await _signInManager.PasswordSignInAsync(appUser, login.Password, login.Remember, false);
+                    Microsoft.AspNetCore.Identity.SignInResult result = await _signInManager.PasswordSignInAsync(appUser, strPassword, true, false);
                     if (result.Succeeded)
-                        return Redirect(login.ReturnUrl ?? "/");
+                        return Json(new { status = 201, redirectUrl = "/home/index" });
 
                     if (result.RequiresTwoFactor)
                     {
-                        return RedirectToAction("LoginTwoStep", new { appUser.Email, login.ReturnUrl });
+                        return Json(new { status = 201, redirectUrl = "/home/index" });
                     }
 
                     bool emailStatus = await _userManager.IsEmailConfirmedAsync(appUser);
                     if (emailStatus == false)
                     {
-                        ModelState.AddModelError(nameof(login.Email), "Email is unconfirmed, please confirm it first");
+                        return Json(new { status = 201, redirectUrl = "//index" });
                     }
 
                     if (result.IsLockedOut)
-                        ModelState.AddModelError("", "Your account is locked out. Kindly wait for 10 minutes and try again");
+                        return Json(new { status = 201, redirectUrl = "/home/index" });
                 }
-                ModelState.AddModelError(nameof(login.Email), "Login Failed: Invalid Email or password");
+                
             }
-            return View(login);
+            return Json(new { status = -201, redirectUrl = "/Account/Login" });
         }
 
         public async Task<IActionResult> Logout()

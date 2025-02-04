@@ -10,7 +10,8 @@
     <link rel="icon" type="image/png" href="~/img/logo.png">
     <link rel="stylesheet" href="~/css/761d574e9eab5955.css">
     <title>Attentify Login</title>
-
+    <script src="~/assets/js/jquery-1.9.1.min.js"></script>
+    <script src="~/assets/js/jquery-ui-1.9.1.min.js"></script>
 </head>
 <body class="overflow-hidden">
     <div id="__next" data-reactroot="">
@@ -53,7 +54,7 @@
                             <hr class="flex-grow border-shades-100"><span class="text-base font-bold leading-tight ml-8 mr-8">or</span>
                             <hr class="flex-grow border-shades-100">
                         </div>
-                        <form action="/Account/LoginWithEmail" method="post">
+                        <form id = "loginForm">
                             <div class="text-sm font-bold mb-0.5 ml-1">Email</div>
                             <div class="w-full focus-within:border-Action-Primary focus-within:ring-Action-Primary relative select-none rounded-md border border-gray-300 px-3 py-2 bg-white focus-within:border-Action-Primary focus-within:z-10 focus-within:ring-1 focus-within:ring-Action-Primary">
                                 <div class="flex items-center space-x-2 text-Ink-Mid text-sm w-full">
@@ -61,7 +62,7 @@
                                            id="email"
                                            class="block w-full border-0 bg-transparent p-0 focus:ring-0 text-sm placeholder:text-Ink-Mid disabled:text-Ink-Mid text-Ink-Dark"
                                            placeholder="Enter your email address" autocorrect="off" autocomplete="email"
-                                           autocapitalize="none" spellcheck="false" value="">
+                                           autocapitalize="none" spellcheck="false" value="" required>
                                 </div>
                             </div>
                             <div class="text-sm font-bold mt-2 mb-0.5 ml-1">Password</div>
@@ -70,7 +71,7 @@
                                     <input type="password"
                                            id="password"
                                            class="block w-full border-0 bg-transparent p-0 focus:ring-0 text-sm placeholder:text-Ink-Mid disabled:text-Ink-Mid text-Ink-Dark"
-                                           autocomplete="current-password" placeholder="Enter your password">
+                                           autocomplete="current-password" placeholder="Enter your password" required>
                                     <div class="cursor-pointer" tabindex="0" role="button">
                                         <svg width="1.5em" height="1.5em"
                                              viewBox="0 0 24 24" stroke-width="1.5" fill="none"
@@ -97,6 +98,7 @@
                                 Log In
                             </button>
                         </form>
+                        <div id="error-message" class="text-danger mt-3" style="display:none;">Invalid username or password.</div>
                         <div class="text-sm font-bold text-center">
                             Don't have an account? <span class="text-Action-Primary cursor-pointer" href="/signup">Sign up here.</span>
                         </div>
@@ -107,3 +109,33 @@
     </div>
 </body>
 </html>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+    });
+
+    $("#loginForm").on("submit", function (event) {
+        event.preventDefault();
+
+        var username = $("#email").val();
+        var password = $("#password").val();
+
+        $.ajax({
+            url: '/Account/Login',
+            type: 'POST',
+            data: { strUsername: username, strPassword: password },
+            dataType: 'json', // Expecting JSON response
+            success: function (response) {
+                if (response.status == 201) {
+                    window.location.href = "/home/index"; // Redirect to home if successful
+                } else {
+                    $("#error-message").text("Invalid username or password.").show(); // Show error message
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("Login failed: ", error); // Log the error to the console
+                $("#error-message").text("An error occurred. Please try again later.").show(); // Show generic error
+            }
+        });
+    });
+</script>
