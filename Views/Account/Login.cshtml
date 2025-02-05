@@ -70,7 +70,7 @@
             <div class="card-body">
               <!-- Logo -->
               <div class="app-brand justify-content-center mb-6">
-                <a href="index.html" class="app-brand-link">
+                <a href="/" class="app-brand-link">
                   <span style="box-sizing: border-box; display: block; width: initial; height: initial; background: none; opacity: 1; border: 0px; margin: 0px; padding: 0px; max-width: 100%;">
                     <img alt="" aria-hidden="true"
                             src="~/img/logo.png"
@@ -80,19 +80,18 @@
                 </a>
               </div>
               <!-- /Logo -->
-              <h4 class="mb-1">Welcome to Attentify! 👋</h4>
-              <p class="mb-6">Please sign-in to your account and start the adventure</p>
+              <p class="mb-6" style="display:none">Please sign-in to your account and start the adventure</p>
 
-              <form id="loginForm">
+              <form id="loginForm" class="mb-6 fv-plugins-bootstrap5 fv-plugins-framework fv-plugins-icon-container">
                 <div class="mb-6">
-                  <label for="email" class="form-label">Email or Username</label>
+                  <label for="email" class="form-label">Email</label>
                   <input
                     type="text"
                     class="form-control"
                     id="email"
                     name="email-username"
                     placeholder="Enter your email or username"
-                    autofocus />
+                    required />
                 </div>
                 <div class="mb-6 form-password-toggle">
                   <label class="form-label" for="password">Password</label>
@@ -103,7 +102,8 @@
                       class="form-control"
                       name="password"
                       placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
-                      aria-describedby="password" />
+                      aria-describedby="password" 
+                      required />
                     <span class="input-group-text cursor-pointer"><i class="ti ti-eye-off"></i></span>
                   </div>
                 </div>
@@ -125,7 +125,7 @@
 
               <p class="text-center">
                 <span>New on our platform?</span>
-                <a href="Account/Register">
+                <a href="~/Account/Register">
                   <span>Create an account</span>
                 </a>
               </p>
@@ -147,7 +147,7 @@
                   <i class="tf-icons ti ti-brand-github-filled"></i>
                 </a>
 
-                <a href="/Account/GoogleLogin" class="btn btn-sm btn-icon rounded-pill btn-text-google-plus">
+                <a href="~/Account/GoogleLogin" class="btn btn-sm btn-icon rounded-pill btn-text-google-plus">
                   <i class="tf-icons ti ti-brand-google-filled"></i>
                 </a>
               </div>

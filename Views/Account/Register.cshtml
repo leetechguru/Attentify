@@ -64,7 +64,8 @@
 
     <!--? Config:  Mandatory theme config file contain global vars & default theme options, Set your preferred theme option in this file.  -->
     <script src="~/assets/js/config.js"></script>
-  </head>
+    <script src="~/assets/js/jquery-3.7.1.min.js"></script>
+</head>
 
   <body>
     <!-- Content -->
@@ -75,45 +76,28 @@
           <!-- Register Card -->
           <div class="card">
             <div class="card-body">
-              <!-- Logo -->
-              <div class="app-brand justify-content-center mb-6">
-                <a href="index.html" class="app-brand-link">
-                  <span class="app-brand-logo demo">
-                    <svg width="32" height="22" viewBox="0 0 32 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path
-                        fill-rule="evenodd"
-                        clip-rule="evenodd"
-                        d="M0.00172773 0V6.85398C0.00172773 6.85398 -0.133178 9.01207 1.98092 10.8388L13.6912 21.9964L19.7809 21.9181L18.8042 9.88248L16.4951 7.17289L9.23799 0H0.00172773Z"
-                        fill="#7367F0" />
-                      <path
-                        opacity="0.06"
-                        fill-rule="evenodd"
-                        clip-rule="evenodd"
-                        d="M7.69824 16.4364L12.5199 3.23696L16.5541 7.25596L7.69824 16.4364Z"
-                        fill="#161616" />
-                      <path
-                        opacity="0.06"
-                        fill-rule="evenodd"
-                        clip-rule="evenodd"
-                        d="M8.07751 15.9175L13.9419 4.63989L16.5849 7.28475L8.07751 15.9175Z"
-                        fill="#161616" />
-                      <path
-                        fill-rule="evenodd"
-                        clip-rule="evenodd"
-                        d="M7.77295 16.3566L23.6563 0H32V6.88383C32 6.88383 31.8262 9.17836 30.6591 10.4057L19.7824 22H13.6938L7.77295 16.3566Z"
-                        fill="#7367F0" />
-                    </svg>
-                  </span>
-                  <span class="app-brand-text demo text-heading fw-bold">Attentify</span>
-                </a>
-              </div>
-              <!-- /Logo -->
-              <span class="mb-6" style="display:none">Make your app management easy and fun!</span>
+                <!-- Logo -->
+                <div class="app-brand justify-content-center mb-6">
+                    <a href="/" class="app-brand-link">
+                        <span style="box-sizing: border-box; display: block; width: initial; height: initial; background: none; opacity: 1; border: 0px; margin: 0px; padding: 0px; max-width: 100%;">
+                            <img alt="" aria-hidden="true"
+                                    src="~/img/logo.png"
+                                    style="display: block; max-width: 80%; width: 50px; height: initial; background: none; opacity: 1; border: 0px; margin: 0px; padding: 0px;">
+                        </span>
+                        <span class="app-brand-text demo text-heading fw-bold">Attentify</span>
+                    </a>
+                </div>
+                <!-- /Logo -->
+              <span id="error-message" class="mb-6 danger" style="display:none">Make your app management easy and fun!</span>
 
-              <form id="formAuthentication" class="mb-6" action="/Account/Register" method="POST">
+              <form id="registerForm" class="mb-6">
                 <div class="mb-6">
                   <label for="email" class="form-label">Email</label>
-                                <input type="text" class="form-control" id="Email" name="Email" placeholder="Enter your email" />
+                  <input type="text" 
+                    class="form-control" 
+                    id="Email" 
+                    name="Email" 
+                    placeholder="Enter your email"/>
                 </div>
                 <div class="mb-6 form-password-toggle">
                   <label class="form-label" for="password">Password</label>
@@ -124,18 +108,24 @@
                       class="form-control"
                       name="Password"
                       placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
-                      aria-describedby="password" />
+                      aria-describedby="password"/>
                     <span class="input-group-text cursor-pointer"><i class="ti ti-eye-off"></i></span>
+                  </div>
+                  <div class="demo-vertical-spacing">
+                    <div class="progress">
+                      <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
                   </div>
                 </div>
                 
                 <div class="my-8">
                   <div class="form-check mb-0 ms-2">
-                    <input class="form-check-input" type="checkbox" id="terms-conditions" name="terms" />
+                    <input class="form-check-input" type="checkbox" id="terms-conditions" name="terms"/>
                     <label class="form-check-label" for="terms-conditions">
                       I agree to
                       <a href="javascript:void(0);">privacy policy & terms</a>
                     </label>
+                    <div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
                   </div>
                 </div>
                 <button class="btn btn-primary d-grid w-100">Sign up</button>
@@ -143,7 +133,7 @@
 
               <p class="text-center">
                 <span>Already have an account?</span>
-                <a href="auth-login-basic.html">
+                <a href="~/Account/Login">
                   <span>Sign in instead</span>
                 </a>
               </p>
@@ -165,7 +155,7 @@
                   <i class="tf-icons ti ti-brand-github-filled"></i>
                 </a>
 
-                <a href="javascript:;" class="btn btn-sm btn-icon rounded-pill btn-text-google-plus">
+                <a href="~/Account/GoogleLogin" class="btn btn-sm btn-icon rounded-pill btn-text-google-plus">
                   <i class="tf-icons ti ti-brand-google-filled"></i>
                 </a>
               </div>
@@ -205,3 +195,135 @@
     <script src="~/assets/js/pages-auth.js"></script>
   </body>
 </html>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        var percentage = 0;
+        $("#Password").keyup(function () {
+            var m = $(this).val();
+            var n = m.length;
+
+            // Function for checking
+            check(n, m);
+        });
+
+        function check(n, m) {
+            if (n < 6) {
+                percentage = 0;
+                $(".progress-bar").css("background", "#dd4b39");
+            } else if (n < 8) {
+                percentage = 20;
+                $(".progress-bar").css("background", "#9c27b0");
+            } else if (n < 10) {
+                percentage = 40;
+                $(".progress-bar").css("background", "#ff9800");
+            } else {
+                percentage = 60;
+                $(".progress-bar").css("background", "#4caf50");
+            }
+
+            if ((m.match(/[a-z]/) != null)) {
+                percentage += 10;
+            }
+
+            if ((m.match(/[A-Z]/) != null)) {
+                percentage += 10;
+            }
+
+            if ((m.match(/0|1|2|3|4|5|6|7|8|9/) != null)) {
+                percentage += 10;
+            }
+
+            if ((m.match(/\W/) != null) && (m.match(/\D/) != null)) {
+                percentage += 10;
+            }
+
+            $(".progress-bar").css("width", percentage + "%");
+        }
+
+        const registerForm = document.querySelector('#registerForm');
+        const fv = FormValidation.formValidation(registerForm, {
+            fields: {
+                Email: {
+                    validators: {
+                        notEmpty: {
+                            message: 'Please enter your email'
+                        },
+                        emailAddress: {
+                            message: 'Please enter valid email address'
+                        }
+                    }
+                },
+                Password: {
+                    validators: {
+                        notEmpty: {
+                            message: 'Please enter your password'
+                        },
+                        callback: {
+                            message: 'Password is too weak. Make it stronger!',
+                            callback: function () {
+                                return percentage >= 90;
+                            }
+                        }
+                    }
+                },
+                terms: {
+                    validators: {
+                        notEmpty: {
+                            message: 'Please agree terms & conditions'
+                        }
+                    }
+                }
+            },
+            plugins: {
+                trigger: new FormValidation.plugins.Trigger(),
+                bootstrap5: new FormValidation.plugins.Bootstrap5({
+                    eleValidClass: '',
+                    rowSelector: '.mb-6'
+                }),
+                submitButton: new FormValidation.plugins.SubmitButton(),
+
+                defaultSubmit: new FormValidation.plugins.DefaultSubmit(),
+                autoFocus: new FormValidation.plugins.AutoFocus()
+            },
+            init: instance => {
+                instance.on('plugins.message.placed', function (e) {
+                    if (e.element.parentElement.classList.contains('input-group')) {
+                        e.element.parentElement.insertAdjacentElement('afterend', e.messageElement);
+                    }
+                });
+            }
+        });
+
+        $("#registerForm").on("submit", function (event) {
+            event.preventDefault();
+            
+            fv.validate().then(function (status) {
+                if (status == "Valid") {
+                    var username = $("#Email").val();
+                    var password = $("#Password").val();
+
+                    $.ajax({
+                        url: '/Account/Register',
+                        type: 'POST',
+                        data: { Email: username, Password: password },
+                        dataType: 'json', // Expecting JSON response
+                        success: function (response) {
+                            if (response.status == 201) {
+                                console.log("Ok");
+                                window.location.href = response.redirectUrl; // Redirect to home if successful
+                            } else {
+                                console.log("invalid");
+                                $("#error-message").text("Invalid email or password.").show(); // Show error message
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error("Login failed: ", error); // Log the error to the console
+                            $("#error-message").text("An error occurred. Please try again later.").show(); // Show generic error
+                        }
+                    });
+                }
+            });
+        });
+    });
+</script>

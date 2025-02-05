@@ -100,7 +100,6 @@ namespace GoogleLogin.Controllers
         [AllowAnonymous]
         public ActionResult Register()
         {
-            Console.WriteLine("Register");
             return View("Register");
         }
 
@@ -132,7 +131,7 @@ namespace GoogleLogin.Controllers
             }
 
             // If we got this far, something failed, redisplay form
-            return Json(new { status = -201, redirectUrl = "/home/index" });
+            return Json(new { status = -201, redirectUrl = "/" });
         }
 
         public async Task<IActionResult> Logout()
