@@ -128,7 +128,7 @@
                     <div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
                   </div>
                 </div>
-                <button class="btn btn-primary d-grid w-100">Sign up</button>
+                <button id="submitbutton" class="btn btn-primary d-grid w-100">Sign up</button>
               </form>
 
               <p class="text-center">
@@ -282,8 +282,6 @@
                     rowSelector: '.mb-6'
                 }),
                 submitButton: new FormValidation.plugins.SubmitButton(),
-
-                defaultSubmit: new FormValidation.plugins.DefaultSubmit(),
                 autoFocus: new FormValidation.plugins.AutoFocus()
             },
             init: instance => {
@@ -311,6 +309,7 @@
                         success: function (response) {
                             if (response.status == 201) {
                                 console.log("Ok");
+                                console.log(response.redirectUrl);
                                 window.location.href = response.redirectUrl; // Redirect to home if successful
                             } else {
                                 console.log("invalid");
