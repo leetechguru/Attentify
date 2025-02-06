@@ -80,7 +80,7 @@
                 </a>
               </div>
               <!-- /Logo -->
-              <p class="mb-6" style="display:none">Please sign-in to your account and start the adventure</p>
+              <div class="alert alert-primary" role="alert" style="display: none"></div>
 
               <form id="loginForm" class="mb-6 fv-plugins-bootstrap5 fv-plugins-framework fv-plugins-icon-container">
                 <div class="mb-6">
@@ -113,7 +113,7 @@
                       <input class="form-check-input" type="checkbox" id="remember-me" />
                       <label class="form-check-label" for="remember-me"> Remember Me </label>
                     </div>
-                    <a href="auth-forgot-password-basic.html">
+                    <a href="">
                       <p class="mb-0">Forgot Password?</p>
                     </a>
                   </div>
@@ -201,20 +201,24 @@
         $.ajax({
             url: '/Account/Login',
             type: 'POST',
-            data: { Email: username, Password: password, RememberMe : true},
-            dataType: 'json', // Expecting JSON response
+            data: { Email: username, Password: password, RememberMe: true },
+            dataType: 'json', 
             success: function (response) {
-                console.log(response);
                 if (response.status == 201) {
-                    console.log("ok");
-                    window.location.href = response.redirectUrl; // Redirect to home if successful
+                    $(".alert").html("Login successfully!")
+                    $(".alert").removeClass().addClass("alert alert-success");
+                    $(".alert").show();
+                    setTimeout(() => { window.location.href = response.redirectUrl;}, 1000)
                 } else {
-                    $("#error-message").text("Invalid username or password.").show(); // Show error message
+                    $(".alert").html("Invalid username or password!")
+                    $(".alert").removeClass().addClass("alert alert-warning");
+                    $(".alert").show(); 
                 }
             },
             error: function (xhr, status, error) {
-                console.error("Login failed: ", error); // Log the error to the console
-                $("#error-message").text("An error occurred. Please try again later.").show(); // Show generic error
+                $(".alert").html("An error occurred. Please try again later.")
+                $(".alert").removeClass().addClass("alert alert-danger");
+                $(".alert").show();
             }
         });
     });

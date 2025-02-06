@@ -127,10 +127,18 @@ namespace GoogleLogin.Controllers
                     // await UserManager.SendEmailAsync(user.Id, "Confirm your account", "Please confirm your account by clicking <a href=\"" + callbackUrl + "\">here</a>");
 
                     return Json(new { status = 201, redirectUrl = "/home/index" });
+                } else
+                {
+                    if (!result.Succeeded)
+                    {
+                        foreach (var error in result.Errors)
+                        {
+                            return Json(new { status = -201, redirectUrl = "/", description = error.Description});
+                        }
+                    }
                 }
             }
 
-            // If we got this far, something failed, redisplay form
             return Json(new { status = -201, redirectUrl = "/" });
         }
 

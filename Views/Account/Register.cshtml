@@ -88,7 +88,7 @@
                     </a>
                 </div>
                 <!-- /Logo -->
-              <span id="error-message" class="mb-6 danger" style="display:none">Make your app management easy and fun!</span>
+                <div class="alert alert-primary" role="alert" style="display: none"></div>
 
               <form id="registerForm" class="mb-6">
                 <div class="mb-6">
@@ -305,20 +305,24 @@
                         url: '/Account/Register',
                         type: 'POST',
                         data: { Email: username, Password: password },
-                        dataType: 'json', // Expecting JSON response
+                        dataType: 'json', 
                         success: function (response) {
+                            console.log(response);
                             if (response.status == 201) {
-                                console.log("Ok");
-                                console.log(response.redirectUrl);
-                                window.location.href = response.redirectUrl; // Redirect to home if successful
+                                $(".alert").html("Register successfully!")
+                                $(".alert").removeClass().addClass("alert alert-success");
+                                $(".alert").show();
+                                setTimeout(() => { window.location.href = response.redirectUrl; }, 1000)
                             } else {
-                                console.log("invalid");
-                                $("#error-message").text("Invalid email or password.").show(); // Show error message
+                                $(".alert").html(response.description);
+                                $(".alert").removeClass().addClass("alert alert-warning");
+                                $(".alert").show();
                             }
                         },
                         error: function (xhr, status, error) {
-                            console.error("Login failed: ", error); // Log the error to the console
-                            $("#error-message").text("An error occurred. Please try again later.").show(); // Show generic error
+                            $(".alert").html("An error occured! Please try again later!")
+                            $(".alert").removeClass().addClass("alert alert-danger");
+                            $(".alert").show();
                         }
                     });
                 }
