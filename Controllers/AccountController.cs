@@ -20,7 +20,7 @@ namespace GoogleLogin.Controllers
         private readonly ShopifyService         _shopifyService; 
         private readonly AppIdentityDbContext   _dbContext;
         private readonly SmsService             _smsService;
-        private readonly string _phoneNumber;
+        private readonly string                 _phoneNumber;
 
         public AccountController(
             UserManager<AppUser>        userMgr, 
@@ -53,26 +53,20 @@ namespace GoogleLogin.Controllers
         public async Task<IActionResult> Login(LoginViewModel model)
         {
             await _signInManager.SignOutAsync();
-            Console.WriteLine("-----------------------1");
             if (!ModelState.IsValid)
             {
-                Console.WriteLine("-----------------------2");
                 return Json(new { status = -201, redirectUrl = "/Account/Login" });
             }
-            Console.WriteLine("-----------------------3");
+
             var user = await _userManager.FindByEmailAsync(model.Email);
 
             if (user == null)
             {
-                Console.WriteLine("-----------------------4");
                 return Json(new { status = -201, redicretUrl = "/Account/Login" });
             }
 
-            Console.WriteLine("-----------------------5");
-
             var result = await _signInManager.PasswordSignInAsync(user, model.Password, model.RememberMe, false);
 
-            Console.WriteLine("-----------------------6");
             if (result.Succeeded)
             {
                 return Json(new { status = 201, redirectUrl = "/home/index" });
@@ -112,10 +106,8 @@ namespace GoogleLogin.Controllers
             if (ModelState.IsValid)
             {
                 var user = new AppUser { UserName = model.Email, Email = model.Email };
-                Console.WriteLine(user.Email);
-                Console.WriteLine(model.Password);
                 var result = await _userManager.CreateAsync(user, model.Password);
-                Console.WriteLine(result.Succeeded);
+
                 if (result.Succeeded)
                 {
                     await _signInManager.SignInAsync(user, isPersistent: false);

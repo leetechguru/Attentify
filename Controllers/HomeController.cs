@@ -58,10 +58,6 @@ namespace GoogleLogin.Controllers
         public async Task<IActionResult> Index()
         {
             AppUser? user = await _userManager.GetUserAsync(HttpContext.User);
-            Console.WriteLine("called home page");
-            Console.WriteLine(HttpContext.User.FindFirst(ClaimTypes.Email));
-            Console.WriteLine(user);
-
             return View();
         }
 

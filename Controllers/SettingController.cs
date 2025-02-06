@@ -50,9 +50,6 @@ namespace GoogleLogin.Controllers
                 return Redirect("/account/Login");
 #endif
             }
-            string access_token = HttpContext.Session.GetString("AccessToken") ?? string.Empty;
-            if(string.IsNullOrEmpty(access_token))
-				return Redirect("/account/Login");
 
             return View();
         }
@@ -60,10 +57,6 @@ namespace GoogleLogin.Controllers
         [HttpGet]
         public IActionResult MailManage()
         {
-            string access_token = HttpContext.Session.GetString("AccessToken") ?? string.Empty;
-            if (string.IsNullOrEmpty(access_token))
-                return Redirect("/account/Login");
-
             return View("View_MailManage");
         }
 
@@ -138,10 +131,6 @@ namespace GoogleLogin.Controllers
         [HttpGet]
         public IActionResult ShopifyManage()
         {
-            string access_token = HttpContext.Session.GetString("AccessToken") ?? string.Empty;
-            if (string.IsNullOrEmpty(access_token))
-                return Redirect("/account/Login");
-
             return View("View_ShopifyManage");
         }
 
@@ -195,10 +184,6 @@ namespace GoogleLogin.Controllers
         [HttpGet]
         public IActionResult UserManage()
         {
-            string access_token = HttpContext.Session.GetString("AccessToken") ?? string.Empty;
-            if (string.IsNullOrEmpty(access_token))
-                return Redirect("/account/Login");
-
             return View("View_UserManage");
         }
     }

@@ -37,20 +37,6 @@ namespace GoogleLogin.Controllers
         [HttpGet]
         public async Task<IActionResult> Index(string phone)
         {
-            AppUser? user = await _userManager.GetUserAsync(HttpContext.User);
-            if (user == null)
-            {
-#if DEBUG
-                user = new AppUser();
-                user.Email = "sherman@zahavas.com";
-#else
-                return Redirect("/account/Login");
-#endif
-            }
-            string access_token = HttpContext.Session.GetString("AccessToken");
-            if (string.IsNullOrEmpty(access_token))
-                return Redirect("/account/Login");
-
             ViewBag.strToPhone = _phoneNumber;
             return View();
         }

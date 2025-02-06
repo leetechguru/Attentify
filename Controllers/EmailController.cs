@@ -72,9 +72,6 @@ namespace GoogleLogin.Controllers
                 return Redirect("/account/Login");
 #endif
             }
-            string access_token = HttpContext.Session.GetString("AccessToken") ?? string.Empty;
-            if (string.IsNullOrEmpty(access_token))
-                return Redirect("/account/Login");
 
             ViewBag.mailAccountList = _emailTokenService.GetMailAccountList(_userManager.GetUserId(HttpContext.User) ?? "");
             return View();
