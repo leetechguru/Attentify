@@ -1,4 +1,5 @@
-﻿using GoogleLogin.Models;
+﻿using GoogleLogin.Helpers;
+using GoogleLogin.Models;
 using GoogleLogin.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -38,7 +39,7 @@ namespace GoogleLogin.Controllers
             _emailTokenService  =   emailTokenSerivce;
             _dbContext          =   dbContext;
             _shopifyService     =   shopifyService;
-            _smsService       =   smsService;
+            _smsService         =   smsService;
             _phoneNumber        =   configuration["Twilio:PhoneNumber"] ?? "";
         }
 

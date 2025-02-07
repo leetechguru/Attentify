@@ -15,5 +15,6 @@ namespace GoogleLogin.Models
         public DbSet<TbShopifyUser> TbShopifyUsers{ get; set; }        
         public DbSet<TbSms> TbSmss { get; set; }
         public DbSet<TbMailAccount> TbMailAccount { get; set; }
+        public DbSet<TbTwilio> TbTwilios { get; set; }
     }
 }

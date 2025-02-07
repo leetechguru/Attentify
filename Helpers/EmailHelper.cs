@@ -3,12 +3,13 @@ using Google.Apis.Auth.OAuth2;
 using Google.Apis.Gmail.v1;
 using Google.Apis.Gmail.v1.Data;
 using Google.Apis.Services;
+using GoogleLogin.Models;
 using Microsoft.AspNet.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Net.Mail;
 using System.Text;
 
-namespace GoogleLogin.Models
+namespace GoogleLogin.Helpers
 {
     public class EmailHelper
     {
@@ -34,7 +35,7 @@ namespace GoogleLogin.Models
                 client.Send(mailMessage);
                 return true;
             }
-            catch 
+            catch
             {
                 // log exception
             }
@@ -61,7 +62,7 @@ namespace GoogleLogin.Models
                 client.Send(mailMessage);
                 return true;
             }
-            catch 
+            catch
             {
                 // log exception
             }
@@ -88,7 +89,7 @@ namespace GoogleLogin.Models
                 client.Send(mailMessage);
                 return true;
             }
-            catch 
+            catch
             {
                 // log exception
             }
@@ -134,9 +135,9 @@ namespace GoogleLogin.Models
 
                             string _threadId = emailInfoResponse.ThreadId;
 
-                            if(_date != "" && _from != null)
+                            if (_date != "" && _from != null)
                             {
-                                foreach(var part in emailInfoResponse.Payload.Parts)
+                                foreach (var part in emailInfoResponse.Payload.Parts)
                                 {
                                     /*if(part.MimeType == "text/plain")
                                     {
@@ -144,7 +145,8 @@ namespace GoogleLogin.Models
                                         byte[] byteArray = FromBase64ForUrlString(body);
                                         body = Encoding.UTF8.GetString(byteArray);
                                     }
-                                    else */if(part.MimeType == "text/html")
+                                    else */
+                                    if (part.MimeType == "text/html")
                                     {
                                         body = part.Body.Data;
                                         byte[] byteArray = FromBase64ForUrlString(body);
@@ -152,8 +154,9 @@ namespace GoogleLogin.Models
                                     }
                                 }
                             }
-                            Console.WriteLine($"{_date}: {_from} : {_subject} : {body}");                        
-                        }catch(Exception ex)
+                            Console.WriteLine($"{_date}: {_from} : {_subject} : {body}");
+                        }
+                        catch (Exception ex)
                         {
                             Console.WriteLine("emailhelper/getmailist" + ex.ToString());
                         }
@@ -170,6 +173,6 @@ namespace GoogleLogin.Models
                 case 3: padded += "="; break;
             }
             return Convert.FromBase64String(padded);
-        }        
+        }
     }
 }

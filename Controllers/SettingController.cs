@@ -38,19 +38,8 @@ namespace GoogleLogin.Controllers
         }
        
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            AppUser? user = await _userManager.GetUserAsync(HttpContext.User);
-            if (user == null)
-            {
-#if DEBUG
-                user = new AppUser();
-                user.Email = "sherman@zahavas.com";
-#else
-                return Redirect("/account/Login");
-#endif
-            }
-
             return View();
         }
 
@@ -185,6 +174,12 @@ namespace GoogleLogin.Controllers
         public IActionResult UserManage()
         {
             return View("View_UserManage");
+        }
+
+        [HttpGet]
+        public IActionResult TwilioManage()
+        {
+            return View("View_TwilioManage");
         }
     }
 }

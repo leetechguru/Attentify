@@ -10,8 +10,7 @@ namespace GoogleLogin.Controllers
 
     //[Authorize]
     public class SmsController : Controller
-    {
-        
+    { 
         private readonly UserManager<AppUser>                   _userManager;
         private readonly ILogger<SmsController>                 _logger;
         private readonly SmsService                             _smsService;
@@ -29,7 +28,7 @@ namespace GoogleLogin.Controllers
             _userManager    =   userManager;
             _llmService     =   llmService;
             _logger         =   logger;
-            _phoneNumber    =   configuration["Twilio:PhoneNumber"] ?? "";
+            _phoneNumber    =   "";
             _smsService     =   smsService;
             _shopifyService =   shopifyService;
         }
