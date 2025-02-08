@@ -32,17 +32,32 @@ namespace GoogleLogin.Models
     {
         [Key]
         public long id { get; set; }
-        public string email { get; set; }
+        public string userid { get; set; }
         public string accountsid { get; set; }
         public string authtoken { get; set; } // google account access token
         public string phonenumber { get; set; } // google account refresh token
         public TbTwilio() {
-            email       = string.Empty;
+            userid       = string.Empty;
             accountsid  = string.Empty;
             authtoken   = string.Empty;
             phonenumber = string.Empty;
         }
     }
+
+    public class TwilioSaveModel
+    {
+        public string? accountsid { get; set; }
+        public string? authtoken { get; set; }
+        public string? phonenumber { get; set; }
+
+        public TwilioSaveModel()
+        {
+            accountsid  = string.Empty;
+            authtoken   = string.Empty;
+            phonenumber = string.Empty;
+        }
+    }
+
     public class TbSms
     {
         [Key]

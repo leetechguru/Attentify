@@ -11,18 +11,18 @@
                 <div disabled>
                     <div class="col-4 mb-4">
                         <label for="defaultFormControlInput" class="form-label">Account Sid</label>
-                        <input type="text" class="form-control col-4" id="accountSid" placeholder="" aria-describedby="defaultFormControlHelp" disabled>
+                        <input type="text" class="form-control col-4" id="accountsid" placeholder="" aria-describedby="defaultFormControlHelp" value = "@ViewBag.twilioAccount.accountsid" disabled>
                     </div>
                     <div class="col-4 mb-4">
                         <label for="defaultFormControlInput" class="form-label">Auth Token</label>
-                        <input type="text" class="form-control col-4" id="authToken" placeholder="" aria-describedby="defaultFormControlHelp" disabled>
+                        <input type="text" class="form-control col-4" id="authtoken" placeholder="" aria-describedby="defaultFormControlHelp" value = "@ViewBag.twilioAccount.authtoken" disabled>
                         <div id="defaultFormControlHelp" class="form-text">
                             Always store your token securely to protect your account.
                         </div>
                     </div>
                     <div class="col-4 mb-4">
                         <label for="defaultFormControlInput" class="form-label">My Twilio Phone Number</label>
-                        <input type="text" class="form-control col-4" id="phoneNumber" placeholder="" aria-describedby="defaultFormControlHelp" disabled>
+                        <input type="text" class="form-control col-4" id="phonenumber" placeholder="" aria-describedby="defaultFormControlHelp" value = "@ViewBag.twilioAccount.phonenumber" disabled>
                     </div>
                 </div>
                 <div id="editDiv" class="demo-inline-spacing">
@@ -51,7 +51,23 @@
             $("#saveDiv").hide();
             $("#editDiv").show();
             $("input").prop("disabled", true);
-            
+
+        });
+
+        $("#saveButton").on("click", (e) => {
+            const accountsid = $("#accountsid").val();
+            const authtoken = $("#authtoken").val();
+            const phonenumber = $("#phonenumber").val();
+
+            $.post('/setting/savetwilio', { accountsid: accountsid, authtoken: authtoken, phonenumber: phonenumber }, (res) => {
+                if (res.status == 201) {
+                    $("#saveDiv").hide();
+                    $("#editDiv").show();
+                    $("input").prop("disabled", true);
+                } else {
+                    console.log(res.message);
+                }
+            }, 'json')
         });
     });
 </script>

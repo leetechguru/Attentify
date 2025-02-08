@@ -2,11 +2,13 @@
 using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using ShopifyService = GoogleLogin.Services.ShopifyService;
 using GoogleLogin.Services;
 using GoogleLogin.Models;
+using System.Data.Entity;
 
 namespace GoogleLogin.Controllers
 {
@@ -179,7 +181,78 @@ namespace GoogleLogin.Controllers
         [HttpGet]
         public IActionResult TwilioManage()
         {
+            string userId = _userManager.GetUserId(HttpContext.User) ?? string.Empty;
+
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
+                try
+                {
+                    var _one = _dbContext.TbTwilios.Where(e => e.userid == userId).FirstOrDefault();
+
+                    if (_one == null)
+                    {
+                        _one = new TbTwilio();
+                    }
+
+                    ViewBag.twilioAccount = _one;
+                } catch (Exception ex)
+                {
+                    Console.WriteLine(ex.StackTrace);
+                }
+            }
             return View("View_TwilioManage");
+        }
+
+        [HttpPost] 
+        public IActionResult saveTwilio(TwilioSaveModel model)
+        {
+            if (  ModelState.IsValid )
+            {
+                string userId = _userManager.GetUserId(HttpContext.User) ?? string.Empty;
+
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Json(new { status = -201, message = "Save failed!" });
+                }
+
+                using (var scope = _serviceScopeFactory.CreateScope())
+                {
+                    var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
+
+                    try
+                    {
+                        var _one = _dbContext
+                                    .TbTwilios
+                                    .Where(e => e.userid == userId)
+                                    .FirstOrDefault();
+
+                        if (_one == null)
+                        {
+                            _dbContext.Add(new TbTwilio
+                            {
+                                userid = userId,
+                                accountsid = model.accountsid ?? string.Empty,
+                                authtoken = model.authtoken ?? string.Empty,
+                                phonenumber = model.phonenumber ?? string.Empty,
+                            }); ;
+                        }
+                        else
+                        {
+                            _one.accountsid = model.accountsid ?? string.Empty;
+                            _one.authtoken = model.authtoken ?? string.Empty;
+                            _one.phonenumber = model.phonenumber ?? string.Empty;
+                        }
+
+                        _dbContext.SaveChanges();
+                        return Json(new { status = 201, message = "Saved successfully!" });
+                    } catch (Exception e)
+                    {
+                        Console.WriteLine(e.StackTrace);
+                    }
+                }
+            } 
+            return Json(new { status = -201, message = "Save failed!" });
         }
     }
 }

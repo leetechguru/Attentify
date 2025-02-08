@@ -249,7 +249,7 @@ namespace GoogleLogin.Services
                 }
             }
         }
-
+    
         public async void OrderRequest()
         {
             using (var scope = _serviceScopeFactory.CreateScope())  // Create a new scope

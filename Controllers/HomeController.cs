@@ -66,7 +66,7 @@ namespace GoogleLogin.Controllers
         {
             if (!string.IsNullOrEmpty(error))
             {
-                return BadRequest("Error during Google sign-in: " + error);
+                return BadRequest("Error during Google sign-in: " + error);  
             }
 
             if (string.IsNullOrEmpty(code))

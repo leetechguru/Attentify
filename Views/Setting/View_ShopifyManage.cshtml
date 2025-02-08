@@ -47,7 +47,6 @@
         }
 
         function handInstallApp() {
-
             $.post('/shopify/auth', {}, function (data) {
                 if (data.status == 201) {
                     window.location.href = data.authorizationUrl;
