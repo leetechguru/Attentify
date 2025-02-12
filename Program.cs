@@ -70,6 +70,8 @@ builder.Services.AddScoped<EMailTokenService>();
 builder.Services.AddScoped<SmsService>();
 builder.Services.AddScoped<LLMService>();
 builder.Services.AddScoped<ShopifyService>();
+builder.Services.AddScoped<CompanyService>();
+builder.Services.AddScoped<MemberService>();
 
 builder.Services.AddSingleton(new TwilioRestClient(
             builder.Configuration["Twilio:AccountSid"],

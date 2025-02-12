@@ -10,7 +10,7 @@
             <div class="row">
                 <h5 class="card-header ms-5 col">Companies</h5>
                 <div class="text-end mt-5 me-10 col">
-                    <button class="btn btn-secondary create-new btn-primary waves-effect waves-light" type="button" onclick="OnOpenModal();">
+                    <button class="btn btn-secondary create-new btn-primary waves-effect waves-light" type="button" onclick="OnAddModal();">
                         <span>
                             <i class="ti ti-plus me-sm-1"></i>
                             <span class="d-none d-sm-inline-block">Add</span>
@@ -21,39 +21,36 @@
                             <div class="modal-content">
                                 <div class="modal-header">
                                     <h5 class="modal-title" id="modalCenterTitle">Add member</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="handleOpenModal();"></button>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="OnCloseModal();"></button>
                                 </div>
                                 <div class="modal-body">
                                     <div class="mb-4">
-                                        <label class="form-label">Email address</label>
-                                        <input type="email" class="form-control" id="input_email_name" placeholder="name@example.com">
+                                        <label class="form-label">Name</label>
+                                        <input type="text" class="form-control" id="companyName" placeholder="Attentify">
                                     </div>
                                     <div class="mb-4">
-                                        <label class="form-label">Client Id</label>
-                                        <textarea class="form-control" id="input_client_id" rows="3"></textarea>
-                                    </div>
-                                    <div class="mb-4">
-                                        <label class="form-label">Client Secret</label>
-                                        <input id="input_client_secret" class="form-control" type="text" placeholder="Client Secret">
+                                        <label class="form-label">Company site</label>
+                                        <input id="companySite" class="form-control" type="text" placeholder="https://attentify.io">
                                     </div>
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-label-secondary waves-effect" data-bs-dismiss="modal" onclick="handleOpenModal();">
+                                    <button type="button" class="btn btn-label-secondary waves-effect" data-bs-dismiss="modal" onclick="OnCloseModal();">
                                         Close
                                     </button>
-                                    <button type="button" class="btn btn-primary waves-effect waves-light" onclick="handleSaveClick();">Save changes</button>
+                                    <button type="button" class="btn btn-primary waves-effect waves-light" onclick="OnSave();">Save</button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="card-body" id="user_list">
+            <div class="card-body" id="companyList">
             </div>
         </div>
     </div>
 
-    
+    <input type="hidden" id="modalType" val=""/>
+    <input type="hidden" id="companyIdx" val="">
 }
 catch (Exception ex)
 {
@@ -61,14 +58,14 @@ catch (Exception ex)
 }
 
 <script type="text/javascript">
-    $(document).ready(function () {
+    $(document).ready(() => {
         loadMembers();
     });
 
     function loadMembers() {
-        $.post('/getMembers', {}, function (data) {
+        $.post('/getCompanies', {}, function (data) {
             try {
-                $('#mail_list').html(data);
+                $('#companyList').html(data);
             } catch (e) {
                 console.log(e);
             } finally {
@@ -76,41 +73,84 @@ catch (Exception ex)
         }, 'html');
     }
 
-    function OnEditMember(userIdx) {
-        $.post('/editMember', { userIdx: userIdx }, (res) => {
-            console.log(res.status);
-            if ( res.status == 201  ) {
-                loadMembers();
-            } else {
-                console.log("Update failed");
-            }
-        }, 'json')
+    const OnSave = () => {
+        const modalType = $('#modalType').val();
+
+        if (modalType == 'add') {
+            OnAddMember();
+        } else if (modalType == 'edit') {
+            OnEditMember();
+        }
+        
+        OnCloseModal();
     }
 
-    function OnDeleteMember(usreIdx) {
-        $.post('/deleteMember', { strMailIdx: mailIdx }, (res) => {
-            console.log(res.status);
+    const OnAddMember = () => {
+        const companyName = $('#companyName').val();
+        const companySite = $('#companySite').val();
+
+        $.post('/addCompany', { companyName: companyName, companySite: companySite }, (res) => {
             if (res.status == 201) {
                 loadMembers();
+                OnOpenToast('success', res.message);
             } else {
-                console.log("Delete failed");
+                OnOpenToast('error', res.message);
+            }
+        }, 'json') 
+    }
+
+    const OnEditMember = (companyIdx) => {
+        const companyName = $('#companyName').val();
+        const companySite = $('#companySite').val();
+
+        $.post('/editCompany', { companyIdx: companyIdx, companyName: companyName, companySite: companySite }, (res) => {
+            if ( res.status == 201  ) {
+                loadMembers();
+                OnOpenToast('success', res.message);
+            } else {
+                OnOpenToast('error', res.message);
             }
         }, 'json')
     }
 
-    function OnOpenModal() {
-        initModal();
-        $('#modalCenter').toggleClass("show");
-        if ($('#modalCenter').css('display') === 'none') {
-            $('#modalCenter').css('display', 'block');
-        } else {
-            $('#modalCenter').css('display', 'none');
-        }
+    const OnDeleteMember = (companyIdx) => {
+        $.post('/deleteCompany', { companyIdx: companyIdx }, (res) => {
+            if (res.status == 201) {
+                loadMembers();
+                OnOpenToast('success', res.message);
+            } else {
+                OnOpenToast('error', res.message);
+            }
+        }, 'json')
     }
 
-    function initModal() {
-        $('#input_email_name').val('');
-        $('#input_client_id').val('');
-        $('#input_client_secret').val('');
+    const OnAddModal = () => {
+        $('#modalType').val('add');
+        $('#modalCenterTitle').val('Add company');
+
+        $('#companyName').val('');
+        $('#companySite').val('');
+
+        OnOpenModal();
+    }
+    
+    const OnEditModal = () => {
+        $('modalType').val('edit');
+        $('modalCenterTitle').val('Edit Company');
+
+        $('#companyName').val('');
+        $('#companySite').val('');
+
+        OnOpenModal();
+    }
+
+    const OnOpenModal = () => {
+        $('#modalCenter').addClass("show");
+        $('#modalCenter').css('display', 'block');
+    }
+
+    const OnCloseModal = () => {
+        $('#modalCenter').removeClass("show");
+        $('#modalCenter').css('display', 'none');
     }
 </script>

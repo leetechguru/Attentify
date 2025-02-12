@@ -15,7 +15,7 @@ namespace GoogleLogin.Models
         [Key]
         public long id { get; set;}
         public string userIdx { get; set; }
-        public string companyIdx { get; set; }
+        public long companyIdx { get; set; }
         public int role { get; set; }
     }
 }

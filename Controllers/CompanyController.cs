@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using GoogleLogin.Services;
 using GoogleLogin.Models;
+using WebSocketSharp;
+using ShopifySharp;
 
 namespace GoogleLogin.Controllers
 {
@@ -15,6 +17,8 @@ namespace GoogleLogin.Controllers
         private UserManager<AppUser>                _userManager;
         private readonly EMailService               _emailService;
         private readonly IConfiguration             _configuration;
+        private readonly CompanyService             _companyService;
+        private readonly MemberService              _memberService;
 
         public CompanyController(
             SignInManager<AppUser>  signinMgr,
@@ -22,7 +26,9 @@ namespace GoogleLogin.Controllers
             IServiceScopeFactory    serviceScopeFactory,
             EMailService            service,
             ILogger<HomeController> logger,
-            IConfiguration          configuration)
+            IConfiguration          configuration,
+            CompanyService          companyService,
+            MemberService           memberSerivce)
         {
             _serviceScopeFactory    =   serviceScopeFactory;
             _signInManager          =   signinMgr;
@@ -30,11 +36,13 @@ namespace GoogleLogin.Controllers
             _logger                 =   logger;
             _emailService           =   service;
             _configuration          =   configuration;
+            _companyService         =   companyService;
+            _memberService          =   memberSerivce;
         }
 
         public IActionResult Index()
         {
-            ViewBag.menu = "setting";
+            ViewBag.menu    = "setting";
             ViewBag.subMenu = "company";
             return View("View_Companies");
         }
@@ -42,53 +50,80 @@ namespace GoogleLogin.Controllers
         [HttpPost("/getCompanies")]
         public IActionResult getCompanies()
         {
-            using (var scope = _serviceScopeFactory.CreateScope())  // Create a new scope
+            using (var scope = _serviceScopeFactory.CreateScope()) 
             {
                 var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
-                string strUserId = _userManager.GetUserId(HttpContext.User) ?? "";
-                List<TbShopifyToken> shopifyList =
-                    _dbContext.TbTokens.Where(e => e.UserId == strUserId)
-                                .ToList();
 
-                ViewBag.shopifyList = shopifyList;
-                return PartialView("View_shopifyList");
+                string strUserId = _userManager.GetUserId(HttpContext.User) ?? "";
+
+                var companyList = (from company in _dbContext.TbCompanies
+                                         join member in _dbContext.TbMembers
+                                         on company.id equals member.companyIdx  // Assuming UserId is the common field
+                                         where member.userIdx == strUserId
+                                         select company).ToList();
+
+                ViewBag.companyList = companyList;
+                return PartialView("View_CompanyList");
+            }
+        }
+
+        [HttpPost("/addCompany")]
+        public IActionResult addCompany(string companyName, string companySite)
+        {
+            string userIdx = _userManager.GetUserId(HttpContext.User) ?? string.Empty;
+            if (userIdx.IsNullOrEmpty())
+            {
+                return Json(new { status = -201, message = "Adding failed" });
+            }
+
+            if ( companyName.IsNullOrEmpty() )
+            {
+                return Json(new { status = -201, message = "Company name is required!" });
+            }
+
+
+            if (_companyService.getCompany(companyName) != null )
+            {
+                return Json(new { status = -201, message = "Company name already exists." });
+            }
+
+            long companyIdx = _companyService.addCompany(companyName, companySite);
+
+            if (companyIdx > 0)
+            {
+                _memberService.addMember(userIdx, companyIdx, 0);
+                return Json(new { status = 201, message = "Adding success" });
+            } else
+            {
+                return Json(new { status = -201, message = "Adding failed" });
             }
         }
 
         [HttpPost("/editCompany")]
         public IActionResult editCompany()
         {
-            return Json(new { status = 201, message = "Updated the user info" });
+            return Json(new { status = -201, message = "Updating failed" });
         }
 
         [HttpPost("/deleteCompany")]
-        public IActionResult deleteCompany(string strUserIdx)
+        public IActionResult deleteCompany(long companyIdx)
         {
-            if (string.IsNullOrWhiteSpace(strUserIdx))
+            var _one = _companyService.getCompanyByIdx(companyIdx);
+
+            if (_one == null)
             {
-                return Json(new { status = -201, message = "Invalid shopify index" });
+                return Json(new { status = -201, message = "Deleting is failed" });
             }
 
-            using (var scope = _serviceScopeFactory.CreateScope())  // Create a new scope
+            int nRet = _companyService.deleteCompany(_one);
+
+            if (nRet > 0)
             {
-                var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
-
-                if (!int.TryParse(strUserIdx, out int shopifyIdx))
-                {
-                    return Json(new { status = -201, message = "Shopify index must be a valid number" });
-                }
-
-                var pShopify = _dbContext.TbTokens.FirstOrDefault(e => e.idx == shopifyIdx);
-
-                if (pShopify == null)
-                {
-                    return Json(new { status = -201, message = "Record not found" });
-                }
-
-                _dbContext.TbTokens.Remove(pShopify);
-                _dbContext.SaveChanges();
-
-                return Json(new { status = 201, message = "Record deleted successfully" });
+                _memberService.deleteMemeberByCompanyId(companyIdx);
+                return Json(new { status = 201, message = "Deleting Success" });
+            } else
+            {
+                return Json(new { status = -201, message = "Deleting is failed" });
             }
         }
     }
