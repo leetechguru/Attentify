@@ -15,30 +15,30 @@ namespace GoogleLogin.Controllers
     [Authorize]
     public class SettingController : Controller
     {
-        private readonly IServiceScopeFactory       _serviceScopeFactory;
-        private readonly ILogger<HomeController>    _logger;
-        private SignInManager<AppUser>              _signInManager;
-        private UserManager<AppUser>                _userManager;
-        private readonly EMailService               _emailService;
-        private readonly IConfiguration             _configuration;
-        public static readonly string[]             Scopes = {"email", "profile", "https://www.googleapis.com/auth/gmail.modify"};
+        private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly ILogger<HomeController> _logger;
+        private SignInManager<AppUser> _signInManager;
+        private UserManager<AppUser> _userManager;
+        private readonly EMailService _emailService;
+        private readonly IConfiguration _configuration;
+        public static readonly string[] Scopes = { "email", "profile", "https://www.googleapis.com/auth/gmail.modify" };
 
         public SettingController(
-            SignInManager<AppUser>      signinMgr,
-            UserManager<AppUser>        userMgr,
-            IServiceScopeFactory        serviceScopeFactory, 
-            EMailService                service, 
-            ILogger<HomeController>     logger,
-            IConfiguration              configuration)
+            SignInManager<AppUser> signinMgr,
+            UserManager<AppUser> userMgr,
+            IServiceScopeFactory serviceScopeFactory,
+            EMailService service,
+            ILogger<HomeController> logger,
+            IConfiguration configuration)
         {
-            _serviceScopeFactory    = serviceScopeFactory;
-            _signInManager          = signinMgr;
-            _userManager            = userMgr;
-            _logger                 = logger;
-            _emailService           = service;
-            _configuration          = configuration;
+            _serviceScopeFactory = serviceScopeFactory;
+            _signInManager = signinMgr;
+            _userManager = userMgr;
+            _logger = logger;
+            _emailService = service;
+            _configuration = configuration;
         }
-       
+
         [HttpGet]
         public IActionResult Index()
         {
@@ -48,6 +48,8 @@ namespace GoogleLogin.Controllers
         [HttpGet]
         public IActionResult MailManage()
         {
+            ViewBag.menu = "setting";
+            ViewBag.subMenu = "subMenu";
             return View("View_MailManage");
         }
 
@@ -56,7 +58,7 @@ namespace GoogleLogin.Controllers
         {
             if (string.IsNullOrWhiteSpace(strMailIdx))
             {
-                return Json(new { status = -201, message = "Invalid mail index" }); 
+                return Json(new { status = -201, message = "Invalid mail index" });
             }
 
             using (var scope = _serviceScopeFactory.CreateScope())  // Create a new scope
@@ -65,14 +67,14 @@ namespace GoogleLogin.Controllers
 
                 if (!int.TryParse(strMailIdx, out int mailIdx))
                 {
-                    return Json(new { status = -201, message = "Mail index must be a valid number" }); 
+                    return Json(new { status = -201, message = "Mail index must be a valid number" });
                 }
 
-                var pMailAccount = _dbContext.TbMailAccount.FirstOrDefault(e => e.id == mailIdx); 
+                var pMailAccount = _dbContext.TbMailAccount.FirstOrDefault(e => e.id == mailIdx);
 
                 if (pMailAccount == null)
                 {
-                    return Json(new { status = -201, message = "Record not found" }); 
+                    return Json(new { status = -201, message = "Record not found" });
                 }
 
                 _dbContext.TbMailAccount.Remove(pMailAccount);
@@ -88,7 +90,7 @@ namespace GoogleLogin.Controllers
             using (var scope = _serviceScopeFactory.CreateScope())  // Create a new scope
             {
                 var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
-                List<TbMailAccount> mailList = _dbContext.TbMailAccount.Where(e=>e.mail != "" && e.userId == _userManager.GetUserId(HttpContext.User)).ToList();
+                List<TbMailAccount> mailList = _dbContext.TbMailAccount.Where(e => e.mail != "" && e.userId == _userManager.GetUserId(HttpContext.User)).ToList();
 
                 ViewBag.mailList = mailList;
                 return PartialView("View_MailList");
@@ -103,8 +105,8 @@ namespace GoogleLogin.Controllers
                 {
                     ClientSecrets = new ClientSecrets
                     {
-                        ClientId        = _configuration["clientId"],
-                        ClientSecret    = _configuration["clientSecret"]
+                        ClientId = _configuration["clientId"],
+                        ClientSecret = _configuration["clientSecret"]
                     },
                     Scopes = Scopes,
                     Prompt = "select_account consent",
@@ -116,12 +118,14 @@ namespace GoogleLogin.Controllers
 
             string authorizationUrl = flow.CreateAuthorizationCodeRequest(redirectUri).Build().ToString();
             HttpContext.Session.SetString("RedirectUri", $"{hostUrl}/setting/mailmanage");
-            return Json( new { status = 201, authorizationUrl = authorizationUrl });
+            return Json(new { status = 201, authorizationUrl = authorizationUrl });
         }
 
         [HttpGet]
         public IActionResult ShopifyManage()
         {
+            ViewBag.menu = "setting";
+            ViewBag.subMenu = "shopify";
             return View("View_ShopifyManage");
         }
 
@@ -132,7 +136,7 @@ namespace GoogleLogin.Controllers
             {
                 var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
                 string strUserId = _userManager.GetUserId(HttpContext.User) ?? "";
-                List<TbShopifyToken> shopifyList = 
+                List<TbShopifyToken> shopifyList =
                     _dbContext.TbTokens.Where(e => e.UserId == strUserId)
                                 .ToList();
 
@@ -173,12 +177,6 @@ namespace GoogleLogin.Controllers
         }
 
         [HttpGet]
-        public IActionResult UserManage()
-        {
-            return View("View_UserManage");
-        }
-
-        [HttpGet]
         public IActionResult TwilioManage()
         {
             string userId = _userManager.GetUserId(HttpContext.User) ?? string.Empty;
@@ -201,7 +199,17 @@ namespace GoogleLogin.Controllers
                     Console.WriteLine(ex.StackTrace);
                 }
             }
+            ViewBag.menu = "setting";
+            ViewBag.subMenu = "twilio";
             return View("View_TwilioManage");
+        }
+
+        [HttpGet]
+        public IActionResult BlandManage()
+        {
+            ViewBag.menu = "setting";
+            ViewBag.subMenu = "bland";
+            return View("View_BlandManage");
         }
 
         [HttpPost] 

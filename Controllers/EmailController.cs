@@ -63,16 +63,8 @@ namespace GoogleLogin.Controllers
         public async Task<IActionResult> Index()
         {
             AppUser? user = await _userManager.GetUserAsync(HttpContext.User);
-            if (user == null)
-            {
-#if DEBUG
-                user = new AppUser();
-                user.Email = "sherman@zahavas.com";
-#else
-                return Redirect("/account/Login");
-#endif
-            }
 
+            ViewBag.menu = "email";
             ViewBag.mailAccountList = _emailTokenService.GetMailAccountList(_userManager.GetUserId(HttpContext.User) ?? "");
             return View();
         }

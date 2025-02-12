@@ -58,6 +58,8 @@ namespace GoogleLogin.Controllers
         public async Task<IActionResult> Index()
         {
             AppUser? user = await _userManager.GetUserAsync(HttpContext.User);
+
+            ViewBag.menu = "home";
             return View();
         }
 

@@ -2,22 +2,11 @@
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Auth.OAuth2.Responses;
-using Google.Apis.Gmail.v1;
-using Google.Apis.Gmail.v1.Data;
-using Google.Apis.Services;
 using GoogleLogin.Models;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
-using MimeKit;
 using Newtonsoft.Json;
 using System.Data;
-using System.Data.Entity;
 using System.Net.Http.Headers;
-using System.Security.Policy;
-using System.Web;
-using static Google.Api.ResourceDescriptor.Types;
-using MessagePart = Google.Apis.Gmail.v1.Data.MessagePart;
-using ThreadTask  = System.Threading.Tasks.Task;
 
 namespace GoogleLogin.Services
 {

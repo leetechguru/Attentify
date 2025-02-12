@@ -60,8 +60,6 @@ builder.Services.AddAuthentication()
         opts.SignInScheme = IdentityConstants.ExternalScheme;
         opts.Scope.Add("email");
         opts.Scope.Add("profile");
-        opts.Scope.Add("https://www.googleapis.com/auth/gmail.modify");
-        opts.Scope.Add("https://www.googleapis.com/auth/pubsub");
         opts.SaveTokens = true;
     });
 

@@ -134,6 +134,25 @@ namespace GoogleLogin.Controllers
             return RedirectToAction("shopifymanage", "setting");
         }
 
+        private bool VerifyHmac(string hmac, IQueryCollection query, string sharedSecret)
+        {
+            // Extract query parameters except 'hmac'
+            var sortedParams = query
+                .Where(kvp => kvp.Key != "hmac")
+                .OrderBy(kvp => kvp.Key)
+                .Select(kvp => $"{kvp.Key}={kvp.Value}");
+
+            var data = string.Join("&", sortedParams);
+
+            using (var hmacsha256 = new HMACSHA256(Encoding.UTF8.GetBytes(sharedSecret)))
+            {
+                var hash = hmacsha256.ComputeHash(Encoding.UTF8.GetBytes(data));
+                var computedHmac = BitConverter.ToString(hash).Replace("-", "").ToLower();
+
+                return hmac == computedHmac;
+            }
+        }
+
         [HttpGet("shopify/install")]
         public IActionResult Install(string host, string hmac, string shop, string state)
         {
@@ -181,24 +200,7 @@ namespace GoogleLogin.Controllers
             }
         }
 
-        private bool VerifyHmac(string hmac, IQueryCollection query, string sharedSecret)
-        {
-            // Extract query parameters except 'hmac'
-            var sortedParams = query
-                .Where(kvp => kvp.Key != "hmac")
-                .OrderBy(kvp => kvp.Key)
-                .Select(kvp => $"{kvp.Key}={kvp.Value}");
-
-            var data = string.Join("&", sortedParams);
-
-            using (var hmacsha256 = new HMACSHA256(Encoding.UTF8.GetBytes(sharedSecret)))
-            {
-                var hash = hmacsha256.ComputeHash(Encoding.UTF8.GetBytes(data));
-                var computedHmac = BitConverter.ToString(hash).Replace("-", "").ToLower();
-
-                return hmac == computedHmac;
-            }
-        }
+        
 
         public async Task<IActionResult> RefreshOrder(string strStore)
         {

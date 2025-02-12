@@ -2,40 +2,45 @@
 using GoogleLogin.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Newtonsoft.Json.Linq;
 using System.Data;
+using Twilio.TwiML;
+using Twilio.TwiML.Messaging;
+using Twilio.TwiML.Voice;
 
 namespace GoogleLogin.Controllers
 {
 
     //[Authorize]
     public class SmsController : Controller
-    { 
-        private readonly UserManager<AppUser>                   _userManager;
-        private readonly ILogger<SmsController>                 _logger;
-        private readonly SmsService                             _smsService;
-        private readonly LLMService                             _llmService;
-        private readonly string                                 _phoneNumber;
-        private readonly ShopifyService    _shopifyService;
+    {
+        private readonly UserManager<AppUser> _userManager;
+        private readonly ILogger<SmsController> _logger;
+        private readonly SmsService _smsService;
+        private readonly LLMService _llmService;
+        private readonly string _phoneNumber;
+        private readonly ShopifyService _shopifyService;
         public SmsController(
-            UserManager<AppUser>                userManager,
-            LLMService                          llmService,
-            SmsService                          smsService,
-            ILogger<SmsController>              logger, 
-            IConfiguration                      configuration,
+            UserManager<AppUser> userManager,
+            LLMService llmService,
+            SmsService smsService,
+            ILogger<SmsController> logger,
+            IConfiguration configuration,
             ShopifyService shopifyService)
-        {            
-            _userManager    =   userManager;
-            _llmService     =   llmService;
-            _logger         =   logger;
-            _phoneNumber    =   "";
-            _smsService     =   smsService;
-            _shopifyService =   shopifyService;
+        {
+            _userManager = userManager;
+            _llmService = llmService;
+            _logger = logger;
+            _phoneNumber = "+18888179263";
+            _smsService = smsService;
+            _shopifyService = shopifyService;
         }
 
         [HttpGet]
         public async Task<IActionResult> Index(string phone)
         {
+            ViewBag.menu = "sms";
             ViewBag.strToPhone = _phoneNumber;
             return View();
         }
@@ -43,7 +48,7 @@ namespace GoogleLogin.Controllers
         [HttpPost]
         public IActionResult GetSmsList(string strToPhone)
         {
-            var smsList      = _smsService.GetSmsList(strToPhone);
+            var smsList = _smsService.GetSmsList(strToPhone);
             ViewBag.smsList = smsList;
 
             return PartialView("View_smsList");
@@ -52,7 +57,7 @@ namespace GoogleLogin.Controllers
         [HttpPost]
         public IActionResult GetSmsHistory(string strFromPhone, string strToPhone)
         {
-            var smsHistory     = _smsService.GetSmsHistory(strFromPhone, strToPhone);
+            var smsHistory = _smsService.GetSmsHistory(strFromPhone, strToPhone);
             ViewBag.strMyPhone = strToPhone;
             ViewBag.smsHistory = smsHistory;
 
@@ -63,11 +68,11 @@ namespace GoogleLogin.Controllers
         public async Task<IActionResult> InitializeSms(string phoneNumber)
         {
             AppUser? user = await _userManager.GetUserAsync(HttpContext.User);
-			string? myPhone = _phoneNumber;
-			if (user != null && !string.IsNullOrEmpty(user.PhoneNumber))
-				myPhone = user.PhoneNumber;
+            string? myPhone = _phoneNumber;
+            if (user != null && !string.IsNullOrEmpty(user.PhoneNumber))
+                myPhone = user.PhoneNumber;
 
-			ViewBag.phone = phoneNumber;            
+            ViewBag.phone = phoneNumber;
             ViewBag.myPhoneNumber = myPhone;
             ViewBag.smsList = await _smsService.GetSms(myPhone, phoneNumber);
 
@@ -79,13 +84,13 @@ namespace GoogleLogin.Controllers
         [HttpPost]
         public async Task<IActionResult> Response(string phone)
         {
-			AppUser? user = await _userManager.GetUserAsync(HttpContext.User);
-            
+            AppUser? user = await _userManager.GetUserAsync(HttpContext.User);
+
             string? myPhone = _phoneNumber;
             if (user != null && !string.IsNullOrEmpty(user.PhoneNumber))
                 myPhone = user.PhoneNumber;
 
-			string strBody = await _smsService.GetLastSms(phone, myPhone);
+            string strBody = await _smsService.GetLastSms(phone, myPhone);
             if (string.IsNullOrWhiteSpace(strBody))
             {
                 return Json(new { status = 0 });
@@ -115,9 +120,9 @@ namespace GoogleLogin.Controllers
         public async Task<IActionResult> SendSms(string sms, string phone)
         {
             AppUser? user = await _userManager.GetUserAsync(HttpContext.User);
-			string? myPhone = _phoneNumber;
-			if (user != null && !string.IsNullOrEmpty(user.PhoneNumber))
-				myPhone = user.PhoneNumber;
+            string? myPhone = _phoneNumber;
+            if (user != null && !string.IsNullOrEmpty(user.PhoneNumber))
+                myPhone = user.PhoneNumber;
 
             await _smsService.SendSms(sms, phone, myPhone);
             return await InitializeSms(phone);
@@ -128,16 +133,16 @@ namespace GoogleLogin.Controllers
         {
             try
             {
-				AppUser? user = await _userManager.GetUserAsync(HttpContext.User);
-				string? myPhone = _phoneNumber;
-				if (user != null && !string.IsNullOrEmpty(user.PhoneNumber))
-					myPhone = user.PhoneNumber;
+                AppUser? user = await _userManager.GetUserAsync(HttpContext.User);
+                string? myPhone = _phoneNumber;
+                if (user != null && !string.IsNullOrEmpty(user.PhoneNumber))
+                    myPhone = user.PhoneNumber;
 
-				string strBody = await _smsService.GetLastSms(phone, myPhone);
+                string strBody = await _smsService.GetLastSms(phone, myPhone);
                 if (string.IsNullOrWhiteSpace(strBody))
                 {
                     return Json(new { status = -1, data = new { rephase = new { msg = "There is no request in the message." } } });
-				}
+                }
                 string strRespond = await _llmService.GetResponseAsync(strBody);
                 JObject jsonObj = JObject.Parse(strRespond);
                 int status = (int)jsonObj["status"];
@@ -147,7 +152,7 @@ namespace GoogleLogin.Controllers
                     string strMail = jsonObj["msg"].ToString();
                     TbOrder p = _shopifyService.GetOrderInfoByPhone(phone);
                     if (p == null)
-                    {                        
+                    {
                         return Json(new { status = -1, data = new { rephase = new { msg = "There is no order information available." } } });
                     }
                     else
@@ -161,13 +166,13 @@ namespace GoogleLogin.Controllers
                     string strType = jsonObj["type"].ToString();
                     string strOrderId = jsonObj["order_id"].ToString();
                     if (!string.IsNullOrEmpty(strOrderId))
-                    {                        
+                    {
                         TbOrder p = _shopifyService.GetOrderInfo(strOrderId);
                         if (p == null)
-                        {                            
+                        {
                             p = _shopifyService.GetOrderInfoByPhone(phone);
                             if (p == null)
-                            {                                
+                            {
                                 return Json(new { status = -1, data = new { rephase = new { msg = "There is no order information available." } } });
                             }
                         }
@@ -185,32 +190,28 @@ namespace GoogleLogin.Controllers
         }
 
         [HttpPost("/smsreceive")]
-        public async Task<IActionResult> ReceiveSms([FromForm] string from, [FromForm] string body, [FromForm] string messageSid)
+        public async Task<IActionResult> ReceiveSms([FromForm] string from, [FromForm] string to, [FromForm] string body, [FromForm] string messageSid)
         {
             Console.WriteLine($"Received SMS from {from}: {body}");
-			_logger.LogInformation($"Received SMS from {from}: {body}");
-			AppUser? user = await _userManager.GetUserAsync(HttpContext.User);
-            //if (user == null) return NoContent();
+            Console.WriteLine($"Received SMS to {to}: {body}");
+            Console.WriteLine($"Received SMS id: {messageSid}");
+            _logger.LogInformation($"Received SMS from {from}: {body}");
 
-			string? myPhone = _phoneNumber;
-			if (user != null && !string.IsNullOrEmpty(user.PhoneNumber))
-				myPhone = user.PhoneNumber;
-
-			TbSms p = new TbSms
+            TbSms p = new TbSms
             {
                 sm_id = messageSid,
                 sm_from = from,
                 sm_body = body,
-                sm_to = myPhone,
+                sm_to = to,
                 sm_date = DateTime.Now,
                 sm_read = 0
             };
-            await _smsService.SaveSms(p);
 
-            await _smsService.SendSmsCountInfo(myPhone);
+            await _smsService.SaveSms(p);
+            await _smsService.SendSmsCountInfo(to);
             Thread.Sleep(10);
             await _smsService.SendNewSmsInfo(p);
-            return NoContent();            
+            return NoContent();
         }
     }    
 }
