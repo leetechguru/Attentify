@@ -4,6 +4,7 @@ using GoogleLogin.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GoogleLogin.Migrations
 {
     [DbContext(typeof(AppIdentityDbContext))]
-    partial class AppIdentityDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250212193135_modifymembertable0212_1")]
+    partial class modifymembertable0212_1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -272,30 +275,6 @@ namespace GoogleLogin.Migrations
                     b.ToTable("TbOrders");
                 });
 
-            modelBuilder.Entity("GoogleLogin.Models.TbPlan", b =>
-                {
-                    b.Property<long>("id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("id"));
-
-                    b.Property<int>("planLevel")
-                        .HasColumnType("int");
-
-                    b.Property<string>("planName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("priceId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("id");
-
-                    b.ToTable("TbPlans");
-                });
-
             modelBuilder.Entity("GoogleLogin.Models.TbShopifyLog", b =>
                 {
                     b.Property<long>("idx")
@@ -480,29 +459,6 @@ namespace GoogleLogin.Migrations
                     b.HasKey("id");
 
                     b.ToTable("TbTwilios");
-                });
-
-            modelBuilder.Entity("GoogleLogin.Models.TbUserPlan", b =>
-                {
-                    b.Property<long>("id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("id"));
-
-                    b.Property<long>("expire")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("planId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("userEmail")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("id");
-
-                    b.ToTable("TbUserPlans");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

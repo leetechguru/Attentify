@@ -24,7 +24,7 @@ namespace GoogleLogin.Services
             _configuration          = configuration;
         }
 
-        public long addMember(string userIdx, long companyIdx, int role)
+        public long addMember(string email, long companyIdx, int role)
         {
             using (var scope = _serviceScopeFactory.CreateScope())
             {
@@ -34,7 +34,7 @@ namespace GoogleLogin.Services
                 {
                     var _one = _dbContext
                         .TbMembers
-                        .Where(item => item.userIdx == userIdx && item.companyIdx == companyIdx )
+                        .Where(item => item.email == email && item.companyIdx == companyIdx )
                         .FirstOrDefault();
 
                     if (_one != null)
@@ -44,7 +44,7 @@ namespace GoogleLogin.Services
 
                     var newMember = new TbMember
                     {
-                        userIdx = userIdx,
+                        email = email,
                         companyIdx = companyIdx,
                         role = role
                     };
@@ -63,7 +63,22 @@ namespace GoogleLogin.Services
             return -1;
         }
 
-        public TbMember? getMember(string userIdx, long companyIdx)
+        public List<TbMember> getMembers(long companyIdx)
+        {
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
+
+                var memberList = _dbContext
+                        .TbMembers
+                        .Where(item => item.companyIdx == companyIdx)
+                        .ToList();
+
+                return memberList;
+            }
+        }
+
+        public TbMember? getMember(string email, long companyIdx)
         {
             using (var scope = _serviceScopeFactory.CreateScope())
             {
@@ -73,7 +88,31 @@ namespace GoogleLogin.Services
                 {
                     var _one = _dbContext
                         .TbMembers
-                        .Where(item => item.userIdx == userIdx && item.companyIdx == companyIdx)
+                        .Where(item => item.email == email && item.companyIdx == companyIdx)
+                        .FirstOrDefault();
+
+                    return _one;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.StackTrace);
+                }
+            }
+
+            return null;
+        }
+
+        public TbMember? getMemberByIdx(long memberIdx)
+        {
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
+
+                try
+                {
+                    var _one = _dbContext
+                        .TbMembers
+                        .Where(item => item.id == memberIdx)
                         .FirstOrDefault();
 
                     return _one;
@@ -117,6 +156,19 @@ namespace GoogleLogin.Services
             }
 
             return -1;
+        }
+
+        public int deleteMember(TbMember member)
+        {
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
+
+                _dbContext.TbMembers.Remove(member);
+                _dbContext.SaveChanges();
+
+                return 1;
+            }
         }
     }
 }

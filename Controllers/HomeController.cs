@@ -23,42 +23,51 @@ namespace GoogleLogin.Controllers
         private readonly ShopifyService             _shopifyService;
         private readonly SmsService                 _smsService;
         private readonly LLMService                 _llmService;
+        private readonly StripeService              _stripeService;
         private readonly IConfiguration             _configuration;
         private readonly IServiceScopeFactory       _serviceScopeFactory;
         private readonly string                     _phoneNumber;
         public static readonly string[]             Scopes = { "email", "profile", "https://www.googleapis.com/auth/gmail.modify" };
         private const int nCntPerPage = 20;
-        
         public HomeController(
-            SignInManager<AppUser>      signinMgr, 
-            UserManager<AppUser>        userMgr,
-            EMailService                emailService, 
-            EMailTokenService           emailTokenService,
-            ShopifyService              shopifyService,
-            SmsService                  smsService, 
-            ILogger<HomeController>     logger, 
-            IConfiguration              configuration, 
-            IServiceScopeFactory        serviceScopeFactory,
-            LLMService                  llmService)
+            SignInManager<AppUser> signinMgr,
+            UserManager<AppUser> userMgr,
+            EMailService emailService,
+            EMailTokenService emailTokenService,
+            ShopifyService shopifyService,
+            SmsService smsService,
+            ILogger<HomeController> logger,
+            IConfiguration configuration,
+            IServiceScopeFactory serviceScopeFactory,
+            LLMService llmService,
+            StripeService stripeService)
         {
-            _signInManager  =       signinMgr;
-            _userManager    =       userMgr;
-            _emailService   =       emailService;
-            _emailTokenService    = emailTokenService;
-            _shopifyService =       shopifyService;
-            _logger         =       logger;
-            _smsService     =       smsService;
-            _configuration  =       configuration;
-            _serviceScopeFactory =  serviceScopeFactory;
-            _phoneNumber    =       configuration["Twilio:PhoneNumber"] ?? "";
-            _llmService     =       llmService;
+            _signInManager = signinMgr;
+            _userManager = userMgr;
+            _emailService = emailService;
+            _emailTokenService = emailTokenService;
+            _shopifyService = shopifyService;
+            _logger = logger;
+            _smsService = smsService;
+            _configuration = configuration;
+            _serviceScopeFactory = serviceScopeFactory;
+            _phoneNumber = configuration["Twilio:PhoneNumber"] ?? "";
+            _llmService = llmService;
+            _stripeService = stripeService;
         }
-       
+
         [HttpGet]
         public async Task<IActionResult> Index()
         {
             AppUser? user = await _userManager.GetUserAsync(HttpContext.User);
+            string userEmail = user?.Email ?? "";
 
+            var userPlan = _stripeService.getUserPlanDetail(userEmail);
+            if (userPlan != null)
+            {
+                ViewBag.planName = userPlan.planName;
+                ViewBag.expireDate = DateTimeOffset.FromUnixTimeSeconds(userPlan.expire).DateTime;
+            }
             ViewBag.menu = "home";
             return View();
         }

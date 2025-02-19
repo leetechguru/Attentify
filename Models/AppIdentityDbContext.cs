@@ -7,7 +7,7 @@ namespace GoogleLogin.Models
     public class AppIdentityDbContext : IdentityDbContext<AppUser>
     {
         public AppIdentityDbContext(DbContextOptions<AppIdentityDbContext> options) : base(options) { }
-
+        public DbSet<AppUser> AspNetUsers { get; set; }
         public DbSet<TbEmail> TbEmails { get; set; }
         public DbSet<TbOrder> TbOrders{ get; set; }
         public DbSet<TbShopifyLog> TbLogs{ get; set; }
@@ -18,5 +18,7 @@ namespace GoogleLogin.Models
         public DbSet<TbTwilio> TbTwilios { get; set; }
         public DbSet<TbCompany> TbCompanies { get; set; }
         public DbSet<TbMember> TbMembers { get; set; }
+        public DbSet<TbPlan> TbPlans { get; set; }
+        public DbSet<TbUserPlan> TbUserPlans { get; set; }
     }
 }

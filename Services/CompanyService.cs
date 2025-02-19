@@ -61,6 +61,22 @@ namespace GoogleLogin.Services
             return -1;
         }
 
+        public List<TbCompany> getCompanies(string email)
+        {
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
+
+                var companyList = (from company in _dbContext.TbCompanies
+                                   join member in _dbContext.TbMembers
+                                   on company.id equals member.companyIdx
+                                   where member.email == email
+                                   select company).ToList();
+
+                return companyList;
+            }
+        }
+
         public TbCompany? getCompany(string name)
         {
             using (var scope = _serviceScopeFactory.CreateScope())

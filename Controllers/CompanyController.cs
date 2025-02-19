@@ -48,30 +48,22 @@ namespace GoogleLogin.Controllers
         }
 
         [HttpPost("/getCompanies")]
-        public IActionResult getCompanies()
+        public async Task<IActionResult> getCompanies()
         {
-            using (var scope = _serviceScopeFactory.CreateScope()) 
-            {
-                var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
+            var user = await _userManager.GetUserAsync(HttpContext.User);
+            string userEmail = user?.Email ?? "";
 
-                string strUserId = _userManager.GetUserId(HttpContext.User) ?? "";
-
-                var companyList = (from company in _dbContext.TbCompanies
-                                         join member in _dbContext.TbMembers
-                                         on company.id equals member.companyIdx  // Assuming UserId is the common field
-                                         where member.userIdx == strUserId
-                                         select company).ToList();
-
-                ViewBag.companyList = companyList;
-                return PartialView("View_CompanyList");
-            }
+            ViewBag.companyList = _companyService.getCompanies(userEmail);
+            return PartialView("View_CompanyList");
         }
 
         [HttpPost("/addCompany")]
-        public IActionResult addCompany(string companyName, string companySite)
+        public async Task<IActionResult> addCompany(string companyName, string companySite)
         {
-            string userIdx = _userManager.GetUserId(HttpContext.User) ?? string.Empty;
-            if (userIdx.IsNullOrEmpty())
+            var user = await _userManager.GetUserAsync(HttpContext.User);
+            string userEmail = user?.Email ?? "";
+
+            if (userEmail.IsNullOrEmpty())
             {
                 return Json(new { status = -201, message = "Adding failed" });
             }
@@ -91,7 +83,7 @@ namespace GoogleLogin.Controllers
 
             if (companyIdx > 0)
             {
-                _memberService.addMember(userIdx, companyIdx, 0);
+                _memberService.addMember(userEmail, companyIdx, 0);
                 return Json(new { status = 201, message = "Adding success" });
             } else
             {
