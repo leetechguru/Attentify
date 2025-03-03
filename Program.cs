@@ -14,23 +14,7 @@ builder.Services.AddDbContext<AppIdentityDbContext>(options => options.UseSqlSer
 
 builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
 {
-    // Password settings.
-    //options.Password.RequireDigit = true;
-    //options.Password.RequireLowercase = true;
-    //options.Password.RequireNonAlphanumeric = true;
-    //options.Password.RequireUppercase = true;
-    //options.Password.RequiredLength = 6;
-    //options.Password.RequiredUniqueChars = 1;
-
-    //// Lockout settings.
-    //options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
-    //options.Lockout.MaxFailedAccessAttempts = 5;
-    //options.Lockout.AllowedForNewUsers = true;
-
-    // User settings.
-    options.User.AllowedUserNameCharacters =
-    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
-    //options.User.RequireUniqueEmail = false;
+    options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -";
 }).AddEntityFrameworkStores<AppIdentityDbContext>().AddDefaultTokenProviders();
 
 builder.Services.AddAuthorization(opts =>
@@ -58,7 +42,10 @@ builder.Services.AddAuthentication()
         opts.ClientId     = builder.Configuration["clientId"] ?? "";
         opts.ClientSecret = builder.Configuration["clientSecret"] ?? "";
         opts.SignInScheme = IdentityConstants.ExternalScheme;
-        opts.Scope.Add("email");
+        opts.Scope.Add("https://www.googleapis.com/auth/gmail.readonly");
+        opts.Scope.Add("https://www.googleapis.com/auth/gmail.modify");
+        opts.Scope.Add("https://www.googleapis.com/auth/gmail.send");
+        opts.Scope.Add("https://www.googleapis.com/auth/pubsub");
         opts.Scope.Add("profile");
         opts.SaveTokens = true;
     });

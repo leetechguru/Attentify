@@ -157,6 +157,7 @@ namespace GoogleLogin.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GoogleResponse()
         {
+            Console.WriteLine("ododoodososood");
             ExternalLoginInfo? info = await _signInManager.GetExternalLoginInfoAsync();
             
             if (info == null)
@@ -217,8 +218,8 @@ namespace GoogleLogin.Controllers
                 var hostUrl = $"{request.Scheme}://{request.Host}{request.PathBase}";
                 HttpContext.Session.SetString("HostUrl", hostUrl);
             }
-
-            if (result.Succeeded)
+            Console.WriteLine(result.Succeeded);
+            if (result.Succeeded) 
                 return Redirect("/home/index");
             else
             {

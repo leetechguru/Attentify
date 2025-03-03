@@ -591,11 +591,11 @@ namespace GoogleLogin.Services
         {
             Dictionary<string, string> mapHooks = new Dictionary<string, string>()
             {
-                { "orders/create", $"https://{_domain}/shopify/order_create" },
+                { "orders/create", $"{_domain}shopify/order_create" },
                 { "orders/updated", "" },
                 { "orders/paid", "" },
-                { "orders/fulfilled", $"https://{_domain}/shopify/order_create" },
-                { "orders/cancelled", $"https://{_domain}/shopify/order_cancelled" },
+                { "orders/fulfilled", $"{_domain}shopify/order_create" },
+                { "orders/cancelled", $"{_domain}shopify/order_cancelled" },
                 { "orders/partially_fulfilled", "" },
                 { "order_transactions/create", "" },
             };

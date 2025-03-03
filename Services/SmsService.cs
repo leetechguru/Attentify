@@ -142,15 +142,16 @@ namespace GoogleLogin.Services
             }
         }
         
-        public async Task SendSms(string sms, string phone, string From)
+        public async Task<int> SendSms(string strToPhone, string strFromPhone, string strSms)
         {
-            if (string.IsNullOrEmpty(sms) || string.IsNullOrEmpty(phone)) return;
+            if (string.IsNullOrEmpty(strSms) || string.IsNullOrEmpty(strToPhone)) 
+                return -1;
 
             // Send SMS
             var messageResponse = MessageResource.Create(
-                body: sms,
-                from: new Twilio.Types.PhoneNumber(From),
-                to: new Twilio.Types.PhoneNumber(phone),
+                body: strSms,
+                from: new Twilio.Types.PhoneNumber(strFromPhone),
+                to: new Twilio.Types.PhoneNumber(strToPhone),
                 client: _twilioClient
             );
 
@@ -167,9 +168,9 @@ namespace GoogleLogin.Services
                 };
                 await SaveSms(p);
 
-                //return await GetSms(From, phone);
+                return 1;
             }
-            //return null;
+            return -1;
         }
 
         public async Task<string> GetLastSms(string strPhoneNumber, string strMyPhone)

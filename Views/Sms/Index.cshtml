@@ -178,7 +178,7 @@
                         <!-- Chat message form -->
                         <div class="chat-history-footer shadow-xs">
                             <form class="form-send-message d-flex justify-content-between align-items-center">
-                                <input class="form-control message-input border-0 me-4 shadow-none"
+                                <input id = "strMessage" class="form-control message-input border-0 me-4 shadow-none"
                                        placeholder="Type your message here..." />
                                 <div class="message-actions d-flex align-items-center">
                                     <i class="speech-to-text ti ti-microphone ti-md btn btn-sm btn-text-secondary btn-icon rounded-pill cursor-pointer text-heading"></i>
@@ -186,7 +186,7 @@
                                         <i class="ti ti-paperclip ti-md cursor-pointer btn btn-sm btn-text-secondary btn-icon rounded-pill mx-1 text-heading"></i>
                                         <input type="file" id="attach-doc" hidden />
                                     </label>
-                                    <button class="btn btn-primary d-flex send-msg-btn">
+                                    <button id ="sendButton" class="btn btn-primary d-flex send-msg-btn">
                                         <span class="align-middle d-md-inline-block d-none">Send</span>
                                         <i class="ti ti-send ti-16px ms-md-2 ms-0"></i>
                                     </button>
@@ -275,8 +275,8 @@
         </div>
     </div>
 
-    <input type="hidden" name="strToPhone" value="@(ViewBag.strToPhone ?? "")" />
-    <input type="hidden" name="strFromPhone" value = "@(ViewBag.strFromPhone ?? "")" />
+    <input type="hidden" name="strMyPhone"   value="@(ViewBag.strMyPhone ?? "")" />
+    <input type="hidden" name="strClientPhone" value="" />
 
     <!-- Chat Page JS -->
     <script src="~/assets/js/app-chat.js"></script>
@@ -285,24 +285,28 @@
         let chatContactListItems = [];
 
         $(document).ready(function () {
-            loadChatList();
+            loadSmsList();
+
+            $("#sendButton").on('click', () => {
+                const strMyPhone    = $('input[name="strMyPhone"]').val();
+                const strClientPhone = $('input[name="strClientPhone"]').val();
+                const strMessage    = $('#strMessage').val();
+
+                console.log("strMyPhone " + strMyPhone);
+                console.log("strClientPhone " + strClientPhone);
+                console.log("strMessage " + strMessage);
+
+                $.post('/sms/sendSms', { strToPhone: strClientPhone, strFromPhone: strMyPhone, strSms: strMessage }, (res) => {
+                    console.log(res.message);
+                }, 'json')
+            })
         });
 
-        function loadMailCntInfo() {
-            let strEmail = $('input[name="selectedEmail"]').val();
-            $.post('/email/GetMailCntInfo', { strEmail: strEmail }, function (data) {
-                if (data.status == 200) {
-                    $('#inbox_cnt').html(data.nInboxCnt);
-                    $('#archieved_cnt').html(data.nArchievedCnt);
-                    $('input[name="nCntPerPage"]').html(data.nCntPerPage);
-                }
-            }, 'json')
-        }
+        function loadSmsList() {
+            const strMyPhone = $('input[name="strMyPhone"]').val();
+            console.log(strMyPhone);
 
-        function loadChatList() {
-            let strToPhone = $('input[name="strToPhone"]').val();
-
-            $.post('/sms/GetSmsList', { strToPhone }, function (data) {
+            $.post('/sms/GetSmsList', { strToPhone : strMyPhone }, function (data) {
                 try {
                     $('#chat_list').html(data);
                     initChatList();
@@ -313,8 +317,8 @@
             }, 'html');
         }
 
-        function loadChatHistory( strFromPhone, strToPhone ) {
-            $.post('/sms/GetSmsHistory', { strFromPhone: strFromPhone, strToPhone: strToPhone }, function (data) {
+        function loadSmsHistory( strClientPhone, strMyPhone ) {
+            $.post('/sms/GetSmsHistory', { strFromPhone: strClientPhone, strToPhone: strMyPhone }, function (data) {
                 try {
                     $('#chat_history').html(data);
                 } catch (e) {
@@ -339,24 +343,13 @@
             });
         }
 
-        function handleChatList(strFromPhone) {
-            $('#strFromPhone').val(strFromPhone);
-            let strToPhone = $('input[name="strToPhone"]').val();
-            $('#selected_phone_number').html(strFromPhone);
-            loadChatHistory(strFromPhone, strToPhone);
+        function handleChatList(strClientPhone) {
+            $('input[name="strClientPhone"]').val(strClientPhone);
+            let strMyPhone = $('input[name="strMyPhone"]').val();
+            $('#selected_phone_number').html(strClientPhone);
+            loadSmsHistory(strClientPhone, strMyPhone);
         }
 
-        function handleSendClick() {
-            let strToPhone = $('input[name="strFromPhone"]').val();
-            let strFromPhone = $('input[name="strToPhone"]').val();
-
-            $.post('/sms/sendChat', { strToPhone: strToPhone, strFromPhone: strFromPhone, strMsg: strMsg }, function (resp) {
-                if (resp.status == 1) {
-                    location.href = `/home/conversation?id=${id}&Type=${Type}`;
-                }
-                $(this).prop('disabled', false);
-            }, 'json')
-        }
     </script>
 }
 catch (Exception ex)

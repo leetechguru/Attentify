@@ -3,6 +3,7 @@ using GoogleLogin.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Linq;
 using System.Data;
 using Twilio.TwiML;
@@ -15,40 +16,40 @@ namespace GoogleLogin.Controllers
     //[Authorize]
     public class SmsController : Controller
     {
-        private readonly UserManager<AppUser> _userManager;
+        private readonly UserManager<AppUser>   _userManager;
         private readonly ILogger<SmsController> _logger;
-        private readonly SmsService _smsService;
-        private readonly LLMService _llmService;
-        private readonly string _phoneNumber;
-        private readonly ShopifyService _shopifyService;
+        private readonly SmsService             _smsService;
+        private readonly LLMService             _llmService;
+        private readonly string                 _phoneNumber;
+        private readonly ShopifyService         _shopifyService;
         public SmsController(
-            UserManager<AppUser> userManager,
-            LLMService llmService,
-            SmsService smsService,
-            ILogger<SmsController> logger,
-            IConfiguration configuration,
-            ShopifyService shopifyService)
+            UserManager<AppUser>        userManager,
+            LLMService                  llmService,
+            SmsService                  smsService,
+            ILogger<SmsController>      logger,
+            IConfiguration              configuration,
+            ShopifyService              shopifyService)
         {
-            _userManager = userManager;
-            _llmService = llmService;
-            _logger = logger;
-            _phoneNumber = "+18888179263";
-            _smsService = smsService;
+            _userManager    = userManager;
+            _llmService     = llmService;
+            _logger         = logger;
+            _phoneNumber    = "+18888179263";
+            _smsService     = smsService;
             _shopifyService = shopifyService;
         }
 
         [HttpGet]
         public async Task<IActionResult> Index(string phone)
         {
-            ViewBag.menu = "sms";
-            ViewBag.strToPhone = _phoneNumber;
+            ViewBag.menu       = "sms";
+            ViewBag.strMyPhone = _phoneNumber;
             return View();
         }
 
         [HttpPost]
         public IActionResult GetSmsList(string strToPhone)
         {
-            var smsList = _smsService.GetSmsList(strToPhone);
+            var smsList     = _smsService.GetSmsList(strToPhone);
             ViewBag.smsList = smsList;
 
             return PartialView("View_smsList");
@@ -69,16 +70,16 @@ namespace GoogleLogin.Controllers
         {
             AppUser? user = await _userManager.GetUserAsync(HttpContext.User);
             string? myPhone = _phoneNumber;
+
             if (user != null && !string.IsNullOrEmpty(user.PhoneNumber))
                 myPhone = user.PhoneNumber;
 
-            ViewBag.phone = phoneNumber;
-            ViewBag.myPhoneNumber = myPhone;
-            ViewBag.smsList = await _smsService.GetSms(myPhone, phoneNumber);
+            ViewBag.phone           = phoneNumber;
+            ViewBag.myPhoneNumber   = myPhone;
+            ViewBag.smsList         = await _smsService.GetSms(myPhone, phoneNumber);
 
             await _smsService.SendSmsCountInfo(myPhone);
             return PartialView("Sms");
-            //return Ok(new { phoneNumber });
         }
 
         [HttpPost]
@@ -117,15 +118,26 @@ namespace GoogleLogin.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> SendSms(string sms, string phone)
+        public async Task<IActionResult> SendSms(string strToPhone, string strFromPhone, string strSms )
         {
-            AppUser? user = await _userManager.GetUserAsync(HttpContext.User);
-            string? myPhone = _phoneNumber;
-            if (user != null && !string.IsNullOrEmpty(user.PhoneNumber))
-                myPhone = user.PhoneNumber;
+            if (strToPhone.IsNullOrEmpty())
+                return Json(new { status = -201, message = "Client phone number is empty" });
 
-            await _smsService.SendSms(sms, phone, myPhone);
-            return await InitializeSms(phone);
+            if (strFromPhone.IsNullOrEmpty())
+                return Json(new { status = -201, message = "Business phone number is empty" });
+
+            if (strSms.IsNullOrEmpty())
+                return Json(new { status = -201, message = "Sms is empty" });
+
+            int nRet = await _smsService.SendSms(strSms, strToPhone, strFromPhone);
+
+            if (nRet == 1)
+            {
+                return Json(new { status = 201, message = "Sent sms successfully." });
+            } else
+            {
+                return Json(new { status = -201, message = "Failed sending sms." });
+            }
         }
 
         [HttpPost]
@@ -199,10 +211,10 @@ namespace GoogleLogin.Controllers
 
             TbSms p = new TbSms
             {
-                sm_id = messageSid,
+                sm_id   = messageSid,
                 sm_from = from,
                 sm_body = body,
-                sm_to = to,
+                sm_to   = to,
                 sm_date = DateTime.Now,
                 sm_read = 0
             };

@@ -115,7 +115,7 @@ namespace GoogleLogin.Controllers
             {
                 shop = "punkcaseca.myshopify.com";
             }
-            //var authUrl = pHelper.BuildAuthorizationUrl(shop, $"https://{_domain}/shopify/install");
+            //var authUrl = pHelper.BuildAuthorizationUrl(shop, $"{_domain}shopify/install");
             //var authUrl = "https://admin.shopify.com/oauth/install_custom_app?client_id=80dc7ad1a7ce6a47857f7f85479d3c23&no_redirect=true&signature=eyJleHBpcmVzX2F0IjoxNzM3MzkxNTI2LCJwZXJtYW5lbnRfZG9tYWluIjoicHVua2Nhc2UubXlzaG9waWZ5LmNvbSIsImNsaWVudF9pZCI6IjgwZGM3YWQxYTdjZTZhNDc4NTdmN2Y4NTQ3OWQzYzIzIiwicHVycG9zZSI6ImN1c3RvbV9hcHAiLCJtZXJjaGFudF9vcmdhbml6YXRpb25faWQiOjEwNjkzN30%3D--0d6519ffa58c4afd91448f237ac16cf458eb37f8";
             var authUrl = "https://admin.shopify.com/oauth/install_custom_app?client_id=6616d5ec22eae6be7aad9309f17365cf&no_redirect=true&signature=eyJleHBpcmVzX2F0IjoxNzMyODM5NDA1LCJwZXJtYW5lbnRfZG9tYWluIjoicHVua2Nhc2VjYS5teXNob3BpZnkuY29tIiwiY2xpZW50X2lkIjoiNjYxNmQ1ZWMyMmVhZTZiZTdhYWQ5MzA5ZjE3MzY1Y2YiLCJwdXJwb3NlIjoiY3VzdG9tX2FwcCIsIm1lcmNoYW50X29yZ2FuaXphdGlvbl9pZCI6MTA2OTM3fQ%3D%3D--8a24ef4a46224af218252c17c0af411d6cb9556f";
             return Json(new { status = 201, authorizationUrl = authUrl });
@@ -169,7 +169,7 @@ namespace GoogleLogin.Controllers
                     return BadRequest("Required parameters missing");
                 }
                 var authHelper = new ShopifyAuthHelper(_clientId, _clientSecret);
-                string strRedirectUrl = authHelper.BuildAuthorizationUrl(decodeHost, $"https://{_domain}/shopify/callback");
+                string strRedirectUrl = authHelper.BuildAuthorizationUrl(decodeHost, $"{_domain}shopify/callback");
                 return Redirect(strRedirectUrl);
             }
             catch(Exception ex)
