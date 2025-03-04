@@ -1,18 +1,9 @@
-﻿using Azure.Core;
-using Google.Apis.Auth.OAuth2;
-using Google.Apis.Gmail.v1;
-using GoogleLogin.Models;
+﻿using GoogleLogin.Models;
 using GoogleLogin.Services;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using ShopifySharp;
-using ShopifySharp.GraphQL;
-using System.Security.AccessControl;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
-using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
 using ShopifyService = GoogleLogin.Services.ShopifyService;
 
 namespace GoogleLogin.Controllers
