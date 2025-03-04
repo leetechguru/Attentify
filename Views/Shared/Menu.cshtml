@@ -1,8 +1,7 @@
 ﻿@{
-    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
-    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+    string currentMenu = ViewBag?.menu ?? string.Empty;
+    string currentSubMenu = ViewBag?.subMenu ?? string.Empty;
 }
-
 
 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
     <div class="app-brand demo">
@@ -42,38 +41,63 @@
 
     <ul class="menu-inner py-1">
         <!-- Page -->
-        <li class="menu-item @(currentController == "Home" ? "active" : "")">
+        <li class="menu-item @(currentMenu == "home" ? "active" : "")">
             <a href="/home/index" class="menu-link">
                 <i class="menu-icon tf-icons ti ti-smart-home"></i>
-                <div data-i18n="Page 1">Dashboard</div>
+                <div data-i18n="Home">Home</div>
             </a>
         </li>
-        <li class="menu-item @(currentController == "Email" ? "active" : "")">
+        <li class="menu-item @(currentMenu == "email" ? "active" : "")">
             <a href="/email/index" class="menu-link">
                 <i class="menu-icon tf-icons ti ti-mail"></i>
                 <div data-i18n="Email">Email</div>
             </a>
         </li>
-        <li class="menu-item @(currentController == "Sms" ? "active" : "")">
+        <li class="menu-item @(currentMenu == "sms" ? "active" : "")">
             <a href="/sms/index" class="menu-link">
                 <i class="menu-icon tf-icons ti ti-messages"></i>
-                <div data-i18n="Chat">Chat</div>
+                <div data-i18n="Chat">SMS</div>
             </a>
         </li>
-        <li class="menu-item @(currentController == "Setting" ? "open" : "")">
+        <li class="menu-item @(currentMenu == "setting" ? "open" : "")">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons ti ti-settings"></i>
                 <div data-i18n="Setting">Setting</div>
             </a>
             <ul class="menu-sub">
-                <li class="menu-item @( currentAction == "MailManage" ? "active" : "")">
+                <li class="menu-item @( currentSubMenu == "company" ? "active" : "")">
+                    <a href="/company/index" class="menu-link">
+                        <div data-i18n="Users">Company</div>
+                    </a>
+                </li>
+                <li class="menu-item @( currentSubMenu == "member" ? "active" : "")">
+                    <a href="/member/index" class="menu-link">
+                        <div data-i18n="Users">User</div>
+                    </a>
+                </li>
+                <li class="menu-item @( currentSubMenu == "payment" ? "active" : "")">
+                    <a href="/stripe/index" class="menu-link">
+                        <div data-i18n="Users">Payment</div>
+                    </a>
+                </li>
+                <li class="menu-item @( currentSubMenu == "mail" ? "active" : "")">
                     <a href="/setting/mailmanage" class="menu-link">
                         <div data-i18n="Mails">Mail</div>
                     </a>
                 </li>
-                <li class="menu-item @( currentAction == "UserManage" ? "active" : "")">
-                    <a href="/setting/usermanage" class="menu-link">
-                        <div data-i18n="Users">User</div>
+                <li class="menu-item @( currentSubMenu == "twilio" ? "active" : "")">
+                    <a href="/setting/twiliomanage" class="menu-link">
+                        <div data-i18n="Mails">Twilio</div>
+                    </a>
+                </li>
+                <li class="menu-item @( currentSubMenu == "bland" ? "active" : "")">
+                    <a href="/setting/blandmanage" class="menu-link">
+                        <div data-i18n="Mails">Bland</div>
+                    </a>
+                </li>
+                <li class="menu-item @( currentSubMenu == "shopify" ? "active" : "")">
+                    <a href="/setting/shopifymanage" class="menu-link">
+                        <div data-i18n="Shopify">Shopify</div>
                     </a>
                 </li>
             </ul>

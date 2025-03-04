@@ -44,10 +44,10 @@ namespace GoogleLogin.Services
 
                 var parameters = new MessageParameters()
                 {
-                    Messages = messages,
-                    MaxTokens = 2048,
-                    Model = AnthropicModels.Claude35Sonnet,
-                    Stream = false,
+                    Messages    = messages,
+                    MaxTokens   = 2048,
+                    Model       = AnthropicModels.Claude35Sonnet,
+                    Stream      = false,
                     Temperature = 1.0m,
                 };
                 var finalResult = await _llmServer.Messages.GetClaudeMessageAsync(parameters);

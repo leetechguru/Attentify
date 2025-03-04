@@ -26,8 +26,6 @@
           rel="stylesheet" />
 
     <link rel="stylesheet" href="~/assets/vendor/fonts/tabler-icons.css" />
-    <!-- <link rel="stylesheet" href="~/assets/vendor/fonts/fontawesome.css" /> -->
-    <!-- <link rel="stylesheet" href="~/assets/vendor/fonts/flag-icons.css" /> -->
     <!-- Core CSS -->
 
     <link rel="stylesheet" href="~/assets/vendor/css/rtl/core.css"  />
@@ -37,19 +35,16 @@
 
     <!-- Vendors CSS -->
     <link rel="stylesheet" href="~/assets/vendor/libs/node-waves/node-waves.css" />
-
     <link rel="stylesheet" href="~/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
     <link rel="stylesheet" href="~/assets/vendor/libs/typeahead-js/typeahead.css" />
     <link rel="stylesheet" href="~/assets/vendor/libs/quill/katex.css" />
     <link rel="stylesheet" href="~/assets/vendor/libs/quill/editor.css" />
     <link rel="stylesheet" href="~/assets/vendor/libs/select2/select2.css" />
     <link rel="stylesheet" href="~/assets/vendor/libs/bootstrap-maxlength/bootstrap-maxlength.css" />
-
-    <link rel="stylesheet" href="~/assets/vendor/libs/node-waves/node-waves.css" />
-
-    <link rel="stylesheet" href="~/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
-    <link rel="stylesheet" href="~/assets/vendor/libs/typeahead-js/typeahead.css" />
     <link rel="stylesheet" href="~/assets/vendor/libs/spinkit/spinkit.css" />
+    <link rel="stylesheet" href="~/assets/vendor/libs/animate-css/animate.css" />
+    <link rel="stylesheet" href="~/assets/vendor/libs/sweetalert2/sweetalert2.css" />
+    <link rel="stylesheet" href="~/assets/vendor/libs/toastr/toastr.css" />
 
     <!-- Page CSS -->
     <!-- Email Page CSS -->
@@ -92,7 +87,7 @@
                 <div class="content-wrapper">
                     <!-- Content -->
 
-                    @RenderBody();
+                    @RenderBody()
 
                     <!-- / Content -->
                     <!-- Footer -->
@@ -134,10 +129,39 @@
     <script src="~/assets/vendor/libs/select2/select2.js"></script>
     <script src="~/assets/vendor/libs/block-ui/block-ui.js"></script>
     <script src="~/assets/vendor/libs/bootstrap-maxlength/bootstrap-maxlength.js"></script>
+    <script src="~/assets/vendor/libs/sweetalert2/sweetalert2.js"></script>
+    <script src="~/assets/vendor/libs/toastr/toastr.js"></script>
 
     <!-- Main JS -->
     <script src="~/assets/js/main.js"></script>
 
     <!-- Page JS -->
+    <script type="text/javascript">
+        const OnOpenToast = (type ='success', msg) => {
+            toastr.options = {
+                maxOpened: 1,
+                autoDismiss: true,
+                closeButton: true,
+                debug: false,
+                newestOnTop: true,
+                progressBar: false,
+                positionClass: 'toast-top-right',
+                preventDuplicates: false,
+                onclick: null,
+                rtl: isRtl,
+                showDuration: 300,
+                hideDuration: 100,
+                timeout:      500,
+                extendedTimeOut: 1000
+            };
+            
+            toastr.options.showEasing = 'swing'
+            toastr.options.hideEasing = 'linear';
+            toastr.options.showMethod = 'fadeIn';
+            toastr.options.hideMethod = 'fadeOut';
+            
+            toastr[type](msg, '');
+        }
+    </script>
 </body>
 </html>

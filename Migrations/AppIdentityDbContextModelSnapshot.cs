@@ -87,6 +87,27 @@ namespace GoogleLogin.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("GoogleLogin.Models.TbCompany", b =>
+                {
+                    b.Property<long>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("id"));
+
+                    b.Property<string>("name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("site")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("id");
+
+                    b.ToTable("TbCompanies");
+                });
+
             modelBuilder.Entity("GoogleLogin.Models.TbEmail", b =>
                 {
                     b.Property<long>("em_idx")
@@ -165,6 +186,29 @@ namespace GoogleLogin.Migrations
                     b.ToTable("TbMailAccount");
                 });
 
+            modelBuilder.Entity("GoogleLogin.Models.TbMember", b =>
+                {
+                    b.Property<long>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("id"));
+
+                    b.Property<long>("companyIdx")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("role")
+                        .HasColumnType("int");
+
+                    b.HasKey("id");
+
+                    b.ToTable("TbMembers");
+                });
+
             modelBuilder.Entity("GoogleLogin.Models.TbOrder", b =>
                 {
                     b.Property<long>("od_idx")
@@ -226,6 +270,30 @@ namespace GoogleLogin.Migrations
                     b.HasKey("od_idx");
 
                     b.ToTable("TbOrders");
+                });
+
+            modelBuilder.Entity("GoogleLogin.Models.TbPlan", b =>
+                {
+                    b.Property<long>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("id"));
+
+                    b.Property<int>("planLevel")
+                        .HasColumnType("int");
+
+                    b.Property<string>("planName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("priceId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("id");
+
+                    b.ToTable("TbPlans");
                 });
 
             modelBuilder.Entity("GoogleLogin.Models.TbShopifyLog", b =>
@@ -356,6 +424,7 @@ namespace GoogleLogin.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("sm_idx"));
 
                     b.Property<string>("sm_body")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("sm_date")
@@ -376,11 +445,64 @@ namespace GoogleLogin.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("sm_to")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("sm_idx");
 
                     b.ToTable("TbSmss");
+                });
+
+            modelBuilder.Entity("GoogleLogin.Models.TbTwilio", b =>
+                {
+                    b.Property<long>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("id"));
+
+                    b.Property<string>("accountsid")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("authtoken")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("phonenumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("userid")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("id");
+
+                    b.ToTable("TbTwilios");
+                });
+
+            modelBuilder.Entity("GoogleLogin.Models.TbUserPlan", b =>
+                {
+                    b.Property<long>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("id"));
+
+                    b.Property<long>("expire")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("planId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("userEmail")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("id");
+
+                    b.ToTable("TbUserPlans");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

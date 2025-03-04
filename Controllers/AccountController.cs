@@ -1,5 +1,7 @@
-﻿using GoogleLogin.Models;
+﻿using GoogleLogin.Helpers;
+using GoogleLogin.Models;
 using GoogleLogin.Services;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -18,8 +20,8 @@ namespace GoogleLogin.Controllers
         private readonly EMailTokenService      _emailTokenService;
         private readonly ShopifyService         _shopifyService; 
         private readonly AppIdentityDbContext   _dbContext;
-        private readonly ModelService _modelService;
-        private readonly string _phoneNumber;
+        private readonly SmsService             _smsService;
+        private readonly string                 _phoneNumber;
 
         public AccountController(
             UserManager<AppUser>        userMgr, 
@@ -27,8 +29,8 @@ namespace GoogleLogin.Controllers
             EMailService                emailService, 
             EMailTokenService           emailTokenSerivce,
             AppIdentityDbContext        dbContext, 
-            ShopifyService              shopifyService, 
-            ModelService                modelService, 
+            ShopifyService              shopifyService,
+            SmsService                  smsService, 
             IConfiguration configuration)
         {
             _userManager        =   userMgr;
@@ -37,50 +39,100 @@ namespace GoogleLogin.Controllers
             _emailTokenService  =   emailTokenSerivce;
             _dbContext          =   dbContext;
             _shopifyService     =   shopifyService;
-            _modelService       =   modelService;
+            _smsService         =   smsService;
             _phoneNumber        =   configuration["Twilio:PhoneNumber"] ?? "";
         }
 
         [AllowAnonymous]
         public IActionResult Login(string returnUrl)
         {
-            Login login = new Login();
-            login.ReturnUrl = returnUrl;
-            return View(login);
+            return View();
         }
 
         [HttpPost]
         [AllowAnonymous]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(Login login)
+        public async Task<IActionResult> Login(LoginViewModel model)
+        {
+            await _signInManager.SignOutAsync();
+            if (!ModelState.IsValid)
+            {
+                return Json(new { status = -201, redirectUrl = "/Account/Login" });
+            }
+
+            var user = await _userManager.FindByEmailAsync(model.Email);
+
+            if (user == null)
+            {
+                return Json(new { status = -201, redicretUrl = "/Account/Login" });
+            }
+
+            var result = await _signInManager.PasswordSignInAsync(user, model.Password, model.RememberMe, false);
+
+            if (result.Succeeded)
+            {
+                return Json(new { status = 201, redirectUrl = "/home/index" });
+            }
+
+            if (result.RequiresTwoFactor)
+            {
+                return Json(new { status = 201, redirectUrl = "/home/index" });
+            }
+
+            bool emailStatus = await _userManager.IsEmailConfirmedAsync(user);
+            if (emailStatus == false)
+            {
+                return Json(new { status = 201, redirectUrl = "/home/index" });
+            }
+
+            if (result.IsLockedOut)
+                return Json(new { status = 201, redirectUrl = "/home/index" });
+            
+            return Json(new { status = -201, redicretUrl = "/Account/Login" });
+        }
+
+        //
+        //GET: /Account/Register
+        [AllowAnonymous]
+        public ActionResult Register()
+        {
+            return View("Register");
+        }
+
+        //
+        // POST: /Account/Register
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<ActionResult> Register(RegisterViewModel model)
         {
             if (ModelState.IsValid)
             {
-                AppUser appUser = await _userManager.FindByEmailAsync(login.Email);
-                if (appUser != null)
+                var user = new AppUser { UserName = model.Email, Email = model.Email };
+                var result = await _userManager.CreateAsync(user, model.Password);
+
+                if (result.Succeeded)
                 {
-                    await _signInManager.SignOutAsync();
-                    Microsoft.AspNetCore.Identity.SignInResult result = await _signInManager.PasswordSignInAsync(appUser, login.Password, login.Remember, false);
-                    if (result.Succeeded)
-                        return Redirect(login.ReturnUrl ?? "/");
+                    await _signInManager.SignInAsync(user, isPersistent: false);
 
-                    if (result.RequiresTwoFactor)
+                    // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=320771
+                    // Send an email with this link
+                    // string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
+                    // var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
+                    // await UserManager.SendEmailAsync(user.Id, "Confirm your account", "Please confirm your account by clicking <a href=\"" + callbackUrl + "\">here</a>");
+
+                    return Json(new { status = 201, redirectUrl = "/home/index" });
+                } else
+                {
+                    if (!result.Succeeded)
                     {
-                        return RedirectToAction("LoginTwoStep", new { appUser.Email, login.ReturnUrl });
+                        foreach (var error in result.Errors)
+                        {
+                            return Json(new { status = -201, redirectUrl = "/", description = error.Description});
+                        }
                     }
-
-                    bool emailStatus = await _userManager.IsEmailConfirmedAsync(appUser);
-                    if (emailStatus == false)
-                    {
-                        ModelState.AddModelError(nameof(login.Email), "Email is unconfirmed, please confirm it first");
-                    }
-
-                    if (result.IsLockedOut)
-                        ModelState.AddModelError("", "Your account is locked out. Kindly wait for 10 minutes and try again");
                 }
-                ModelState.AddModelError(nameof(login.Email), "Login Failed: Invalid Email or password");
             }
-            return View(login);
+
+            return Json(new { status = -201, redirectUrl = "/" });
         }
 
         public async Task<IActionResult> Logout()
@@ -97,7 +149,7 @@ namespace GoogleLogin.Controllers
         [AllowAnonymous]
         public IActionResult GoogleLogin()
         {
-            string redirectUrl = Url.Action("GoogleResponse", "Account");
+            string? redirectUrl = Url.Action("GoogleResponse", "Account");
             var properties = _signInManager.ConfigureExternalAuthenticationProperties("Google", redirectUrl);
             return new ChallengeResult("Google", properties);
         }
@@ -105,7 +157,8 @@ namespace GoogleLogin.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GoogleResponse()
         {
-            ExternalLoginInfo info = await _signInManager.GetExternalLoginInfoAsync();
+            Console.WriteLine("ododoodososood");
+            ExternalLoginInfo? info = await _signInManager.GetExternalLoginInfoAsync();
             
             if (info == null)
                 return RedirectToAction(nameof(Login));
@@ -136,12 +189,12 @@ namespace GoogleLogin.Controllers
                     await _shopifyService.CustomersRequest();
                 }).Start();
 
-                /*new Thread(async () =>
+                new Thread(async () =>
                 {
                     try
                     {
-                        var user = await userManager.GetUserAsync(User);
-                        string strPhone = _phoneNumber;
+                        var     user        = await _userManager.GetUserAsync(User);
+                        string  strPhone    = _phoneNumber;
                         if (user != null && string.IsNullOrEmpty(user.PhoneNumber))
                         {
                             user.PhoneNumber = strPhone;
@@ -151,13 +204,13 @@ namespace GoogleLogin.Controllers
                             strPhone = _phoneNumber;
                         }
 
-                        await _modelService.GetMessages(strPhone);
-                        await _modelService.SendSmsCountInfo(strPhone); 
+                        await _smsService.GetMessages(strPhone);
+                        await _smsService.SendSmsCountInfo(strPhone); 
                     }catch(Exception ex)
                     {
                         Console.WriteLine("in account/googleResponse thread" + ex.ToString());
                     }
-                }).Start();*/
+                }).Start();
 
                 HttpContext.Session.SetString("AccessToken", access_token);
 
@@ -165,14 +218,14 @@ namespace GoogleLogin.Controllers
                 var hostUrl = $"{request.Scheme}://{request.Host}{request.PathBase}";
                 HttpContext.Session.SetString("HostUrl", hostUrl);
             }
-
-            if (result.Succeeded)
+            Console.WriteLine(result.Succeeded);
+            if (result.Succeeded) 
                 return Redirect("/home/index");
             else
             {
                 AppUser user = new AppUser
                 {
-                    Email = info.Principal.FindFirst(ClaimTypes.Email)?.Value,
+                    Email    = info.Principal.FindFirst(ClaimTypes.Email)?.Value,
                     UserName = info.Principal.FindFirst(ClaimTypes.Name)?.Value
                 };
 

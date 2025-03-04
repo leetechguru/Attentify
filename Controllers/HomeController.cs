@@ -8,6 +8,7 @@ using ShopifyService = GoogleLogin.Services.ShopifyService;
 using Google.Apis.Auth.OAuth2.Flows;
 using System.Web;
 using WebSocketSharp;
+using System.Security.Claims;
 
 namespace GoogleLogin.Controllers
 {
@@ -20,56 +21,54 @@ namespace GoogleLogin.Controllers
         private readonly EMailService               _emailService;
         private readonly EMailTokenService          _emailTokenService;
         private readonly ShopifyService             _shopifyService;
-        private readonly ModelService               _smsService;
+        private readonly SmsService                 _smsService;
         private readonly LLMService                 _llmService;
+        private readonly StripeService              _stripeService;
         private readonly IConfiguration             _configuration;
         private readonly IServiceScopeFactory       _serviceScopeFactory;
         private readonly string                     _phoneNumber;
         public static readonly string[]             Scopes = { "email", "profile", "https://www.googleapis.com/auth/gmail.modify" };
         private const int nCntPerPage = 20;
-        
         public HomeController(
-            SignInManager<AppUser>      signinMgr, 
-            UserManager<AppUser>        userMgr,
-            EMailService                emailService, 
-            EMailTokenService           emailTokenService,
-            ShopifyService              shopifyService, 
-            ModelService                smsService, 
-            ILogger<HomeController>     logger, 
-            IConfiguration              configuration, 
-            IServiceScopeFactory        serviceScopeFactory,
-            LLMService                  llmService)
+            SignInManager<AppUser> signinMgr,
+            UserManager<AppUser> userMgr,
+            EMailService emailService,
+            EMailTokenService emailTokenService,
+            ShopifyService shopifyService,
+            SmsService smsService,
+            ILogger<HomeController> logger,
+            IConfiguration configuration,
+            IServiceScopeFactory serviceScopeFactory,
+            LLMService llmService,
+            StripeService stripeService)
         {
-            _signInManager  =       signinMgr;
-            _userManager    =       userMgr;
-            _emailService   =       emailService;
-            _emailTokenService    = emailTokenService;
-            _shopifyService =       shopifyService;
-            _logger         =       logger;
-            _smsService     =       smsService;
-            _configuration  =       configuration;
-            _serviceScopeFactory =  serviceScopeFactory;
-            _phoneNumber    =       configuration["Twilio:PhoneNumber"] ?? "";
-            _llmService     =       llmService;
+            _signInManager = signinMgr;
+            _userManager = userMgr;
+            _emailService = emailService;
+            _emailTokenService = emailTokenService;
+            _shopifyService = shopifyService;
+            _logger = logger;
+            _smsService = smsService;
+            _configuration = configuration;
+            _serviceScopeFactory = serviceScopeFactory;
+            _phoneNumber = configuration["Twilio:PhoneNumber"] ?? "";
+            _llmService = llmService;
+            _stripeService = stripeService;
         }
-       
+
         [HttpGet]
         public async Task<IActionResult> Index()
         {
             AppUser? user = await _userManager.GetUserAsync(HttpContext.User);
-            if (user == null)
-            {
-#if DEBUG
-                user = new AppUser();
-                user.Email = "sherman@zahavas.com";
-#else
-                return Redirect("/account/Login");
-#endif
-            }
-            string access_token = HttpContext.Session.GetString("AccessToken");
-            if(string.IsNullOrEmpty(access_token))
-				return Redirect("/account/Login");
+            string userEmail = user?.Email ?? "";
 
+            var userPlan = _stripeService.getUserPlanDetail(userEmail);
+            if (userPlan != null)
+            {
+                ViewBag.planName = userPlan.planName;
+                ViewBag.expireDate = DateTimeOffset.FromUnixTimeSeconds(userPlan.expire).DateTime;
+            }
+            ViewBag.menu = "home";
             return View();
         }
 
@@ -78,7 +77,7 @@ namespace GoogleLogin.Controllers
         {
             if (!string.IsNullOrEmpty(error))
             {
-                return BadRequest("Error during Google sign-in: " + error);
+                return BadRequest("Error during Google sign-in: " + error);  
             }
 
             if (string.IsNullOrEmpty(code))

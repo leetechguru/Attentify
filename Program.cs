@@ -13,10 +13,9 @@ builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
 builder.Services.AddDbContext<AppIdentityDbContext>(options => options.UseSqlServer(builder.Configuration["ConnectionStrings:GoogleAuthInAspNetCoreMVCContextConnection"]));
 
 builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
-{    
+{
     options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -";
 }).AddEntityFrameworkStores<AppIdentityDbContext>().AddDefaultTokenProviders();
-
 
 builder.Services.AddAuthorization(opts =>
 {
@@ -43,10 +42,11 @@ builder.Services.AddAuthentication()
         opts.ClientId     = builder.Configuration["clientId"] ?? "";
         opts.ClientSecret = builder.Configuration["clientSecret"] ?? "";
         opts.SignInScheme = IdentityConstants.ExternalScheme;
-        opts.Scope.Add("email");
-        opts.Scope.Add("profile");
+        opts.Scope.Add("https://www.googleapis.com/auth/gmail.readonly");
         opts.Scope.Add("https://www.googleapis.com/auth/gmail.modify");
+        opts.Scope.Add("https://www.googleapis.com/auth/gmail.send");
         opts.Scope.Add("https://www.googleapis.com/auth/pubsub");
+        opts.Scope.Add("profile");
         opts.SaveTokens = true;
     });
 
@@ -54,9 +54,12 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<EMailService>();
 builder.Services.AddScoped<EMailTokenService>();
-builder.Services.AddScoped<ModelService>();
+builder.Services.AddScoped<SmsService>();
 builder.Services.AddScoped<LLMService>();
 builder.Services.AddScoped<ShopifyService>();
+builder.Services.AddScoped<CompanyService>();
+builder.Services.AddScoped<MemberService>();
+builder.Services.AddScoped<StripeService>();
 
 builder.Services.AddSingleton(new TwilioRestClient(
             builder.Configuration["Twilio:AccountSid"],
@@ -65,8 +68,8 @@ builder.Services.AddSingleton(new TwilioRestClient(
 
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(30);    
-    options.Cookie.IsEssential = true;
+    options.IdleTimeout         = TimeSpan.FromMinutes(30);    
+    options.Cookie.IsEssential  = true;
 });
 builder.Services.AddSignalR(); 
 
@@ -82,15 +85,11 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.UseWebSockets();
 app.UseSession();
-
 app.MapHub<DataWebsocket>("/ws");
 
 app.MapControllerRoute(
