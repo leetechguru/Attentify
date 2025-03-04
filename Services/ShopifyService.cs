@@ -1,12 +1,9 @@
 ﻿using GoogleLogin.Models;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using ShopifySharp;
-using ShopifySharp.GraphQL;
 using System.Text;
 using System.Text.Json;
-using Twilio.Types;
 
 namespace GoogleLogin.Services
 {
@@ -435,7 +432,7 @@ namespace GoogleLogin.Services
                     {
                         string responseData = await response.Content.ReadAsStringAsync();
                         var orders = JsonDocument.Parse(responseData).RootElement.GetProperty("orders");
-                        using (var scope = _serviceScopeFactory.CreateScope())  // Create a new scope
+                        using (var scope = _serviceScopeFactory.CreateScope()) 
                         {
                             var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
 
