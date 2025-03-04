@@ -202,17 +202,16 @@ namespace GoogleLogin.Services
 
 		static string AddPrefixIfMissing(string input)
         {
-            // Check if the string starts with '#'
             if (!input.StartsWith("#"))
             {
-                return "#" + input; // Add '#' prefix if missing
+                return "#" + input; 
             }
-            return input; // Return the original string if it already starts with '#'
+            return input; 
         }
 
         public async Task SaveAccessToken(string strUsreId, string strShop, string strToken)
         {
-            using (var scope = _serviceScopeFactory.CreateScope())  // Create a new scope
+            using (var scope = _serviceScopeFactory.CreateScope()) 
             {
                 var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
 
@@ -252,7 +251,7 @@ namespace GoogleLogin.Services
     
         public async void OrderRequest()
         {
-            using (var scope = _serviceScopeFactory.CreateScope())  // Create a new scope
+            using (var scope = _serviceScopeFactory.CreateScope())
             {
                 var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
                 foreach(var objToken in _dbContext.TbTokens)
@@ -266,7 +265,7 @@ namespace GoogleLogin.Services
 
         public async Task<TbOrder> OrderRequest(long orderId)
         {
-            using (var scope = _serviceScopeFactory.CreateScope())  // Create a new scope
+            using (var scope = _serviceScopeFactory.CreateScope()) 
             {
                 var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
                 TbOrder p = await _dbContext.TbOrders.Where(e => e.or_id == orderId).FirstOrDefaultAsync();
@@ -310,7 +309,7 @@ namespace GoogleLogin.Services
 
                                     long or_id = Convert.ToInt64(order.GetProperty("id").ToString());
                                     string or_name = order.GetProperty("name").ToString() ?? "";
-                                    string or_channel = "online store";//order.GetProperty("channel").ToString(),
+                                    string or_channel = "online store";
                                     string or_customer = customerElement.GetProperty("email").ToString();
                                     float or_total = Convert.ToSingle(order.GetProperty("total_price").ToString());
                                     int or_itemCnt = nCnt;
@@ -385,7 +384,7 @@ namespace GoogleLogin.Services
 
         public async Task<string> GetOrderInfoRequest(long orderId)
         {
-            using (var scope = _serviceScopeFactory.CreateScope())  // Create a new scope
+            using (var scope = _serviceScopeFactory.CreateScope()) 
             {
                 var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
                 TbOrder p = await _dbContext.TbOrders.Where(e => e.or_id == orderId).FirstOrDefaultAsync();
