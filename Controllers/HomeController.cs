@@ -8,7 +8,6 @@ using ShopifyService = GoogleLogin.Services.ShopifyService;
 using Google.Apis.Auth.OAuth2.Flows;
 using System.Web;
 using WebSocketSharp;
-using System.Security.Claims;
 
 namespace GoogleLogin.Controllers
 {
@@ -98,7 +97,7 @@ namespace GoogleLogin.Controllers
             string redirectUri = $"{HttpContext.Session.GetString("HostUrl")}/OAuth2Callback";
 
             var tokenResponse = await flow.ExchangeCodeForTokenAsync(
-                userId: "user-id", // Can be any identifier for the user (e.g., a session ID)
+                userId: "user-id",
                 code: HttpUtility.UrlDecode(code),
                 redirectUri: redirectUri,
                 taskCancellationToken: CancellationToken.None
