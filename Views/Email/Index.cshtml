@@ -413,7 +413,9 @@
         }
 
         function loadMailDetail(strMailId) {
-            window.location.href = "detail?id=" + strMailId;
+            const strEmail = $('input[name="selectedEmail"]').val();
+            console.log(strEmail);
+            window.location.href = "detail?id=" + strMailId + "&" + "strToEmail=" + strEmail;
         }
 
         function loadMailDetail1(strMailId) {

@@ -41,6 +41,31 @@
                         </div>
                     </div>
 
+                    <div class="email-reply card mt-4 mx-sm-6 mx-3 mb-4 me-0 ms-0">
+                        <h6 class="card-header border-0 fw-normal pb-4 ps-3">Reply to @ViewBag.emailExt.em_from</h6>
+                        <div class="card-body pt-0 ps-3">
+                            <div class="d-flex justify-content-start">
+                                <div class="email-reply-toolbar border-0 w-100 ps-0 pb-4">
+                                <span class="ql-formats me-0">
+                                    <button class="ql-bold"></button>
+                                    <button class="ql-italic"></button>
+                                    <button class="ql-underline"></button>
+                                    <button class="ql-list" value="ordered"></button>
+                                    <button class="ql-list" value="bullet"></button>
+                                    <button class="ql-link"></button>
+                                    <button class="ql-image"></button>
+                                </span>
+                                </div>
+                            </div>
+                            <div class="email-reply-editor">@ViewBag.replyMsg</div>
+                            <div class="d-flex justify-content-end align-items-center mt-4">
+                                <button id = "sendBtn" class="btn btn-primary">
+                                    <span class="align-middle">Send</span>
+                                    <i class="ti ti-send ti-16px ms-2 scaleX-n1-rtl"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="col-5">
                     <div class="card mb-3">
@@ -142,8 +167,26 @@
             </div>
         </div>
 
+        <input type="hidden" name="strFromEmail"   value="@ViewBag.emailExt.em_from" />
+        <input type="hidden" name="strToEmail"     value="@ViewBag.strToEmail" />
+        <!-- Email Page JS -->
+        <script src="~/assets/js/app-email.js"></script>
+
         <script type="text/javascript">
             $(document).ready(function () {
+                $("#sendBtn").on('click', () => {
+                    const strToEmail  = $('input[name="strFromEmail"]').val();
+                    const strFromEmail = $('input[name="strToEmail"]').val();
+                    const strBody = $('.email-reply-editor').find("p:first").text();
+
+                    console.log("ToEmail : " + strToEmail);
+                    console.log("FromEmail : " + strFromEmail);
+                    console.log("Body : " + strBody);
+                    $.post('/email/sendEmail', { strTo: strToEmail, strFrom : strFromEmail, strBody: strBody }, function (data) {
+                        console.log(data);
+                    }, 'json')
+                })
+                email.init();
             });
 
             function handleRefundClick(orderId) {
@@ -177,7 +220,7 @@
                             didClose: () => {
                             }
                         });
-                        $.post('/email/requestShopify', { orderId: orderId, type: 3, em_idx: 0 }, function (resp) {
+                        $.post('/email/RequestShopify', { orderId: orderId, type: 3, em_idx: 0 }, function (resp) {
                             if (resp.status == 201) {
                                 Toast.fire({
                                     icon: "success",
@@ -225,7 +268,7 @@
                             didClose: () => {
                             }
                         });
-                        $.post('/email/requestShopify', { orderId: orderId, type: 2, em_idx: 0 }, function (resp) {
+                        $.post('/email/RequestShopify', { orderId: orderId, type: 2, em_idx: 0 }, function (resp) {
                             if (resp.status == 201) {
                                 Toast.fire({
                                     icon: "success",

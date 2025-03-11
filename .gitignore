@@ -2,6 +2,7 @@ Logs/
 .vs/
 bin/
 obj/
+publish/
 googlelogin.sin
 appsettings.json
 

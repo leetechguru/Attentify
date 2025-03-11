@@ -187,7 +187,7 @@ namespace GoogleLogin.Controllers
             catch (FormatException ex)
             {
                 Console.WriteLine($"Error decoding Base64 host: {ex.Message}");
-                return null;
+                return string.Empty;
             }
         }
 
@@ -217,7 +217,7 @@ namespace GoogleLogin.Controllers
                     requestBody = await reader.ReadToEndAsync();
                 }
 
-                string hmacHeader = Request.Headers["X-Shopify-Hmac-Sha256"];
+                string hmacHeader = Request.Headers["X-Shopify-Hmac-Sha256"].FirstOrDefault() ?? string.Empty;
 
                 if (!VerifyWebhook(requestBody, hmacHeader, _clientSecret))
                 {
@@ -248,7 +248,7 @@ namespace GoogleLogin.Controllers
                     requestBody = await reader.ReadToEndAsync();
                 }
 
-                string hmacHeader = Request.Headers["X-Shopify-Hmac-Sha256"];
+                string hmacHeader = Request.Headers["X-Shopify-Hmac-Sha256"].FirstOrDefault() ?? string.Empty;
 
                 if (!VerifyWebhook(requestBody, hmacHeader, _clientSecret))
                 {

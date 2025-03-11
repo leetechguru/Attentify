@@ -6,15 +6,15 @@ namespace GoogleLogin.Models
     {
         [Key]
         public long id { get; set; }
-        public string name { get; set; }
-        public string site { get; set; }
+        public string? name { get; set; }
+        public string? site { get; set; }
     }
 
     public class TbMember
     {
         [Key]
         public long id { get; set;}
-        public string email { get; set; }
+        public required string email { get; set; }
         public long companyIdx { get; set; }
         public int role { get; set; }
     }

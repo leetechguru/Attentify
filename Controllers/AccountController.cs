@@ -156,7 +156,6 @@ namespace GoogleLogin.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GoogleResponse()
         {
-            Console.WriteLine("ododoodososood");
             ExternalLoginInfo? info = await _signInManager.GetExternalLoginInfoAsync();
             
             if (info == null)
@@ -174,7 +173,8 @@ namespace GoogleLogin.Controllers
                         List<TbMailAccount> mailAccountList = _emailTokenService.GetMailAccountList(_userManager.GetUserId(HttpContext.User) ?? "");
                         foreach (var item in mailAccountList)
                         {
-                            _emailTokenService.RefreshTokenAync(item.mail, item.userId);
+                            
+                            _emailTokenService.RefreshTokenAync(item.mail, item.userId ?? string.Empty);
                         }
 
                         Thread.Sleep(TimeSpan.FromHours(1));
@@ -263,13 +263,12 @@ namespace GoogleLogin.Controllers
             var link = Url.Action("ResetPassword", "Account", new { token, email = user.Email }, Request.Scheme);
 
             EmailHelper emailHelper = new EmailHelper();
-            bool emailResponse = emailHelper.SendEmailPasswordReset(user.Email, link);
 
-            if (emailResponse)
-                return RedirectToAction("ForgotPasswordConfirmation");
-            else
-            {
-                // log email failed 
+            if (!string.IsNullOrEmpty(user.Email) && !string.IsNullOrEmpty(link)) {
+                bool emailResponse = emailHelper.SendEmailPasswordReset(user.Email, link);
+
+                if (emailResponse)
+                    return RedirectToAction("ForgotPasswordConfirmation");
             }
             return View(email);
         }
@@ -293,12 +292,24 @@ namespace GoogleLogin.Controllers
         {
             if (!ModelState.IsValid)
                 return View(resetPassword);
+            
+            if (string.IsNullOrEmpty(resetPassword.Email)) 
+                return View(resetPassword);
 
             var user = await _userManager.FindByEmailAsync(resetPassword.Email);
-            if (user == null)
-                RedirectToAction("ResetPasswordConfirmation");
 
-            var resetPassResult = await _userManager.ResetPasswordAsync(user, resetPassword.Token, resetPassword.Password);
+            if (user == null) {
+                RedirectToAction("ResetPasswordConfirmation");
+            }
+
+            if (string.IsNullOrEmpty(resetPassword.Token) || string.IsNullOrEmpty(resetPassword.Password)) {
+                return View(resetPassword);
+            }
+            
+            #pragma warning disable CS8604 // Possible null reference argument.
+                var resetPassResult = await _userManager.ResetPasswordAsync(user, resetPassword.Token, resetPassword.Password);
+            #pragma warning restore CS8604 // Possible null reference argument.
+
             if (!resetPassResult.Succeeded)
             {
                 foreach (var error in resetPassResult.Errors)

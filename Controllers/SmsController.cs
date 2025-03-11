@@ -39,7 +39,7 @@ namespace GoogleLogin.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(string phone)
+        public IActionResult Index(string phone)
         {
             ViewBag.menu       = "sms";
             ViewBag.strMyPhone = _phoneNumber;
@@ -82,8 +82,8 @@ namespace GoogleLogin.Controllers
             return PartialView("Sms");
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Response(string phone)
+        [HttpPost("Sms/response")]
+        public async Task<IActionResult> ResponseSms(string phone)
         {
             AppUser? user = await _userManager.GetUserAsync(HttpContext.User);
 

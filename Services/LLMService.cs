@@ -27,7 +27,8 @@ namespace GoogleLogin.Services
             _strQuery = $"The following text is an order, cancellation, or refund email encoded in Base64 from a Shopify customer. " +
                     $"Please check if the order ID field exists and is correct. If the email is correct, then output the necessary string formatted as JSON. " +
                     $"The JSON string should include order_id, type (either cancel or refund), status (1 if correct, otherwise 0), and msg " +
-                    $"(a message requesting the order ID if the email is incorrect; if the email is correct, msg should be null). I need only the JSON output: ";
+                    $"(a message requesting the order ID if the email is incorrect; if the email is correct, msg should be null). " +
+                    $" I need only the JSON output: ";
         }
 
         public async Task<string> GetResponseLLM(string strBody)

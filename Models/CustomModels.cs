@@ -6,21 +6,21 @@ namespace GoogleLogin.Models
     {
         [Key]
         public long id { get; set; }
-        public string mail { get; set; } 
-        public string accessToken { get; set; } // google account access token
-        public string refreshToken { get; set; } // google account refresh token
-        public string userId { get; set; }
+        public required string mail { get; set; } 
+        public string? accessToken { get; set; } // google account access token
+        public string? refreshToken { get; set; } // google account refresh token
+        public string? userId { get; set; }
     }
 
     public class TbEmail
     {
         [Key]
         public long em_idx { get; set; }
-        public string em_id { set; get; }
+        public required string em_id { set; get; }
         public string? em_subject { set; get; }
         public string? em_body { set; get; }
-        public string em_from { set; get; }
-        public string em_to { set; get; }
+        public string? em_from { set; get; }
+        public string? em_to { set; get; }
         public string? em_replay { set; get; }
         public Nullable<int> em_state { set; get; }
         public string? em_threadId { set; get; }
@@ -83,7 +83,7 @@ namespace GoogleLogin.Models
         [Key]
         public long od_idx { get; set; }
         public long or_id { set; get; }
-        public string or_name { set; get; }
+        public string? or_name { set; get; }
         public Nullable<DateTime> or_date { set; get; }
         public string? or_customer { set; get; }
         public string? or_channel { set; get; }
@@ -95,27 +95,27 @@ namespace GoogleLogin.Models
         public Nullable<int> or_delivery_method { set; get; }
         public string? or_tags { set; get; }
         public Nullable<int> or_status { set; get; }
-        public string or_owner { set; get; }
+        public string? or_owner { set; get; }
         public string? or_phone { set; get; }
         public string? or_customer_name { set; get; }
     }
     public class ResetPassword
     {
         [Required]
-        public string Password { get; set; }
+        public string? Password { get; set; }
 
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
-        public string ConfirmPassword { get; set; }
+        public string? ConfirmPassword { get; set; }
 
-        public string Email { get; set; }
-        public string Token { get; set; }
+        public string? Email { get; set; }
+        public string? Token { get; set; }
     }
     public class TbShopifyLog
     {
         [Key]
         public long idx { get; set; }
-        public string UserId { get; set; } // User who performed the action
-        public string Action { get; set; } // Description of the action (e.g., "Order Canceled")
+        public string? UserId { get; set; } // User who performed the action
+        public string? Action { get; set; } // Description of the action (e.g., "Order Canceled")
         public int OrderId { get; set; } // Associated order ID
         public Nullable<DateTime> Timestamp { get; set; } // Date and time of the action
     }
@@ -125,8 +125,8 @@ namespace GoogleLogin.Models
         public long idx { get; set; }
         public int Id { get; set; }
         public string? UserId { get; set; } // Links to the authenticated user in your system
-        public string AccessToken { get; set; } // Shopify API access token
-        public string ShopDomain { get; set; } // The Shopify store domain (e.g., "example.myshopify.com")
+        public string? AccessToken { get; set; } // Shopify API access token
+        public string? ShopDomain { get; set; } // The Shopify store domain (e.g., "example.myshopify.com")
         public Nullable<DateTime> DateCreated { get; set; }
         public Nullable<DateTime> DateUpdated { get; set; }
     }
@@ -134,10 +134,10 @@ namespace GoogleLogin.Models
     {
         [Key]
         public long idx { get; set; }
-        public string UserId { get; set; } // user email
-        public string UserName { get; set; }
-        public string UserShopifyDomain { set; get; }
-        public string User_Id { get; set; } //customer id
+        public string? UserId { get; set; } // user email
+        public string? UserName { get; set; }
+        public string? UserShopifyDomain { set; get; }
+        public string? User_Id { get; set; } //customer id
         public Nullable<DateTime> createdAt { set; get; }
         public Nullable<DateTime> updatedAt { set; get; }
         public string? phone { set; get; }

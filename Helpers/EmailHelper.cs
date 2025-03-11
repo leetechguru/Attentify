@@ -128,10 +128,10 @@ namespace GoogleLogin.Helpers
                         try
                         {
                             string body = "";
-                            string _date = emailInfoResponse.Payload.Headers.Where(obj => obj.Name == "Date").FirstOrDefault()?.Value;
-                            string _from = emailInfoResponse.Payload.Headers.Where(obj => obj.Name == "From").FirstOrDefault()?.Value;
-                            string _subject = emailInfoResponse.Payload.Headers.Where(obj => obj.Name == "Subject").FirstOrDefault()?.Value;
-                            string _inReplyTo = emailInfoResponse.Payload.Headers.Where(obj => obj.Name == "In-Reply-To").FirstOrDefault()?.Value;
+                            string? _date = emailInfoResponse.Payload.Headers.Where(obj => obj.Name == "Date").FirstOrDefault()?.Value;
+                            string? _from = emailInfoResponse.Payload.Headers.Where(obj => obj.Name == "From").FirstOrDefault()?.Value;
+                            string? _subject = emailInfoResponse.Payload.Headers.Where(obj => obj.Name == "Subject").FirstOrDefault()?.Value;
+                            string? _inReplyTo = emailInfoResponse.Payload.Headers.Where(obj => obj.Name == "In-Reply-To").FirstOrDefault()?.Value;
 
                             string _threadId = emailInfoResponse.ThreadId;
 

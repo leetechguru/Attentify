@@ -5,7 +5,7 @@
 namespace GoogleLogin.Migrations
 {
     /// <inheritdoc />
-    public partial class modifymailaccount : Migration
+    public partial class ModifyMailAccount : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

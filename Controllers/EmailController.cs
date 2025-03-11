@@ -70,23 +70,9 @@ namespace GoogleLogin.Controllers
         }
 
         [HttpGet("email/detail")]
-        public async Task<IActionResult> EmailDetail(string id)
+        public async Task<IActionResult> EmailDetail(string id, string strToEmail)
         {
             if (id == string.Empty) return BadRequest("Mail Id must be required!");
-            AppUser? user = await _userManager.GetUserAsync(HttpContext.User);
-            if (user == null)
-            {
-#if DEBUG
-                user = new AppUser();
-                user.Email = "sherman@zahavas.com";
-#else
-                return Redirect("/account/Login");
-#endif
-            }
-
-            string access_token = HttpContext.Session.GetString("AccessToken") ?? string.Empty;
-            if (string.IsNullOrEmpty(access_token))
-                return Redirect("/account/Login");
 
             EmailExt emailExt       = _emailService.GetMailDetail(id);
             List<EmailExt> listResult = new List<EmailExt>();
@@ -95,8 +81,8 @@ namespace GoogleLogin.Controllers
             ViewBag.customerInfo    = _emailService.GetCustomerInfo(id);
             ViewBag.emailExt        = emailExt;
             ViewBag.emailList       = listResult;
-
-            int status = 0;
+            ViewBag.strToEmail      = strToEmail;
+            
             string strRespond = string.Empty;
             string strMailEncodeBody = _emailService.GetMailEncodeBody(id);
 
@@ -108,20 +94,35 @@ namespace GoogleLogin.Controllers
             if (strMailEncodeBody != "")
             {
                 strRespond = await _llmService.GetResponseLLM(strMailEncodeBody);
-
+                Console.WriteLine(strRespond);
                 if (strRespond != string.Empty)
                 {
                     JObject jsonObj = JObject.Parse(strRespond);
-                    status = Convert.ToInt32((jsonObj["status"] ?? '0').ToString());
-                    
+                    int    status = Convert.ToInt32((jsonObj["status"] ?? '0').ToString());
+                    string type = (jsonObj["type"] ?? ' ').ToString();
+                    string order_id = (jsonObj["order_id"] ?? ' ').ToString();
+                    string msg = (jsonObj["msg"] ?? ' ').ToString();
+
+                    if ( status == 0 ) {
+                        ViewBag.replyMsg = msg; 
+                    } 
                     if (status == 1)
                     {
+                        Console.WriteLine($"Order type is {type}");
                         string strOrderName = (jsonObj["order_id"] ?? "").ToString();
-
                         TbOrder tbOrder = _shopifyService.GetOrderInfo(strOrderName);
 
                         if (tbOrder != null)
                         {
+                            if (type == "refund") {
+                                ViewBag.replyMsg = $"Order(Id: {order_id}) is refunded.";
+                            } else if ( type == "cancel" )
+                            {
+                                ViewBag.replyMsg = $"Order(Id: {order_id} is canceled)";
+                            }  else {
+                                ViewBag.replyMsg = $"What do you want with your order(Id: {order_id})";
+                            }  
+
                             try
                             {
                                 string orderDetail = await _shopifyService.GetOrderInfoRequest(tbOrder.or_id);
@@ -164,6 +165,9 @@ namespace GoogleLogin.Controllers
                                 Console.WriteLine("*****************PKH: failed getting order data from server***************");
                             }
                             
+                        }
+                        else {
+                            ViewBag.replyMsg = $"Order(Id: {order_id}) is invalid. Please give us a valid order Id.";
                         }
                     }
                 }
@@ -257,8 +261,37 @@ namespace GoogleLogin.Controllers
             return PartialView("View_OrderDetail");
         }
 
+        [HttpPost("email/sendEmail")]
+		public async Task<IActionResult> SendEmailAsync(string strTo, string strFrom, string strBody)
+		{
+			try
+			{
+				string accessToken = _emailTokenService.GetAccessTokenFromMailName(strFrom);
+                Console.WriteLine("strTo : " + strTo);
+                Console.WriteLine("strFrom : " + strFrom);
+                Console.WriteLine("strBody : " + strBody);
+                Console.WriteLine($"access tokoken is {accessToken}");
+                bool isResult = false;
+
+                if (!string.IsNullOrEmpty(accessToken)) {
+                    isResult = await _emailService.SendEmailAsync(strTo, strFrom, accessToken, "request", strBody);
+                }
+
+				if (isResult)
+				{
+					return Json(new { status = 1 });
+				}
+				return Json(new { status = 0 });
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine(ex.Message);
+			}
+			return Json(new { status = 0 });
+		}
+
         [HttpPost]
-        public async Task<IActionResult> requestShopify(long orderId, int type, long em_idx)
+        public async Task<IActionResult> RequestShopify(long orderId, int type, long em_idx)
         {
             var user = await _userManager.GetUserAsync(User);
             try
@@ -275,8 +308,6 @@ namespace GoogleLogin.Controllers
                         {
                             await _emailService.ChangeState(em_idx, 3);
                         }
-
-                        
                     }
 
                     return Json(new { status = isResult? 201: -201, order = p });

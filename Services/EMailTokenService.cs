@@ -62,7 +62,7 @@ namespace GoogleLogin.Services
 
                 if ( _item != null )
                 {
-                    accessToken = _item.accessToken;
+                    accessToken = _item.accessToken ?? string.Empty;
                 }
             }
 

@@ -13,7 +13,7 @@ namespace GoogleLogin.Migrations
 {
     [DbContext(typeof(AppIdentityDbContext))]
     [Migration("20250109005835_modifymailaccount")]
-    partial class modifymailaccount
+    partial class ModifyMailAccount
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

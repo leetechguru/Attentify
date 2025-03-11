@@ -67,7 +67,7 @@ namespace GoogleLogin.Controllers
                 {
                     new SessionLineItemOptions
                     {
-                        Price = plan.priceId,
+                        Price = plan?.priceId,
                         Quantity = 1,
                     },
                 },
