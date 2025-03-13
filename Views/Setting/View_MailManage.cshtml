@@ -80,10 +80,10 @@ catch (Exception ex)
             console.log(data.status);
             if (data.status == 201) {
                 loadMailList();
-                OnOpenToast("success", "Mail Account has deleted!");
+                OnOpenToast("success", data.message);
             } else {
                 console.log("Delete failed");
-                OnOpenToast("error", "Deleting Account has failed!");
+                OnOpenToast("error", data.message);
             }
         }, 'json')
     }
@@ -93,16 +93,15 @@ catch (Exception ex)
             console.log(data.status);
             if (data.status == 201) {
                 loadMailList();
-                OnOpenToast("success", "Mail account has updated!");
+                OnOpenToast("success", data.message);
             } else {
                 console.log("Delete failed");
-                OnOpenToast("error", "Updating Account has failed!");
+                OnOpenToast("error", data.message);
             }
         }, 'json')
     };
 
     function handleOpenModal() { 
-
         $.post('/setting/RegisterNewMail', {  }, function (data) {
             if (data.status == 201) {
                 window.location.href = data.authorizationUrl;

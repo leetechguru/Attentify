@@ -54,6 +54,37 @@ namespace GoogleLogin.Controllers
         }
 
         [HttpPost]
+        public IActionResult UpdateMail(string strMailIdx)
+        {
+            if (string.IsNullOrWhiteSpace(strMailIdx))
+            {
+                return Json(new { status = -201, message = "Invalid mail index" });
+            }
+
+            using (var scope = _serviceScopeFactory.CreateScope())  // Create a new scope
+            {
+                var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
+
+                if (!int.TryParse(strMailIdx, out int mailIdx))
+                {
+                    return Json(new { status = -201, message = "Mail index must be a valid number" });
+                }
+
+                var pMailAccount = _dbContext.TbMailAccount.FirstOrDefault(e => e.id == mailIdx);
+
+                if (pMailAccount == null)
+                {
+                    return Json(new { status = -201, message = "Record not found" });
+                }
+
+                //_dbContext.TbMailAccount.Remove(pMailAccount);
+                //_dbContext.SaveChanges();
+
+                return Json(new { status = 201, message = "Record update successfully" });
+            }
+        }
+
+        [HttpPost]
         public IActionResult DeleteMail(string strMailIdx)
         {
             if (string.IsNullOrWhiteSpace(strMailIdx))
