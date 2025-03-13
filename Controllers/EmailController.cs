@@ -283,15 +283,15 @@ namespace GoogleLogin.Controllers
 
 				if (isResult)
 				{
-					return Json(new { status = 1 });
+					return Json(new { status = 200, message = "Sent email successufully"});
 				}
-				return Json(new { status = 0 });
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine(ex.Message);
+                Console.WriteLine($"Send Email Exception {ex.Message}");
+				_logger.LogError(ex.Message);
 			}
-			return Json(new { status = 0 });
+			return Json(new { status = -200, message = "Sending email is failed!" });
 		}
 
         [HttpPost]

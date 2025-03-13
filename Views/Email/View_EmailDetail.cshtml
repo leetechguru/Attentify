@@ -183,9 +183,14 @@
                     console.log("FromEmail : " + strFromEmail);
                     console.log("Body : " + strBody);
                     $.post('/email/sendEmail', { strTo: strToEmail, strFrom : strFromEmail, strBody: strBody }, function (data) {
-                        console.log(data);
+                        if ( data.status == 200) {
+                            OnOpenToast("success", data.message);
+                        } else {
+                            OnOpenToast("error", data.message);
+                        }
                     }, 'json')
                 })
+
                 email.init();
             });
 

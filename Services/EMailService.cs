@@ -727,11 +727,13 @@ namespace GoogleLogin.Services
             {
                 var result = await service.Users.Messages.Send(message, "me").ExecuteAsync();
                 Console.WriteLine("Email sent successfully!");
+                _logger.LogInformation("Email sent successfully!");
                 return true;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"An error occurred: {ex.Message}");
+                _logger.LogError($"An error occurred: {ex.Message}");
                 return false;
             }
         }
