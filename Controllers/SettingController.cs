@@ -9,34 +9,38 @@ using ShopifyService = GoogleLogin.Services.ShopifyService;
 using GoogleLogin.Services;
 using GoogleLogin.Models;
 using System.Data.Entity;
+using System.Threading.Tasks;
 
 namespace GoogleLogin.Controllers
 {
     [Authorize]
     public class SettingController : Controller
     {
-        private readonly IServiceScopeFactory _serviceScopeFactory;
-        private readonly ILogger<HomeController> _logger;
-        private SignInManager<AppUser> _signInManager;
-        private UserManager<AppUser> _userManager;
-        private readonly EMailService _emailService;
-        private readonly IConfiguration _configuration;
+        private readonly IServiceScopeFactory       _serviceScopeFactory;
+        private readonly ILogger<HomeController>    _logger;
+        private SignInManager<AppUser>              _signInManager;
+        private UserManager<AppUser>                _userManager;
+        private readonly EMailService               _emailService;
+        private readonly EMailTokenService          _emailTokenService;
+        private readonly IConfiguration             _configuration;
         public static readonly string[] Scopes = { "email", "profile", "https://www.googleapis.com/auth/gmail.modify" };
 
         public SettingController(
-            SignInManager<AppUser> signinMgr,
-            UserManager<AppUser> userMgr,
-            IServiceScopeFactory serviceScopeFactory,
-            EMailService service,
+            SignInManager<AppUser>  signinMgr,
+            UserManager<AppUser>    userMgr,
+            IServiceScopeFactory    serviceScopeFactory,
+            EMailService            emailService,
+            EMailTokenService       emailTokenService,
             ILogger<HomeController> logger,
-            IConfiguration configuration)
+            IConfiguration          configuration)
         {
-            _serviceScopeFactory = serviceScopeFactory;
-            _signInManager = signinMgr;
-            _userManager = userMgr;
-            _logger = logger;
-            _emailService = service;
-            _configuration = configuration;
+            _serviceScopeFactory    = serviceScopeFactory;
+            _signInManager          = signinMgr;
+            _userManager            = userMgr;
+            _logger                 = logger;
+            _emailService           = emailService;
+            _emailTokenService      = emailTokenService;
+            _configuration          = configuration;
         }
 
         [HttpGet]
@@ -54,7 +58,7 @@ namespace GoogleLogin.Controllers
         }
 
         [HttpPost]
-        public IActionResult UpdateMail(string strMailIdx)
+        public async Task<IActionResult> UpdateMail(string strMailIdx)
         {
             if (string.IsNullOrWhiteSpace(strMailIdx))
             {
@@ -70,17 +74,13 @@ namespace GoogleLogin.Controllers
                     return Json(new { status = -201, message = "Mail index must be a valid number" });
                 }
 
-                var pMailAccount = _dbContext.TbMailAccount.FirstOrDefault(e => e.id == mailIdx);
+                bool bRes = await _emailTokenService.RefreshTokenAync(mailIdx);
 
-                if (pMailAccount == null)
-                {
-                    return Json(new { status = -201, message = "Record not found" });
+                if ( bRes ) {
+                    return Json(new { status = 201, message = "Record update successfully" });
                 }
 
-                //_dbContext.TbMailAccount.Remove(pMailAccount);
-                //_dbContext.SaveChanges();
-
-                return Json(new { status = 201, message = "Record update successfully" });
+                return Json(new { status = -201, message = "Record update failed" });
             }
         }
 

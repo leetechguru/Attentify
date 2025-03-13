@@ -139,6 +139,57 @@ namespace GoogleLogin.Services
             }
         }
 
+        public async Task<bool> RefreshTokenAync(int nMailIdx)
+        {
+            string refreshToken = string.Empty;
+
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
+                var _item = _dbContext.TbMailAccount
+                    .Where(item => item.id == nMailIdx )
+                    .FirstOrDefault();
+
+                if (_item != null)
+                {
+                    refreshToken    = _item.refreshToken;
+
+                    if (string.IsNullOrEmpty(refreshToken)) return false;
+
+                    var flow = new GoogleAuthorizationCodeFlow(
+                        new GoogleAuthorizationCodeFlow.Initializer
+                        {
+                            ClientSecrets = new ClientSecrets
+                            {
+                                ClientId        = _configuration["clientId"],
+                                ClientSecret    = _configuration["clientSecret"]
+                            },
+                            Scopes = Scopes
+                        });
+
+                    try
+                    {  
+                        TokenResponse tokenResponse = await flow.RefreshTokenAsync(
+                            userId: string.Empty,
+                            refreshToken: refreshToken,
+                            CancellationToken.None);
+
+                        _item.accessToken = tokenResponse.AccessToken;
+                        _item.refreshToken = refreshToken;
+                        _dbContext.SaveChanges();
+
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error refreshing token: {ex.Message}");
+                        return false;
+                    }
+                }
+                return false;
+            }
+        }
+
         public async Task<string> GetGmailNameAsync(string accessToken)
         {
             string UserInfoEndpoint = "https://www.googleapis.com/oauth2/v3/userinfo";
