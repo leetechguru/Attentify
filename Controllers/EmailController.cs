@@ -94,7 +94,7 @@ namespace GoogleLogin.Controllers
             if (strMailEncodeBody != "")
             {
                 strRespond = await _llmService.GetResponseLLM(strMailEncodeBody);
-                Console.WriteLine(strRespond);
+                _logger.LogInformation(strRespond);
                 if (strRespond != string.Empty)
                 {
                     JObject jsonObj = JObject.Parse(strRespond);
@@ -108,12 +108,14 @@ namespace GoogleLogin.Controllers
                     } 
                     if (status == 1)
                     {
-                        Console.WriteLine($"Order type is {type}");
+                        _logger.LogInformation($"Order type is {type}");
                         string strOrderName = (jsonObj["order_id"] ?? "").ToString();
                         TbOrder tbOrder = _shopifyService.GetOrderInfo(strOrderName);
-
+                        _logger.LogInformation($" logged 1 step");
                         if (tbOrder != null)
                         {
+                            _logger.LogInformation($" logged 2 step");
+                            _logger.LogInformation($"Order type is {type}");
                             if (type == "refund") {
                                 ViewBag.replyMsg = $"Order(Id: {order_id}) is refunded.";
                             } else if ( type == "cancel" )
@@ -125,8 +127,10 @@ namespace GoogleLogin.Controllers
 
                             try
                             {
+                                _logger.LogInformation($"Oder id from tbOrder {tbOrder.or_id}");
                                 string orderDetail = await _shopifyService.GetOrderInfoRequest(tbOrder.or_id);
-
+                                _logger.LogInformation("Oder detail ....");
+                                _logger.LogInformation(orderDetail);
                                 var jsonOrder = JsonDocument.Parse(orderDetail).RootElement.GetProperty("order");
                                 var jsonCustomer = jsonOrder.GetProperty("customer");
                                 var jsonAddress = jsonCustomer.GetProperty("default_address");
@@ -138,7 +142,7 @@ namespace GoogleLogin.Controllers
                                 ViewBag.closed_at = jsonOrder.GetProperty("closed_at");
                                 ViewBag.lineName = jsonOrder.GetProperty("line_items")[0].GetProperty("name");
                                 ViewBag.deliveryMethod = jsonOrder.GetProperty("shipping_lines")[0].GetProperty("code");
-                                ViewBag.sku = jsonOrder.GetProperty("fulfillments")[0].GetProperty("line_items")[0].GetProperty("sku");
+                                ViewBag.sku = jsonOrder.GetProperty("line_items")[0].GetProperty("sku");
                                 ViewBag.total_line_items_price = jsonOrder.GetProperty("total_line_items_price");
                                 ViewBag.total_shipping_price_amount =
                                                 jsonOrder.GetProperty("total_shipping_price_set")
@@ -146,7 +150,7 @@ namespace GoogleLogin.Controllers
                                                         .GetProperty("amount");
                                 ViewBag.current_total_price = jsonOrder.GetProperty("current_total_price");
                                 ViewBag.current_total_discounts = jsonOrder.GetProperty("current_total_discounts");
-
+                                _logger.LogInformation($"order_id is {ViewBag.orderId}");
                                 Customer orderCustomerInfo = new Customer
                                 {
                                     FirstName = jsonCustomer.GetProperty("first_name").ToString(),
@@ -160,9 +164,9 @@ namespace GoogleLogin.Controllers
                                 };
 
                                 ViewBag.orderCustomerInfo = orderCustomerInfo;
-                            } catch
+                            } catch(Exception ex)
                             {
-                                Console.WriteLine("*****************PKH: failed getting order data from server***************");
+                                _logger.LogInformation(ex.Message);
                             }
                             
                         }
@@ -267,10 +271,10 @@ namespace GoogleLogin.Controllers
 			try
 			{
 				string accessToken = _emailTokenService.GetAccessTokenFromMailName(strFrom);
-                Console.WriteLine("strTo : " + strTo);
-                Console.WriteLine("strFrom : " + strFrom);
-                Console.WriteLine("strBody : " + strBody);
-                Console.WriteLine($"access tokoken is {accessToken}");
+                _logger.LogInformation("strTo : " + strTo);
+                _logger.LogInformation("strFrom : " + strFrom);
+                _logger.LogInformation("strBody : " + strBody);
+                _logger.LogInformation($"access tokoken is {accessToken}");
                 bool isResult = false;
 
                 if (!string.IsNullOrEmpty(accessToken)) {

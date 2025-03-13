@@ -12,6 +12,7 @@ namespace GoogleLogin.Controllers
 	{
 		private readonly string                             _clientId;
 		private readonly string                             _clientSecret;
+        private readonly string                             _installlink;
 		private readonly string                             _domain;
         private readonly UserManager<AppUser>               _userManager;
 		private readonly ShopifyService                     _shopifyService;
@@ -28,12 +29,8 @@ namespace GoogleLogin.Controllers
         {
             _clientId               = configuration["Shopify:clientId"]  ?? "";
             _clientSecret           = configuration["Shopify:ApiSecret"] ?? "";
+            _installlink            = configuration["Shopify:installlink"] ?? "";
             _domain                 = configuration["Domain"] ?? "";
-#if DEBUG
-            _clientId               = configuration["shopify_test:clientId"] ?? "";
-            _clientSecret           = configuration["shopify_test:ApiSecret"] ?? "";
-            _domain                 = configuration["Domain"] ?? "";
-#endif
             _userManager            = userMgr;
             _shopifyService         = shopifyService;
             _emailService           = emailService;
@@ -106,9 +103,8 @@ namespace GoogleLogin.Controllers
             {
                 shop = "punkcaseca.myshopify.com";
             }
-            //var authUrl = pHelper.BuildAuthorizationUrl(shop, $"{_domain}shopify/install");
-            //var authUrl = "https://admin.shopify.com/oauth/install_custom_app?client_id=80dc7ad1a7ce6a47857f7f85479d3c23&no_redirect=true&signature=eyJleHBpcmVzX2F0IjoxNzM3MzkxNTI2LCJwZXJtYW5lbnRfZG9tYWluIjoicHVua2Nhc2UubXlzaG9waWZ5LmNvbSIsImNsaWVudF9pZCI6IjgwZGM3YWQxYTdjZTZhNDc4NTdmN2Y4NTQ3OWQzYzIzIiwicHVycG9zZSI6ImN1c3RvbV9hcHAiLCJtZXJjaGFudF9vcmdhbml6YXRpb25faWQiOjEwNjkzN30%3D--0d6519ffa58c4afd91448f237ac16cf458eb37f8";
-            var authUrl = "https://admin.shopify.com/oauth/install_custom_app?client_id=6616d5ec22eae6be7aad9309f17365cf&no_redirect=true&signature=eyJleHBpcmVzX2F0IjoxNzMyODM5NDA1LCJwZXJtYW5lbnRfZG9tYWluIjoicHVua2Nhc2VjYS5teXNob3BpZnkuY29tIiwiY2xpZW50X2lkIjoiNjYxNmQ1ZWMyMmVhZTZiZTdhYWQ5MzA5ZjE3MzY1Y2YiLCJwdXJwb3NlIjoiY3VzdG9tX2FwcCIsIm1lcmNoYW50X29yZ2FuaXphdGlvbl9pZCI6MTA2OTM3fQ%3D%3D--8a24ef4a46224af218252c17c0af411d6cb9556f";
+           
+            var authUrl = _installlink;
             return Json(new { status = 201, authorizationUrl = authUrl });
         }
 
@@ -119,9 +115,10 @@ namespace GoogleLogin.Controllers
             var accessToken = await authHelper.ExchangeCodeForAccessToken(shop, code);
 
             string userId = _userManager.GetUserId(HttpContext.User) ?? "";
-          
+           _logger.LogInformation("Shopify callbacked called before Save");
             await _shopifyService.SaveAccessToken(userId, shop, accessToken);
             await _shopifyService.RegisterHookEntry(shop, accessToken);
+             _logger.LogInformation("Shopify callbacked called after Save");
             return RedirectToAction("shopifymanage", "setting");
         }
 
@@ -192,15 +189,19 @@ namespace GoogleLogin.Controllers
         }
 
         
-
+        [HttpGet("shopify/orderrefresh")]
         public async Task<IActionResult> RefreshOrder(string strStore)
         {
-            string strToken = await _shopifyService.GetAccessTokenByStore(strStore);
+            Console.WriteLine(strStore);
+            //string strToken = await _shopifyService.GetAccessTokenByStore(strStore);
+            string strToken = "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";
             if(string.IsNullOrEmpty(strToken))
             {
                 return await Order(strStore);
             }
 
+            Console.WriteLine(strStore);
+            Console.WriteLine(strToken);
             await _shopifyService.OrderRequest(strStore, strToken);
             return await Order(strStore);
         }
@@ -225,14 +226,15 @@ namespace GoogleLogin.Controllers
                 }
 
                 Console.WriteLine($"Webhook received: {requestBody}");
-                _logger.LogInformation($"Webhook create request : {requestBody}");
+                _logger.LogInformation($"Webhook create request 1: {requestBody}");
                 await _shopifyService.SaveNewOrder(requestBody);
+                _logger.LogInformation($"Webhook create request 2: {requestBody}");
                 return Ok();
             }
             catch (Exception ex)
             {
                 // Log or handle errors
-                Console.WriteLine($"Error processing webhook: {ex.Message}");
+                _logger.LogInformation($"Error processing webhook: {ex.Message}");
                 return StatusCode(500, "Internal Server Error");
             }
         }

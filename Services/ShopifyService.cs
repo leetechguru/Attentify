@@ -385,23 +385,27 @@ namespace GoogleLogin.Services
             {
                 var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
                 TbOrder p = await _dbContext.TbOrders.Where(e => e.or_id == orderId).FirstOrDefaultAsync();
+                
                 if (p == null) return null;
                 TbShopifyToken _p = await _dbContext.TbTokens.Where(e => e.ShopDomain == p.or_owner).FirstOrDefaultAsync();
                 if (_p == null) return null;
                 string strShop = _p.ShopDomain;
-
-                string urlOrders = $"https://{p.or_owner}/admin/api/{_apiVersion}/orders/{orderId}.json";
-
+                
+                string urlOrders = $"https://{strShop}/admin/api/{_apiVersion}/orders/{orderId}.json";
+                _logger.LogInformation(urlOrders);
                 using (HttpClient client = new HttpClient())
                 {
                     client.DefaultRequestHeaders.Add("X-Shopify-Access-Token", _p.AccessToken);
-
+                    //_logger.LogInformation(_p.AccessToken);
                     try
                     {
                         HttpResponseMessage response = await client.GetAsync(urlOrders);
-
+                        string responseData1 = await response.Content.ReadAsStringAsync();
+                        _logger.LogInformation(responseData1);
+                        _logger.LogInformation("shopify step 1 ....");
                         if (response.IsSuccessStatusCode)
                         {
+                            _logger.LogInformation("shopify step 2 ....");
                             string responseData = await response.Content.ReadAsStringAsync();
                             return responseData;
                         }
@@ -423,15 +427,18 @@ namespace GoogleLogin.Services
             using (HttpClient client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Add("X-Shopify-Access-Token", strToken);
-
+                _logger.LogInformation("Order Request is preparing");
+                _logger.LogInformation($"Order Request url is {urlOrders}");
                 try
                 {
                     HttpResponseMessage response = await client.GetAsync(urlOrders);
-
+                    _logger.LogInformation(await response.Content.ReadAsStringAsync());
                     if (response.IsSuccessStatusCode)
                     {
+                        Console.WriteLine("OK");
                         string responseData = await response.Content.ReadAsStringAsync();
                         var orders = JsonDocument.Parse(responseData).RootElement.GetProperty("orders");
+                        Console.WriteLine(orders);
                         using (var scope = _serviceScopeFactory.CreateScope()) 
                         {
                             var _dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
@@ -508,6 +515,7 @@ namespace GoogleLogin.Services
                                     };
 
                                     TbOrder _pOrigin = await _dbContext.TbOrders.Where(e => e.or_id == pOrder.or_id).FirstOrDefaultAsync();
+                                    Console.WriteLine(or_id);
                                     if (_pOrigin == null)
                                     {
                                         _dbContext.TbOrders.Add(pOrder);
@@ -522,7 +530,8 @@ namespace GoogleLogin.Services
                                         _pOrigin.or_phone = or_phone;
                                         _pOrigin.or_customer_name = or_customer_name;
                                     }
-                                    await _dbContext.SaveChangesAsync();
+                                    int nRes = await _dbContext.SaveChangesAsync();
+                                    Console.WriteLine(nRes);
                                 }catch(Exception _ex) {
                                     Console.WriteLine("shopifyservice/orderrequest " + _ex.Message);
                                     _logger.LogError(_ex, _ex.Message);
@@ -585,6 +594,7 @@ namespace GoogleLogin.Services
         
         public async Task RegisterHookEntry(string shopUrl, string accessToken)
         {
+            _logger.LogInformation("RegisterHookEntry called.");
             Dictionary<string, string> mapHooks = new Dictionary<string, string>()
             {
                 { "orders/create", $"{_domain}shopify/order_create" },
@@ -597,8 +607,9 @@ namespace GoogleLogin.Services
             };
             foreach(var key in mapHooks)
             {
-                if (string.IsNullOrEmpty(key.Value) || string.IsNullOrEmpty(key.Value)) continue;
+                if (string.IsNullOrEmpty(key.Value)) continue;
                 await RegisterWebhookAsync(shopUrl, accessToken, key.Key, key.Value);
+                _logger.LogInformation("RegisterWebhookAsync called.");
             }
             
         }
@@ -606,7 +617,7 @@ namespace GoogleLogin.Services
         private async Task RegisterWebhookAsync(string shopUrl, string accessToken, string topic, string callbackUrl)
         {
             string urlOrders = $"https://{shopUrl}/admin/api/{_apiVersion}/webhooks.json";
-
+            _logger.LogInformation(urlOrders);
             var webhookPayload = new
             {
                 webhook = new
@@ -619,16 +630,16 @@ namespace GoogleLogin.Services
 
             var jsonPayload = JsonSerializer.Serialize(webhookPayload);
             var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
-
+            _logger.LogInformation(topic);
+            _logger.LogInformation(callbackUrl);
             using (HttpClient _httpClient = new HttpClient())
             {
                 _httpClient.DefaultRequestHeaders.Clear();
                 _httpClient.DefaultRequestHeaders.Add("X-Shopify-Access-Token", accessToken);
-
+                _logger.LogInformation($"Webhook create accest toke ins {urlOrders}");
                 try
                 {
                     var response = await _httpClient.PostAsync(urlOrders, content);
-
                     if (response.IsSuccessStatusCode)
                     {
                         Console.WriteLine("Webhook registered successfully.");
@@ -637,7 +648,7 @@ namespace GoogleLogin.Services
                     else
                     {
                         var errorResponse = await response.Content.ReadAsStringAsync();
-                        Console.WriteLine($"Failed to register webhook: {errorResponse}");
+                        _logger.LogInformation($"Failed to register webhook: {errorResponse}");
                     }
                 }catch(Exception ex)
                 {
@@ -795,11 +806,12 @@ namespace GoogleLogin.Services
                             or_customer_name = or_customer_name,
                             or_phone = or_phone,
                         };
-
+                        _logger.LogInformation($"or_id is {or_id}");
                         TbOrder _pOrigin = await _dbContext.TbOrders.Where(e => e.or_id == pOrder.or_id).FirstOrDefaultAsync();
                         if (_pOrigin == null)
                         {
                             _dbContext.TbOrders.Add(pOrder);
+                            _logger.LogInformation("new order get added!");
                         }
                         else
                         {
@@ -810,9 +822,11 @@ namespace GoogleLogin.Services
                             _pOrigin.or_payment_status = or_payment_status;
                             _pOrigin.or_phone = or_phone;
                             _pOrigin.or_customer_name = or_customer_name;
-                        }
-                        await _dbContext.SaveChangesAsync();
 
+                            _logger.LogInformation("order get changed!");
+                        }
+                        int nRes = await _dbContext.SaveChangesAsync();
+                        _logger.LogInformation($"SaveChange result is {nRes}");
                         await SendStoreInfo();						
 					}
                     catch (Exception _ex)
