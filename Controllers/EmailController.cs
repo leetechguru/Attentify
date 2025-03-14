@@ -69,6 +69,40 @@ namespace GoogleLogin.Controllers
             return View();
         }
 
+        [HttpPost]
+        public async Task<IActionResult> GetMailList(string strEmail, int nPageIndex = 0, int nEmailState = 0)
+        {
+            if (strEmail != "All")
+            {
+                string accessToken = _emailTokenService.GetAccessTokenFromMailName(strEmail);
+
+                bool bTokenExpired = await _emailTokenService.IsAccessTokenExpired(accessToken);
+
+                if ( !bTokenExpired ) {
+                    Console.WriteLine("Gmail Token is not expired.");
+                    _logger.LogInformation("Gmail Token is not expired.");
+                    _emailService.UpdateMailDatabaseAsync(accessToken, strEmail, 10);
+                } else {
+                    Console.WriteLine("Gmail Token is expired.");
+                    _logger.LogWarning("Gmail Token is expired.");
+                }
+            }
+
+            int nMailCnt = _emailService.GetMailCnt(strEmail, nEmailState);
+            var emailList = _emailService.GetMailList(strEmail, nPageIndex, nCntPerPage, nEmailState);
+
+            List<TbEmailsExt> emailExtList = new List<TbEmailsExt>();
+            foreach (var email in emailList)
+            {
+                emailExtList.Add(new TbEmailsExt(email));
+            }
+
+            ViewBag.Emails          = emailExtList;
+            ViewBag.nMailTotalCnt   = nMailCnt;
+
+            return PartialView("View_EmailList");
+        }
+
         [HttpGet("email/detail")]
         public async Task<IActionResult> EmailDetail(string id, string strToEmail)
         {
@@ -178,30 +212,6 @@ namespace GoogleLogin.Controllers
             }
            
             return View("View_EmailDetail");
-        }
-
-        [HttpPost]
-        public IActionResult GetMailList(string strEmail, int nPageIndex = 0, int nEmailState = 0)
-        {
-            if (strEmail != "All")
-            {
-                string accessToken = _emailTokenService.GetAccessTokenFromMailName(strEmail);
-                _emailService.UpdateMailDatabaseAsync(accessToken, strEmail, 10);
-            }
-
-            int nMailCnt = _emailService.GetMailCnt(strEmail, nEmailState);
-            var emailList = _emailService.GetMailList(strEmail, nPageIndex, nCntPerPage, nEmailState);
-
-            List<TbEmailsExt> emailExtList = new List<TbEmailsExt>();
-            foreach (var email in emailList)
-            {
-                emailExtList.Add(new TbEmailsExt(email));
-            }
-
-            ViewBag.Emails          = emailExtList;
-            ViewBag.nMailTotalCnt   = nMailCnt;
-
-            return PartialView("View_EmailList");
         }
 
         [HttpPost]
