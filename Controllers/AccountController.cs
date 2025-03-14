@@ -166,21 +166,6 @@ namespace GoogleLogin.Controllers
 
             if (!string.IsNullOrEmpty(access_token))
             {
-                new Thread(() =>
-                {
-                    while (true)
-                    {
-                        List<TbMailAccount> mailAccountList = _emailTokenService.GetMailAccountList(_userManager.GetUserId(HttpContext.User) ?? "");
-                        foreach (var item in mailAccountList)
-                        {
-                            
-                            _emailTokenService.RefreshTokenAync(item.mail, item.userId ?? string.Empty);
-                        }
-
-                        Thread.Sleep(TimeSpan.FromHours(1));
-                    }
-                }).Start();
-
                 _emailService.UpdateMailDatabaseAsync(access_token, info.Principal.FindFirst(ClaimTypes.Email)?.Value ?? "", 500);
                 _shopifyService.OrderRequest();
 

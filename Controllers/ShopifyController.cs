@@ -192,16 +192,12 @@ namespace GoogleLogin.Controllers
         [HttpGet("shopify/orderrefresh")]
         public async Task<IActionResult> RefreshOrder(string strStore)
         {
-            Console.WriteLine(strStore);
-            //string strToken = await _shopifyService.GetAccessTokenByStore(strStore);
-            string strToken = "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";
+            string strToken = await _shopifyService.GetAccessTokenByStore(strStore);
             if(string.IsNullOrEmpty(strToken))
             {
                 return await Order(strStore);
             }
 
-            Console.WriteLine(strStore);
-            Console.WriteLine(strToken);
             await _shopifyService.OrderRequest(strStore, strToken);
             return await Order(strStore);
         }
@@ -225,7 +221,6 @@ namespace GoogleLogin.Controllers
                     return Unauthorized("Invalid HMAC signature");
                 }
 
-                Console.WriteLine($"Webhook received: {requestBody}");
                 _logger.LogInformation($"Webhook create request 1: {requestBody}");
                 await _shopifyService.SaveNewOrder(requestBody);
                 _logger.LogInformation($"Webhook create request 2: {requestBody}");
@@ -257,7 +252,6 @@ namespace GoogleLogin.Controllers
                     return Unauthorized("Invalid HMAC signature");
                 }
 
-                Console.WriteLine($"Webhook received: {requestBody}");
                 _logger.LogInformation($"Webhook cancelled request : {requestBody}");
                 await _shopifyService.SaveNewOrder(requestBody);
                 return Ok();
@@ -265,7 +259,7 @@ namespace GoogleLogin.Controllers
             catch (Exception ex)
             {
                 // Log or handle errors
-                Console.WriteLine($"Error processing webhook: {ex.Message}");
+                _logger.LogError($"Error processing webhook: {ex.Message}");
                 return StatusCode(500, "Internal Server Error");
             }
         }
