@@ -79,12 +79,19 @@ namespace GoogleLogin.Controllers
                 bool bTokenExpired = await _emailTokenService.IsAccessTokenExpired(accessToken);
 
                 if ( !bTokenExpired ) {
-                    Console.WriteLine("Gmail Token is not expired.");
                     _logger.LogInformation("Gmail Token is not expired.");
                     _emailService.UpdateMailDatabaseAsync(accessToken, strEmail, 10);
                 } else {
-                    Console.WriteLine("Gmail Token is expired.");
                     _logger.LogWarning("Gmail Token is expired.");
+                    AppUser? user = await _userManager.GetUserAsync(HttpContext.User);
+                    string userId = user?.Id ?? string.Empty;
+                    bool bRes = await _emailTokenService.RefreshTokenAync(strEmail, userId);
+
+                    if ( bRes ) {
+                        _logger.LogInformation("Gmail Token has updated.");
+                    } else {
+                        _logger.LogWarning("Gmail Token updating has failed.");
+                    }
                 }
             }
 

@@ -88,7 +88,7 @@ namespace GoogleLogin.Services
             return refreshToken;
         }
 
-        public async void RefreshTokenAync(string strMailName, string strUserId)
+        public async Task<bool> RefreshTokenAync(string strMailName, string strUserId)
         {
             string refreshToken = string.Empty;
 
@@ -103,7 +103,7 @@ namespace GoogleLogin.Services
                 {
                     refreshToken    = _item.refreshToken;
 
-                    if (string.IsNullOrEmpty(refreshToken)) return;
+                    if (string.IsNullOrEmpty(refreshToken)) return false;
 
                     var flow = new GoogleAuthorizationCodeFlow(
                         new GoogleAuthorizationCodeFlow.Initializer
@@ -127,15 +127,15 @@ namespace GoogleLogin.Services
                         _item.refreshToken = refreshToken;
                         _dbContext.SaveChanges();
 
-                        return;
+                        return true;
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Error refreshing token: {ex.Message}");
-                        return;
+                        _logger.LogWarning($"Error refreshing token: {ex.Message}");
+                        return false;
                     }
                 }
-                return;
+                return false;
             }
         }
 
