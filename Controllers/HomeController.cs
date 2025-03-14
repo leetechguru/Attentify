@@ -25,6 +25,7 @@ namespace GoogleLogin.Controllers
         private readonly StripeService              _stripeService;
         private readonly IConfiguration             _configuration;
         private readonly IServiceScopeFactory       _serviceScopeFactory;
+        private readonly string                     _domain;
         private readonly string                     _phoneNumber;
         public static readonly string[]             Scopes = { "email", "profile", "https://www.googleapis.com/auth/gmail.modify" };
         private const int nCntPerPage = 20;
@@ -51,6 +52,7 @@ namespace GoogleLogin.Controllers
             _configuration = configuration;
             _serviceScopeFactory = serviceScopeFactory;
             _phoneNumber = configuration["Twilio:PhoneNumber"] ?? "";
+             _domain                 = configuration["Domain"] ?? string.Empty;
             _llmService = llmService;
             _stripeService = stripeService;
         }
@@ -69,6 +71,11 @@ namespace GoogleLogin.Controllers
             }
             ViewBag.menu = "home";
             return View();
+        }
+
+        [HttpGet("/OAuthTokenResponse")]
+        public IActionResult OAuthTokenResponse() {
+            return Ok();
         }
 
         [HttpGet("/OAuth2Callback")]
@@ -94,10 +101,10 @@ namespace GoogleLogin.Controllers
                 Scopes = Scopes
             });
 
-            string redirectUri = $"{HttpContext.Session.GetString("HostUrl")}/OAuth2Callback";
-
+            string redirectUri = $"{_domain}OAuth2Callback";
+            _logger.LogInformation($"OAuth token response redirectUri is {redirectUri}");
             var tokenResponse = await flow.ExchangeCodeForTokenAsync(
-                userId: "user-id",
+                userId: _userManager.GetUserId(HttpContext.User) ?? "anonymous-user",
                 code: HttpUtility.UrlDecode(code),
                 redirectUri: redirectUri,
                 taskCancellationToken: CancellationToken.None
