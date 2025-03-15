@@ -147,24 +147,21 @@ namespace GoogleLogin.Services
 
 					if (cancelResponse.IsSuccessStatusCode)
 					{
-						string cancelData = await cancelResponse.Content.ReadAsStringAsync();
-						Console.WriteLine("Order canceled successfully:");
-						_logger.LogInformation("Order canceled successfully:" + cancelData);
+						string responseDetail = await cancelResponse.Content.ReadAsStringAsync();
+						_logger.LogInformation("Order canceled successfully:" + responseDetail);
 						return true;
 					}
 					else
 					{
 						string cancelError = await cancelResponse.Content.ReadAsStringAsync();
-						Console.WriteLine($"Error canceling order: {cancelResponse.StatusCode} - {cancelResponse.ReasonPhrase}");
-						Console.WriteLine($"Error Details: {cancelError}");
-						_logger.LogInformation($"Error canceling order: {cancelResponse.StatusCode} - {cancelResponse.ReasonPhrase}");
-						_logger.LogInformation($"Error Details: {cancelError}");
+						JsonDocument doc = JsonDocument.Parse(cancelError);
+                        string strError = doc.RootElement.GetProperty("error").ToString();
+						_logger.LogInformation($"Error Details: {strError}");
 						return false;
 					}
 				}
 				catch (Exception ex)
 				{
-					//Console.WriteLine($"Exception: {ex.Message}");
 					_logger.LogError(ex, ex.Message);
 				}
 				return false;
