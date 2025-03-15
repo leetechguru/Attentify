@@ -79,7 +79,7 @@ namespace GoogleLogin.Controllers
                 bool bTokenExpired = await _emailTokenService.IsAccessTokenExpired(accessToken);
 
                 if ( !bTokenExpired ) {
-                    _logger.LogInformation("Gmail Token is not expired.");
+                    _logger.LogInformation("Gmail Token is available.");
                     _emailService.UpdateMailDatabaseAsync(accessToken, strEmail, 10);
                 } else {
                     _logger.LogWarning("Gmail Token is expired.");
@@ -319,7 +319,7 @@ namespace GoogleLogin.Controllers
             {
                 if (type ==2)
                 {
-                    bool isResult = true;//await _shopifyService.CancelOrder(orderId);
+                    bool isResult = await _shopifyService.CancelOrder(orderId);
 
                     TbOrder p = await _shopifyService.OrderRequest(orderId);
 
@@ -334,7 +334,7 @@ namespace GoogleLogin.Controllers
                     return Json(new { status = isResult? 201: -201, order = p });
                 } else if (type == 3)
                 {
-                    bool isResult = true;// await _shopifyService.RefundOrder(orderId);
+                    bool isResult = await _shopifyService.RefundOrder(orderId);
                     if (isResult)
                     {
                         if(em_idx !=0)
