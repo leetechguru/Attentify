@@ -168,9 +168,101 @@ namespace GoogleLogin.Services
 			}
 		}
 
-		public async Task<bool> RefundOrder(long nOrderId)
+        public async Task<bool> RefundOrder(long nOrderId)
+        {
+            KeyValuePair<string, string> p = GetAccessTokenByOrder(nOrderId);
+            if (p.Key == null || p.Value == null) return false;
+
+            string calculateRefundUrl = $"https://{p.Value}/admin/api/{_apiVersion}/orders/{nOrderId}/refunds/calculate.json";
+            string refundUrl = $"https://{p.Value}/admin/api/{_apiVersion}/orders/{nOrderId}/refunds.json";
+            _logger.LogInformation(calculateRefundUrl);
+            _logger.LogInformation(refundUrl);
+            using (HttpClient client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Add("X-Shopify-Access-Token", p.Key);
+
+                try
+                {
+                    // First calculate the refund preview
+                    
+                    var calculateData = new
+                    {
+                        refund = new
+                        {
+                            currency = "CAD",
+                            shipping = new {
+                                amount = 1.0
+                            }
+                        }
+                    };
+
+                    var jsonCalculateData = new StringContent(
+                        JsonSerializer.Serialize(calculateData),
+                        Encoding.UTF8,
+                        "application/json"
+                    );
+
+                    HttpResponseMessage previewResponse = await client.PostAsync(calculateRefundUrl, jsonCalculateData);
+
+                    if (!previewResponse.IsSuccessStatusCode)
+                    {
+                        _logger.LogError($"Failed to calculate refund for order {nOrderId}");
+                        return false;
+                    }
+
+                    string previewContent = await previewResponse.Content.ReadAsStringAsync();
+                    var previewJson = JsonDocument.Parse(previewContent);
+                    var refundObj = previewJson.RootElement.GetProperty("refund");
+
+                    // Send refund request using the calculated refund object
+                    var refundData = new
+                    {
+                        refund = new
+                        {
+                            shipping = refundObj.GetProperty("shipping"),
+                            refund_line_items = refundObj.GetProperty("refund_line_items"),
+                            transactions = refundObj.GetProperty("transactions"),
+                            quantity = 1,
+                            notify = true,
+                            source = "external"
+                        }
+                    };
+
+                    var jsonRefundContent = new StringContent(
+                        JsonSerializer.Serialize(refundData),
+                        Encoding.UTF8,
+                        "application/json"
+                    );
+
+                    HttpResponseMessage refundResponse = await client.PostAsync(refundUrl, jsonRefundContent);
+                    if (refundResponse.IsSuccessStatusCode)
+                    {
+                        string responseDetail = await refundResponse.Content.ReadAsStringAsync();
+                        _logger.LogInformation("Order refunded successfully: " + responseDetail);
+                        return true;
+                    }
+                    else
+                    {
+                        string refundError = await refundResponse.Content.ReadAsStringAsync();
+                        _logger.LogError($"Refund failed for order {nOrderId}: {refundError}");
+                        return false;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, ex.Message);
+                }
+                return false;
+            }
+        }
+
+		/*public async Task<bool> RefundOrder(long nOrderId)
 		{
-			var service = new OrderService("https://your-shop-name.myshopify.com", "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");
+            KeyValuePair<string, string> p = GetAccessTokenByOrder(nOrderId);
+			if (p.Key == null || p.Value == null) return false;
+
+            _logger.LogInformation($"Shopfiy access key when refun is {p.Key}");
+			var service = new OrderService($"https://{p.Value}", p.Key);
 
 			try
 			{
@@ -192,7 +284,7 @@ namespace GoogleLogin.Services
 				_logger.LogError(ex, ex.Message);
 				return false;
 			}
-		}
+		}*/
 
 		static string AddPrefixIfMissing(string input)
         {
